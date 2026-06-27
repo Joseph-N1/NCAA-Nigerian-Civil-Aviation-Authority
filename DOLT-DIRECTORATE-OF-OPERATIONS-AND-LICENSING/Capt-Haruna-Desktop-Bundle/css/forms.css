@@ -1,0 +1,350 @@
+/* ============================================
+   NCAA DOLT License Management System
+   Data Entry Forms Styles — css/forms.css
+   ============================================ */
+
+/* ---------- Wizard Steps Header ---------- */
+.wizard-steps {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-8);
+  position: relative;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.wizard-steps::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-border);
+  z-index: 1;
+}
+
+.wizard-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.wizard-step-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-border-input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-normal);
+}
+
+.wizard-step-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color var(--transition-normal);
+  white-space: nowrap;
+}
+
+.wizard-step.active .wizard-step-circle {
+  background: var(--color-accent-teal);
+  border-color: var(--color-accent-teal);
+  color: var(--color-bg-primary);
+  box-shadow: var(--shadow-glow-teal);
+}
+
+.wizard-step.active .wizard-step-label {
+  color: var(--color-accent-teal);
+}
+
+.wizard-step.completed .wizard-step-circle {
+  background: var(--color-accent-teal);
+  border-color: var(--color-accent-teal);
+  color: var(--color-bg-primary);
+}
+
+.wizard-step.completed .wizard-step-circle::after {
+  content: '✓';
+  font-size: 14px;
+}
+
+.wizard-step.completed .wizard-step-circle span {
+  display: none;
+}
+
+.wizard-step.completed .wizard-step-label {
+  color: var(--color-text-primary);
+}
+
+/* ---------- Form Draft Auto-Save Tag ---------- */
+.form-draft-tag {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-12);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.form-draft-tag span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent-teal);
+  display: inline-block;
+}
+
+.form-draft-tag.saving span {
+  animation: pulse 1s infinite;
+}
+
+/* ---------- Form Groups & Fields ---------- */
+.form-section-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-teal);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4) var(--space-6);
+  margin-bottom: var(--space-4);
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4) var(--space-6);
+  margin-bottom: var(--space-4);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.form-group.required label::after {
+  content: ' *';
+  color: var(--color-danger);
+}
+
+.form-error-msg {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  margin-top: 4px;
+  display: none;
+}
+
+.form-group.has-error input,
+.form-group.has-error select,
+.form-group.has-error textarea {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.15);
+}
+
+.form-group.has-error .form-error-msg {
+  display: block;
+}
+
+/* ---------- Drag-and-Drop Photo Upload ---------- */
+.photo-upload-container {
+  display: flex;
+  gap: var(--space-5);
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.photo-dropzone {
+  width: 120px;
+  height: 150px;
+  border: 2px dashed var(--color-border-input);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: var(--color-bg-secondary);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.photo-dropzone:hover, .photo-dropzone.dragover {
+  border-color: var(--color-accent-teal);
+  background: var(--color-bg-hover);
+}
+
+.photo-dropzone-icon {
+  font-size: 24px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.photo-dropzone-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 0 var(--space-2);
+}
+
+.photo-preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ---------- Dynamic Table Arrays ---------- */
+.form-array-container {
+  margin-top: var(--space-4);
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.form-array-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.form-array-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.form-array-table {
+  width: 100%;
+  margin-bottom: var(--space-3);
+}
+
+.form-array-table th {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-align: left;
+  padding: var(--space-2);
+  font-weight: var(--font-weight-semibold);
+}
+
+.form-array-table td {
+  padding: var(--space-2);
+  vertical-align: middle;
+}
+
+.form-array-table input {
+  padding: var(--space-2) var(--space-3);
+}
+
+/* ---------- Checkbox / Radio Groups ---------- */
+.checkbox-group, .radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+  margin-top: var(--space-2);
+}
+
+.checkbox-item, .radio-item {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkbox-item input, .radio-item input {
+  display: none;
+}
+
+.checkbox-box, .radio-circle {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border-input);
+  background: var(--color-bg-secondary);
+  margin-right: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.checkbox-box {
+  border-radius: var(--radius-sm);
+}
+
+.radio-circle {
+  border-radius: 50%;
+}
+
+.checkbox-item input:checked + .checkbox-box {
+  background: var(--color-accent-teal);
+  border-color: var(--color-accent-teal);
+  box-shadow: var(--shadow-glow-teal);
+}
+
+.checkbox-item input:checked + .checkbox-box::after {
+  content: '✓';
+  font-size: 11px;
+  color: var(--color-bg-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.radio-item input:checked + .radio-circle {
+  border-color: var(--color-accent-teal);
+  box-shadow: var(--shadow-glow-teal);
+}
+
+.radio-item input:checked + .radio-circle::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--color-accent-teal);
+  border-radius: 50%;
+}
+
+.checkbox-text, .radio-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  user-select: none;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .form-grid-2, .form-grid-3 {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}

@@ -1,0 +1,134 @@
+# Root .gitignore for the NCAA aviation projects
+# Keep source code, documentation, and dependency manifests in version control.
+# Exclude local runtime artifacts, generated indexes, caches, and machine-specific files.
+
+# Python environments and virtualenvs
+**/.venv/
+**/venv/
+**/env/
+**/ENV/
+**/.venv-runtime/
+**/env.bak/
+**/venv.bak/
+
+# Python bytecode and caches
+**/__pycache__/
+**/*.py[cod]
+**/*.pyo
+**/*.pyd
+**/.pytest_cache/
+**/wheelhouse/
+**/*.whl
+**/.mypy_cache/
+**/.ruff_cache/
+**/.tox/
+**/.nox/
+**/.cache/
+**/.ipynb_checkpoints/
+**/htmlcov/
+**/.coverage
+**/.coverage.*
+**/coverage.xml
+**/nosetests.xml
+**/*.egg-info/
+**/*.egg
+**/__pypackages__/
+**/pip-wheel-metadata/
+**/build/
+**/dist/
+
+# Node / frontend local artifacts
+**/node_modules/
+**/.npm/
+**/npm-debug.log*
+**/.parcel-cache/
+**/.vite/
+
+# IDE and editor noise
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# Logs, temp files, and scratch output
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+**/tmp/
+**/temp/
+**/tmp-*.txt
+**/startup-out.log
+**/startup-err.log
+**/streamlit-debug-*.log
+
+# Generated indexes, corpora, and local data
+**/content_index/
+**/vector_index/
+**/database/
+**/instance/
+**/site/
+**/coverage/
+
+# Local databases and model artifacts
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+**/*.dump
+**/*.pkl
+**/*.pickle
+**/*.npy
+**/*.npz
+**/*.parquet
+**/*.feather
+**/*.faiss
+**/*.pt
+**/*.pth
+**/*.ckpt
+**/*.bin
+**/*.safetensors
+**/*.h5
+**/*.onnx
+**/*.model
+
+# Archives, exports, and reference media
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.gz
+*.pbix
+*.pbit
+*.xlsx
+*.xls
+*.xlsm
+*.pdf
+*.wav
+*.mp3
+*.mp4
+*.avi
+*.mov
+*.m4a
+*.flac
+
+# Secrets and local environment files
+.env
+.env.*
+!.env.example
+
+# Optional: keep local backup or transfer artifacts out of Git
+**/*backup*
+**/*Backup*
