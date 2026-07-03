@@ -102,6 +102,10 @@ const App = {
 
   async loadRecords() {
     this.records = await db.getAllRecords() || [];
+    if (this.records.length === 0 && !localStorage.getItem('doltSampleSeeded')) {
+      await this.loadSampleData();
+      localStorage.setItem('doltSampleSeeded', 'true');
+    }
     this.updateSummary();
     this.renderTable();
   },
@@ -268,11 +272,11 @@ const App = {
       {
         serialNumber: '001',
         dateReceived: '2026-06-01',
-        name: 'Engr. A. Yusuf',
-        companyAirline: 'NCAA',
-        licenseNumber: 'A-12345',
-        subject: 'License renewal',
-        licenseValidation: '2026-08-15',
+        name: 'Capt. A. Yusuf',
+        companyAirline: 'Air Peace',
+        licenseNumber: 'ATPL/2451',
+        subject: 'ATPL renewal application',
+        licenseValidation: '2026-12-15',
         dispatchedTo: 'Head-FCL',
         remark: 'Urgent review required',
         status: 'received'
@@ -281,24 +285,72 @@ const App = {
         serialNumber: '002',
         dateReceived: '2026-06-02',
         name: 'Mr. B. Okoro',
-        companyAirline: 'Air Peace',
-        licenseNumber: 'B-67890',
-        subject: 'Documentation update',
+        companyAirline: 'Arik Air',
+        licenseNumber: 'AMEL/1189',
+        subject: 'Maintenance engineer license update',
         licenseValidation: '2025-12-01',
         dispatchedTo: 'Head-AMEL',
-        remark: 'Follow up with finance',
+        remark: 'Validation expired - awaiting resubmission',
         status: 'in-review'
       },
       {
         serialNumber: '003',
         dateReceived: '2026-06-03',
-        name: 'Ms. C. Ama',
-        companyAirline: 'Arik Air',
-        licenseNumber: 'C-80808',
-        subject: 'New contractor proposal',
+        name: 'Ms. C. Amadi',
+        companyAirline: 'Dana Air',
+        licenseNumber: 'CCL/0742',
+        subject: 'Cabin crew license validation',
         licenseValidation: '2024-11-02',
         dispatchedTo: 'Head-CCL',
-        remark: 'Awaiting signature',
+        remark: 'Awaiting Head signature',
+        status: 'dispatched'
+      },
+      {
+        serialNumber: '004',
+        dateReceived: '2026-06-05',
+        name: 'Capt. D. Bello',
+        companyAirline: 'Ibom Air',
+        licenseNumber: 'FDL/3320',
+        subject: 'Flight dispatcher license conversion',
+        licenseValidation: '2027-03-20',
+        dispatchedTo: 'Head-FDL',
+        remark: 'Documents complete',
+        status: 'dispatched'
+      },
+      {
+        serialNumber: '005',
+        dateReceived: '2026-06-08',
+        name: 'Engr. E. Nwosu',
+        companyAirline: 'Aero Contractors',
+        licenseNumber: 'AMEL/2077',
+        subject: 'Type rating endorsement request',
+        licenseValidation: '2026-09-30',
+        dispatchedTo: 'Head-AMEL',
+        remark: 'Pending fee confirmation',
+        status: 'received'
+      },
+      {
+        serialNumber: '006',
+        dateReceived: '2026-06-11',
+        name: 'Ms. F. Ibrahim',
+        companyAirline: 'Green Africa',
+        licenseNumber: 'CPL/5561',
+        subject: 'CPL medical revalidation',
+        licenseValidation: '2025-07-01',
+        dispatchedTo: 'Others',
+        remark: 'Referred to medical unit',
+        status: 'in-review'
+      },
+      {
+        serialNumber: '007',
+        dateReceived: '2026-06-14',
+        name: 'Capt. G. Adeyemi',
+        companyAirline: 'United Nigeria',
+        licenseNumber: 'ATPL/6690',
+        subject: 'License validation extension',
+        licenseValidation: '2027-01-10',
+        dispatchedTo: 'Head-FCL',
+        remark: 'Approved and filed',
         status: 'dispatched'
       }
     ];
