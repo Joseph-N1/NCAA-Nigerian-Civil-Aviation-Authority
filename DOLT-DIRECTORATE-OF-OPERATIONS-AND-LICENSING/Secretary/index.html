@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOLT Secretary Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <header class="app-header">
+      <div>
+        <p class="app-label">DOLT Secretary Dashboard</p>
+        <h1>Office Correspondence Records</h1>
+      </div>
+      <div class="header-actions">
+        <div class="user-chip">
+          <span id="userName">Guest</span>
+          <small id="userRole">Visitor</small>
+        </div>
+        <button class="btn btn-secondary" id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <section class="top-panel">
+      <div class="card summary-card">
+        <h2>Total records</h2>
+        <p class="summary-value" id="totalCount">0</p>
+      </div>
+      <div class="card summary-card">
+        <h2>Dispatched</h2>
+        <p class="summary-value" id="dispatchedCount">0</p>
+      </div>
+      <div class="card summary-card">
+        <h2>Pending</h2>
+        <p class="summary-value" id="pendingCount">0</p>
+      </div>
+      <div class="card summary-card">
+        <h2>Expired validation</h2>
+        <p class="summary-value" id="validationCount">0</p>
+      </div>
+    </section>
+
+    <section class="search-panel card">
+      <div class="search-row">
+        <input id="searchInput" type="search" placeholder="Search by name, company, license, subject, or remark">
+        <button class="btn btn-primary" id="exportBtn">Export CSV</button>
+        <button class="btn btn-primary" id="backupExportBtn">Export Backup</button>
+      </div>
+      <div class="filter-row">
+        <select id="statusFilter">
+          <option value="all">All statuses</option>
+          <option value="received">Received</option>
+          <option value="in-review">In Review</option>
+          <option value="dispatched">Dispatched</option>
+        </select>
+        <select id="dispatchFilter">
+          <option value="all">All dispatch destinations</option>
+          <option value="Head-FCL">Head-FCL</option>
+          <option value="Head-FDL">Head-FDL</option>
+          <option value="Head-CCL">Head-CCL</option>
+          <option value="Head-AMEL">Head-AMEL</option>
+          <option value="Others">Others</option>
+        </select>
+        <button class="btn btn-secondary" id="printBtn">Print</button>
+        <button class="btn btn-secondary" id="importBtn">Import Backup</button>
+        <button class="btn btn-secondary" id="sampleDataBtn">Load Sample Data</button>
+        <button class="btn btn-secondary" id="addRecordBtn">Add Record</button>
+      </div>
+      <input type="file" id="importFileInput" accept="application/json" hidden>
+    </section>
+
+    <section class="table-panel card">
+      <table class="records-table">
+        <thead>
+          <tr>
+            <th>S/N</th>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Company / Airline</th>
+            <th>License</th>
+            <th>Subject</th>
+            <th>Validation</th>
+            <th>Dispatched</th>
+            <th>Remark</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="recordsTableBody">
+        </tbody>
+      </table>
+    </section>
+
+    <div class="modal-overlay hidden" id="recordModalOverlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 id="recordModalTitle">Add record</h2>
+          <button id="closeModalBtn" class="btn-icon">✕</button>
+        </div>
+        <form id="recordForm" class="record-form">
+          <div class="form-group half">
+            <label for="recordSerial">S/N</label>
+            <input id="recordSerial" type="text" required>
+          </div>
+          <div class="form-group half">
+            <label for="recordDate">Date</label>
+            <input id="recordDate" type="date" required>
+          </div>
+          <div class="form-group">
+            <label for="recordName">Name</label>
+            <input id="recordName" type="text" required>
+          </div>
+          <div class="form-group">
+            <label for="recordCompany">Company / Airline</label>
+            <input id="recordCompany" type="text" required>
+          </div>
+          <div class="form-group">
+            <label for="recordLicense">License type / Number</label>
+            <input id="recordLicense" type="text" required>
+          </div>
+          <div class="form-group">
+            <label for="recordSubject">Subject</label>
+            <input id="recordSubject" type="text" required>
+          </div>
+          <div class="form-group half">
+            <label for="recordValidation">License Validation</label>
+            <input id="recordValidation" type="date" required>
+          </div>
+          <div class="form-group half">
+            <label for="recordDispatched">Dispatched</label>
+            <select id="recordDispatched" required>
+              <option value="Head-FCL">Head-FCL</option>
+              <option value="Head-FDL">Head-FDL</option>
+              <option value="Head-CCL">Head-CCL</option>
+              <option value="Head-AMEL">Head-AMEL</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label for="recordRemark">Remark</label>
+            <textarea id="recordRemark" rows="3"></textarea>
+          </div>
+          <div class="form-group half">
+            <label for="recordStatus">Status</label>
+            <select id="recordStatus" required>
+              <option value="received">Received</option>
+              <option value="in-review">In Review</option>
+              <option value="dispatched">Dispatched</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="cancelRecordBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save record</button>
+          </div>
+          <input type="hidden" id="recordId">
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
