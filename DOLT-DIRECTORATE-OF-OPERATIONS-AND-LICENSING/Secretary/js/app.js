@@ -11,12 +11,17 @@ const App = {
 
   async init() {
     this.currentUser = { email: 'guest@ncaa.gov.ng', role: 'GM' };
-    db.init();
     this.bindEvents();
-    this.showApp();
-    window.addEventListener('db-ready', async () => {
-      await this.loadRecords();
+
+    // Await DB readiness before rendering so the table is never empty on load.
+    // This eliminates the race condition that caused a "static page" on Live Server.
+    await new Promise((resolve) => {
+      window.addEventListener('db-ready', resolve, { once: true });
+      db.init();
     });
+
+    await this.loadRecords();
+    this.showApp();
   },
 
   bindEvents() {
@@ -51,12 +56,6 @@ const App = {
     if (backupExportBtn) {
       backupExportBtn.addEventListener('click', () => this.exportBackup());
     }
-  },
-
-  showMessage(message, type = 'info') {
-    const messageEl = document.getElementById('loginMessage');
-    messageEl.textContent = message;
-    messageEl.style.color = type === 'error' ? '#ff6b6b' : '#a1d99b';
   },
 
   handleLogin() {
