@@ -44,6 +44,11 @@
 **/.parcel-cache/
 **/.vite/
 
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+
 # IDE and editor noise
 .vscode/*
 !.vscode/extensions.json

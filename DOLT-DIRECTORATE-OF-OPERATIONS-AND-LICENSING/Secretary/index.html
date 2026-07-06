@@ -3,58 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="DOLT Secretary Office Correspondence Records Dashboard — NCAA Nigeria">
   <title>DOLT Secretary Dashboard</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
-  <div class="app-shell" id="appShell">
-    <header class="app-header">
+<body class="min-h-screen font-[Inter,sans-serif]">
+
+  <!-- Toast container (for minor fix #1) -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="max-w-[1440px] mx-auto px-6 py-6 space-y-6" id="appShell">
+
+    <!-- ═══════════ HEADER ═══════════ -->
+    <header class="glass-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>
-        <p class="app-label">DOLT Secretary Dashboard</p>
-        <h1>Office Correspondence Records</h1>
+        <p class="text-ncaa-accent text-xs uppercase tracking-[0.16em] font-semibold mb-1">
+          NCAA · Directorate of Licensing &amp; Operations
+        </p>
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight m-0">
+          Office Correspondence Records
+        </h1>
       </div>
-      <div class="header-actions">
-        <div class="user-chip">
-          <span id="userName">Guest</span>
-          <small id="userRole">Visitor</small>
+      <div class="flex items-center gap-4 no-print">
+        <div class="text-right">
+          <span class="block font-bold text-sm" id="userName">Guest</span>
+          <small class="text-ncaa-muted text-xs" id="userRole">Visitor</small>
         </div>
-        <button class="btn btn-secondary" id="logoutBtn">Logout</button>
+        <button class="btn-secondary text-sm !py-2 !px-4" id="logoutBtn">Logout</button>
       </div>
     </header>
 
-    <section class="top-panel">
-      <div class="card summary-card">
-        <h2>Total records</h2>
-        <p class="summary-value" id="totalCount">0</p>
+    <!-- ═══════════ SUMMARY CARDS ═══════════ -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="glass-card group hover:border-ncaa-accent/30 transition-all duration-300 hover:-translate-y-1">
+        <h2 class="text-ncaa-muted text-sm font-medium m-0 mb-2">Total Records</h2>
+        <p class="text-4xl font-extrabold m-0 text-ncaa-text group-hover:text-ncaa-accent transition-colors" id="totalCount">0</p>
       </div>
-      <div class="card summary-card">
-        <h2>Dispatched</h2>
-        <p class="summary-value" id="dispatchedCount">0</p>
+      <div class="glass-card group hover:border-ncaa-success/30 transition-all duration-300 hover:-translate-y-1">
+        <h2 class="text-ncaa-muted text-sm font-medium m-0 mb-2">Dispatched</h2>
+        <p class="text-4xl font-extrabold m-0 text-ncaa-success" id="dispatchedCount">0</p>
       </div>
-      <div class="card summary-card">
-        <h2>Pending</h2>
-        <p class="summary-value" id="pendingCount">0</p>
+      <div class="glass-card group hover:border-ncaa-warning/30 transition-all duration-300 hover:-translate-y-1">
+        <h2 class="text-ncaa-muted text-sm font-medium m-0 mb-2">Pending</h2>
+        <p class="text-4xl font-extrabold m-0 text-ncaa-warning" id="pendingCount">0</p>
       </div>
-      <div class="card summary-card">
-        <h2>Expired validation</h2>
-        <p class="summary-value" id="validationCount">0</p>
+      <div class="glass-card group hover:border-ncaa-danger/30 transition-all duration-300 hover:-translate-y-1">
+        <h2 class="text-ncaa-muted text-sm font-medium m-0 mb-2">Expired Validation</h2>
+        <p class="text-4xl font-extrabold m-0 text-ncaa-danger" id="validationCount">0</p>
       </div>
     </section>
 
-    <section class="search-panel card">
-      <div class="search-row">
-        <input id="searchInput" type="search" placeholder="Search by name, company, license, subject, or remark">
-        <button class="btn btn-primary" id="exportBtn">Export CSV</button>
-        <button class="btn btn-primary" id="backupExportBtn">Export Backup</button>
+    <!-- ═══════════ TOOLBAR ═══════════ -->
+    <section class="glass-card space-y-4 no-print">
+      <!-- Search row -->
+      <div class="flex flex-wrap gap-3 items-center">
+        <div class="relative flex-1 min-w-[220px]">
+          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ncaa-muted pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="searchInput" type="search" class="form-input !pl-10" placeholder="Search by name, company, license, subject, or remark…">
+        </div>
+        <button class="btn-primary text-sm" id="exportBtn">
+          <span class="inline-flex items-center gap-1.5">📄 Export CSV</span>
+        </button>
+        <button class="btn-secondary text-sm" id="backupExportBtn">
+          <span class="inline-flex items-center gap-1.5">💾 Export Backup</span>
+        </button>
       </div>
-      <div class="filter-row">
-        <select id="statusFilter">
+
+      <!-- Filter row -->
+      <div class="flex flex-wrap gap-3 items-center">
+        <select id="statusFilter" class="form-select max-w-[200px]">
           <option value="all">All statuses</option>
           <option value="received">Received</option>
           <option value="in-review">In Review</option>
           <option value="dispatched">Dispatched</option>
         </select>
-        <select id="dispatchFilter">
+        <select id="dispatchFilter" class="form-select max-w-[240px]">
           <option value="all">All dispatch destinations</option>
           <option value="Head-FCL">Head-FCL</option>
           <option value="Head-FDL">Head-FDL</option>
@@ -62,16 +88,26 @@
           <option value="Head-AMEL">Head-AMEL</option>
           <option value="Others">Others</option>
         </select>
-        <button class="btn btn-secondary" id="printBtn">Print</button>
-        <button class="btn btn-secondary" id="importBtn">Import Backup</button>
-        <button class="btn btn-secondary" id="sampleDataBtn">Load Sample Data</button>
-        <button class="btn btn-secondary" id="addRecordBtn">Add Record</button>
+        <div class="flex-1"></div>
+        <button class="btn-secondary text-sm" id="printBtn">🖨️ Print</button>
+        <button class="btn-secondary text-sm" id="importBtn">📥 Import</button>
+        <button class="btn-secondary text-sm" id="sampleDataBtn">📋 Sample Data</button>
+        <button class="btn-primary text-sm" id="addRecordBtn">
+          <span class="inline-flex items-center gap-1.5">＋ Add Record</span>
+        </button>
       </div>
       <input type="file" id="importFileInput" accept="application/json" hidden>
     </section>
 
-    <section class="table-panel card">
-      <table class="records-table">
+    <!-- ═══════════ DATA TABLE ═══════════ -->
+    <section class="glass-card overflow-x-auto">
+      <!-- Empty state (for minor fix #3) -->
+      <div class="hidden flex-col items-center justify-center py-16 text-center" id="emptyState">
+        <div class="text-6xl mb-4 opacity-40">📂</div>
+        <h3 class="text-ncaa-muted text-lg font-semibold m-0 mb-2">No records yet</h3>
+        <p class="text-ncaa-muted/60 text-sm max-w-xs m-0">Click <strong>"Add Record"</strong> or <strong>"Sample Data"</strong> to get started.</p>
+      </div>
+      <table class="data-table" id="recordsTable">
         <thead>
           <tr>
             <th>S/N</th>
@@ -83,7 +119,7 @@
             <th>Validation</th>
             <th>Dispatched</th>
             <th>Remark</th>
-            <th>Actions</th>
+            <th class="no-print">Actions</th>
           </tr>
         </thead>
         <tbody id="recordsTableBody">
@@ -91,74 +127,83 @@
       </table>
     </section>
 
-    <div class="modal-overlay hidden" id="recordModalOverlay">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h2 id="recordModalTitle">Add record</h2>
-          <button id="closeModalBtn" class="btn-icon">✕</button>
-        </div>
-        <form id="recordForm" class="record-form">
-          <div class="form-group half">
-            <label for="recordSerial">S/N</label>
-            <input id="recordSerial" type="text" required>
-          </div>
-          <div class="form-group half">
-            <label for="recordDate">Date</label>
-            <input id="recordDate" type="date" required>
-          </div>
-          <div class="form-group">
-            <label for="recordName">Name</label>
-            <input id="recordName" type="text" required>
-          </div>
-          <div class="form-group">
-            <label for="recordCompany">Company / Airline</label>
-            <input id="recordCompany" type="text" required>
-          </div>
-          <div class="form-group">
-            <label for="recordLicense">License type / Number</label>
-            <input id="recordLicense" type="text" required>
-          </div>
-          <div class="form-group">
-            <label for="recordSubject">Subject</label>
-            <input id="recordSubject" type="text" required>
-          </div>
-          <div class="form-group half">
-            <label for="recordValidation">License Validation</label>
-            <input id="recordValidation" type="date" required>
-          </div>
-          <div class="form-group half">
-            <label for="recordDispatched">Dispatched</label>
-            <select id="recordDispatched" required>
-              <option value="Head-FCL">Head-FCL</option>
-              <option value="Head-FDL">Head-FDL</option>
-              <option value="Head-CCL">Head-CCL</option>
-              <option value="Head-AMEL">Head-AMEL</option>
-              <option value="Others">Others</option>
-            </select>
-          </div>
-          <div class="form-group full">
-            <label for="recordRemark">Remark</label>
-            <textarea id="recordRemark" rows="3"></textarea>
-          </div>
-          <div class="form-group half">
-            <label for="recordStatus">Status</label>
-            <select id="recordStatus" required>
-              <option value="received">Received</option>
-              <option value="in-review">In Review</option>
-              <option value="dispatched">Dispatched</option>
-            </select>
-          </div>
-          <div class="form-actions">
-            <button type="button" class="btn btn-secondary" id="cancelRecordBtn">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save record</button>
-          </div>
-          <input type="hidden" id="recordId">
-        </form>
+    <!-- ═══════════ FOOTER ═══════════ -->
+    <footer class="text-center text-ncaa-muted/50 text-xs py-4 no-print">
+      NCAA · DOLT Secretary Dashboard · Offline-first · © 2026
+    </footer>
+  </div>
+
+  <!-- ═══════════ MODAL OVERLAY ═══════════ -->
+  <div class="hidden fixed inset-0 bg-[rgba(2,11,24,0.88)] z-[100] flex items-center justify-center p-4" id="recordModalOverlay">
+    <div class="modal-card-inner glass-card w-full max-w-[920px] max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center gap-3 mb-6">
+        <h2 class="text-xl font-bold m-0" id="recordModalTitle">Add record</h2>
+        <button id="closeModalBtn" class="btn-icon">✕</button>
       </div>
+      <form id="recordForm" class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
+        <div>
+          <label for="recordSerial" class="block text-ncaa-muted text-sm mb-1.5">S/N</label>
+          <input id="recordSerial" type="text" class="form-input" required>
+        </div>
+        <div>
+          <label for="recordDate" class="block text-ncaa-muted text-sm mb-1.5">Date</label>
+          <input id="recordDate" type="date" class="form-input" required>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="recordName" class="block text-ncaa-muted text-sm mb-1.5">Name</label>
+          <input id="recordName" type="text" class="form-input" required>
+        </div>
+        <div>
+          <label for="recordCompany" class="block text-ncaa-muted text-sm mb-1.5">Company / Airline</label>
+          <input id="recordCompany" type="text" class="form-input" required>
+        </div>
+        <div>
+          <label for="recordLicense" class="block text-ncaa-muted text-sm mb-1.5">License Type / Number</label>
+          <input id="recordLicense" type="text" class="form-input" required>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="recordSubject" class="block text-ncaa-muted text-sm mb-1.5">Subject</label>
+          <input id="recordSubject" type="text" class="form-input" required>
+        </div>
+        <div>
+          <label for="recordValidation" class="block text-ncaa-muted text-sm mb-1.5">License Validation</label>
+          <input id="recordValidation" type="date" class="form-input" required>
+        </div>
+        <div>
+          <label for="recordDispatched" class="block text-ncaa-muted text-sm mb-1.5">Dispatched To</label>
+          <select id="recordDispatched" class="form-select" required>
+            <option value="Head-FCL">Head-FCL</option>
+            <option value="Head-FDL">Head-FDL</option>
+            <option value="Head-CCL">Head-CCL</option>
+            <option value="Head-AMEL">Head-AMEL</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="recordRemark" class="block text-ncaa-muted text-sm mb-1.5">Remark</label>
+          <textarea id="recordRemark" rows="3" class="form-input resize-y"></textarea>
+        </div>
+        <div>
+          <label for="recordStatus" class="block text-ncaa-muted text-sm mb-1.5">Status</label>
+          <select id="recordStatus" class="form-select" required>
+            <option value="received">Received</option>
+            <option value="in-review">In Review</option>
+            <option value="dispatched">Dispatched</option>
+          </select>
+        </div>
+        <div class="flex items-end justify-end gap-3">
+          <!-- spacer column -->
+        </div>
+        <div class="sm:col-span-2 flex justify-end gap-3 pt-4 border-t border-white/[0.08]">
+          <button type="button" class="btn-secondary" id="cancelRecordBtn">Cancel</button>
+          <button type="submit" class="btn-primary">Save Record</button>
+        </div>
+        <input type="hidden" id="recordId">
+      </form>
     </div>
   </div>
 
-  <script src="js/db.js"></script>
-  <script src="js/app.js"></script>
+  <script type="module" src="js/db.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

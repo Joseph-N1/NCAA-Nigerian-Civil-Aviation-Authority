@@ -1,4 +1,6 @@
 // Secretary app startup code
+import db from './db.js';
+
 const USERS = [
   { email: 'gm@ncaa.gov.ng', role: 'GM', pin: '1111' },
   { email: 'sec1@ncaa.gov.ng', role: 'Secretary', pin: '2222' },
@@ -64,13 +66,12 @@ const App = {
     const user = USERS.find((item) => item.email === email && item.pin === pin);
 
     if (!user) {
-      this.showMessage('Invalid credentials. Use a registered work email and PIN.', 'error');
+      this.showToast('Invalid credentials. Use a registered work email and PIN.', 'error');
       return;
     }
 
     this.currentUser = user;
     this.showApp();
-    this.showMessage('');
     this.resetLoginForm();
   },
 
@@ -143,24 +144,42 @@ const App = {
     tbody.innerHTML = filtered.map((record) => {
       const expired = this.isExpired(record);
       const rowClass = expired ? 'expired-record' : '';
+      const statusDot = record.status === 'dispatched'
+        ? '<span class="inline-block w-2 h-2 rounded-full bg-ncaa-success mr-1.5"></span>'
+        : record.status === 'in-review'
+        ? '<span class="inline-block w-2 h-2 rounded-full bg-ncaa-warning mr-1.5"></span>'
+        : '<span class="inline-block w-2 h-2 rounded-full bg-ncaa-accent mr-1.5"></span>';
       return `
       <tr class="${rowClass}">
-        <td>${record.serialNumber || ''}</td>
-        <td>${record.dateReceived || ''}</td>
-        <td>${record.name || ''}</td>
+        <td class="font-mono text-xs">${record.serialNumber || ''}</td>
+        <td class="whitespace-nowrap">${record.dateReceived || ''}</td>
+        <td class="font-medium">${record.name || ''}</td>
         <td>${record.companyAirline || ''}</td>
-        <td>${record.licenseNumber || ''}</td>
-        <td>${record.subject || ''}</td>
-        <td>${record.licenseValidation || ''}</td>
-        <td>${record.dispatchedTo || ''}</td>
-        <td>${record.remark || ''}</td>
-        <td>
-          <button class="btn btn-secondary" onclick="App.editRecord(${record.id})">Edit</button>
-          ${isGM ? `<button class="btn btn-danger" onclick="App.deleteRecord(${record.id})">Delete</button>` : ''}
+        <td class="font-mono text-xs">${record.licenseNumber || ''}</td>
+        <td class="max-w-[200px] truncate" title="${record.subject || ''}">${record.subject || ''}</td>
+        <td class="whitespace-nowrap">${record.licenseValidation || ''}</td>
+        <td>${statusDot}${record.dispatchedTo || ''}</td>
+        <td class="max-w-[160px] truncate text-ncaa-muted" title="${record.remark || ''}">${record.remark || ''}</td>
+        <td class="no-print whitespace-nowrap">
+          <button class="btn-secondary !py-1.5 !px-3 text-xs mr-1" onclick="App.editRecord(${record.id})">Edit</button>
+          ${isGM ? `<button class="btn-danger !py-1.5 !px-3 text-xs" onclick="App.deleteRecord(${record.id})">Delete</button>` : ''}
         </td>
       </tr>
     `;
     }).join('');
+
+    // Show or hide the empty-state panel
+    const emptyState = document.getElementById('emptyState');
+    const recordsTable = document.getElementById('recordsTable');
+    if (filtered.length === 0) {
+      emptyState.classList.remove('hidden');
+      emptyState.classList.add('flex');
+      recordsTable.classList.add('hidden');
+    } else {
+      emptyState.classList.add('hidden');
+      emptyState.classList.remove('flex');
+      recordsTable.classList.remove('hidden');
+    }
   },
 
   isExpired(record) {
@@ -172,7 +191,10 @@ const App = {
   openModal(record = null) {
     const restricted = this.currentUser?.role === 'Secretary';
 
-    document.getElementById('recordModalOverlay').classList.remove('hidden');
+    const overlay = document.getElementById('recordModalOverlay');
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    
     document.getElementById('recordModalTitle').textContent = record ? 'Edit record' : 'Add record';
 
     document.getElementById('recordId').value = record ? record.id : '';
@@ -192,7 +214,10 @@ const App = {
   },
 
   closeModal() {
-    document.getElementById('recordModalOverlay').classList.add('hidden');
+    const overlay = document.getElementById('recordModalOverlay');
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+    
     document.getElementById('recordForm').reset();
     document.getElementById('recordId').value = '';
     document.getElementById('recordDispatched').disabled = false;
@@ -225,7 +250,7 @@ const App = {
     };
 
     if (!record.serialNumber || !record.dateReceived || !record.name || !record.companyAirline || !record.licenseNumber || !record.subject || !record.licenseValidation) {
-      alert('Please fill in all required fields.');
+      this.showToast('Please fill in all required fields.', 'error');
       return;
     }
 
@@ -233,12 +258,14 @@ const App = {
       record.id = Number(id);
       await db.updateRecord(record);
       this.records = this.records.map((item) => item.id === record.id ? record : item);
+      this.showToast('Record updated successfully!', 'success');
     } else {
       record.createdAt = new Date().toISOString();
       record.createdBy = this.currentUser ? this.currentUser.email : 'unknown';
       const newId = await db.addRecord(record);
       record.id = newId;
       this.records.push(record);
+      this.showToast('Record saved successfully!', 'success');
     }
 
     this.updateSummary();
@@ -248,7 +275,7 @@ const App = {
 
   async deleteRecord(id) {
     if (this.currentUser?.role !== 'GM') {
-      alert('Only GM users can delete records.');
+      this.showToast('Only GM users can delete records.', 'error');
       return;
     }
 
@@ -260,6 +287,7 @@ const App = {
     this.records = this.records.filter((item) => item.id !== id);
     this.updateSummary();
     this.renderTable();
+    this.showToast('Record deleted successfully.', 'success');
   },
 
   printTable() {
@@ -351,6 +379,66 @@ const App = {
         dispatchedTo: 'Head-FCL',
         remark: 'Approved and filed',
         status: 'dispatched'
+      },
+      {
+        serialNumber: '008',
+        dateReceived: '2026-06-18',
+        name: 'Mr. H. Wilcox',
+        companyAirline: 'Bristow Helicopters',
+        licenseNumber: 'CHPL/4211',
+        subject: 'Commercial helicopter pilot license renewal',
+        licenseValidation: '2026-05-15',
+        dispatchedTo: 'Head-FCL',
+        remark: 'Medical validation expired',
+        status: 'received'
+      },
+      {
+        serialNumber: '009',
+        dateReceived: '2026-06-20',
+        name: 'Ms. I. Onyeka',
+        companyAirline: 'ValueJet',
+        licenseNumber: 'CCL/0912',
+        subject: 'Cabin crew license initial issue',
+        licenseValidation: '2026-11-20',
+        dispatchedTo: 'Head-CCL',
+        remark: 'Awaiting English proficiency score',
+        status: 'in-review'
+      },
+      {
+        serialNumber: '010',
+        dateReceived: '2026-06-22',
+        name: 'Engr. J. Ojo',
+        companyAirline: 'Max Air',
+        licenseNumber: 'AMEL/1402',
+        subject: 'AMEL license extension B1/B2',
+        licenseValidation: '2027-04-18',
+        dispatchedTo: 'Head-AMEL',
+        remark: 'Logbook approved by GM',
+        status: 'dispatched'
+      },
+      {
+        serialNumber: '011',
+        dateReceived: '2026-06-25',
+        name: 'Capt. K. Abdullahi',
+        companyAirline: 'Overland Airways',
+        licenseNumber: 'ATPL/3119',
+        subject: 'Foreign license validation check',
+        licenseValidation: '2025-01-15',
+        dispatchedTo: 'Others',
+        remark: 'Expired verification from FAA',
+        status: 'in-review'
+      },
+      {
+        serialNumber: '012',
+        dateReceived: '2026-06-28',
+        name: 'Mr. L. Tarfa',
+        companyAirline: 'Arik Air',
+        licenseNumber: 'FDL/2290',
+        subject: 'Flight dispatcher recurrent check',
+        licenseValidation: '2027-02-10',
+        dispatchedTo: 'Head-FDL',
+        remark: 'Certificate issued',
+        status: 'dispatched'
       }
     ];
 
@@ -364,6 +452,7 @@ const App = {
 
     this.updateSummary();
     this.renderTable();
+    this.showToast('Sample data loaded successfully.', 'success');
   },
 
   async importBackup(event) {
@@ -381,7 +470,7 @@ const App = {
         throw new Error('Backup file is not a valid records array.');
       }
     } catch (error) {
-      alert('Could not import backup: ' + error.message);
+      this.showToast('Import failed: ' + error.message, 'error');
       return;
     }
 
@@ -413,7 +502,7 @@ const App = {
     event.target.value = '';
     this.updateSummary();
     this.renderTable();
-    alert('Backup imported successfully.');
+    this.showToast('Backup imported successfully!', 'success');
   },
 
   exportBackup() {
@@ -425,6 +514,7 @@ const App = {
     link.download = `dolt-secretary-backup-${new Date().toISOString().slice(0,10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
+    this.showToast('Backup exported.', 'success');
   },
 
   exportCsv() {
@@ -450,6 +540,25 @@ const App = {
     link.download = `dolt-secretary-records-${new Date().toISOString().slice(0,10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+    this.showToast('CSV exported.', 'success');
+  },
+
+  showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+      <span>${message}</span>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(100%)';
+      toast.style.transition = 'all 0.3s ease-in';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
   }
 };
 

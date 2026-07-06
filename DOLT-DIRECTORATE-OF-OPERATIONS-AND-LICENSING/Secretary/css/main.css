@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+/* ── Custom design tokens ── */
+@theme {
+  --color-ncaa-bg: #08101f;
+  --color-ncaa-surface: #122039;
+  --color-ncaa-surface-2: #172846;
+  --color-ncaa-text: #e8eef8;
+  --color-ncaa-muted: #9bb4d6;
+  --color-ncaa-accent: #4a9cff;
+  --color-ncaa-accent-dark: #1c59a0;
+  --color-ncaa-border: rgba(255, 255, 255, 0.08);
+  --color-ncaa-danger: #ff5f5f;
+  --color-ncaa-danger-dark: #d93636;
+  --color-ncaa-warning: #ffad33;
+  --color-ncaa-success: #34d399;
+  --color-ncaa-expired-bg: rgba(255, 97, 97, 0.12);
+  --color-ncaa-expired-text: #ffd7d7;
+}
+
+/* ── Global base styles ── */
+@layer base {
+  body {
+    @apply bg-ncaa-bg text-ncaa-text font-[Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe_UI",sans-serif] m-0;
+    background-image:
+      radial-gradient(circle at top, rgba(74, 156, 255, 0.15), transparent 35%),
+      linear-gradient(180deg, #06101a 0%, #08101f 100%);
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+}
+
+/* ── Reusable component classes ── */
+@layer components {
+  .glass-card {
+    @apply bg-white/[0.03] border border-ncaa-border rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.15)] backdrop-blur-sm;
+  }
+
+  .glass-card-sm {
+    @apply bg-white/[0.03] border border-ncaa-border rounded-xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-sm;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-br from-ncaa-accent to-[#2f7ff2] text-white font-semibold px-5 py-3 rounded-xl border-none cursor-pointer transition-all duration-200 hover:shadow-[0_6px_24px_rgba(74,156,255,0.35)] hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-secondary {
+    @apply bg-white/[0.08] text-ncaa-text font-semibold px-5 py-3 rounded-xl border border-ncaa-border cursor-pointer transition-all duration-200 hover:bg-white/[0.14] hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-danger {
+    @apply bg-gradient-to-br from-ncaa-danger to-ncaa-danger-dark text-white font-semibold px-4 py-2 rounded-xl border-none cursor-pointer transition-all duration-200 hover:shadow-[0_6px_24px_rgba(255,95,95,0.35)] hover:-translate-y-0.5;
+  }
+
+  .btn-icon {
+    @apply bg-transparent text-ncaa-text text-lg border border-ncaa-border rounded-lg w-9 h-9 flex items-center justify-center cursor-pointer transition-colors duration-150 hover:bg-white/10;
+  }
+
+  .form-input {
+    @apply w-full px-4 py-3 rounded-xl border border-white/[0.12] bg-white/[0.05] text-ncaa-text placeholder:text-ncaa-muted/60 focus:outline-none focus:ring-2 focus:ring-ncaa-accent/50 focus:border-ncaa-accent/50 transition-all duration-200;
+  }
+
+  .form-select {
+    @apply w-full px-4 py-3 rounded-xl border border-white/[0.12] bg-white/[0.05] text-ncaa-text focus:outline-none focus:ring-2 focus:ring-ncaa-accent/50 focus:border-ncaa-accent/50 transition-all duration-200;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+}
+
+/* ── Table-specific styles (hard to do purely in utilities) ── */
+@layer components {
+  .data-table {
+    @apply w-full border-collapse;
+  }
+
+  .data-table th {
+    @apply text-left text-ncaa-muted text-sm font-medium px-4 py-3.5 border-b border-white/[0.08] uppercase tracking-wider;
+  }
+
+  .data-table td {
+    @apply px-4 py-3.5 text-ncaa-text text-sm border-b border-white/[0.06];
+  }
+
+  .data-table tbody tr {
+    @apply transition-colors duration-150;
+  }
+
+  .data-table tbody tr:hover {
+    @apply bg-white/[0.04];
+  }
+
+  .data-table tr.expired-record {
+    @apply bg-ncaa-expired-bg;
+  }
+
+  .data-table tr.expired-record td {
+    @apply text-ncaa-expired-text;
+  }
+}
+
+/* ── Toast notification ── */
+@layer components {
+  .toast-container {
+    @apply fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none;
+  }
+
+  .toast {
+    @apply pointer-events-auto flex items-center gap-3 px-5 py-3 text-sm font-medium animate-[slideIn_0.3s_ease-out] min-w-[280px] max-w-[420px] bg-white/[0.03] border border-ncaa-border rounded-xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-sm;
+  }
+
+  .toast.success {
+    @apply border-ncaa-success/30 text-ncaa-success;
+  }
+
+  .toast.error {
+    @apply border-ncaa-danger/30 text-ncaa-expired-text;
+  }
+
+  .toast.info {
+    @apply border-ncaa-accent/30 text-ncaa-accent;
+  }
+}
+
+/* ── Animations ── */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Modal entrance animation ── */
+.modal-overlay:not(.hidden) .modal-card-inner {
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* ── Print styles ── */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; color: black; }
+  .glass-card, .glass-card-sm { background: white; border: 1px solid #ddd; box-shadow: none; }
+}
