@@ -24,7 +24,7 @@
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--space-4);
   margin-bottom: var(--space-6);
 }
@@ -375,15 +375,9 @@
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
-  .metrics-grid {
-    grid-template-columns: repeat(2, minmax(180px, 1fr));
-  }
 }
 
 @media (max-width: 640px) {
-  .metrics-grid {
-    grid-template-columns: 1fr;
-  }
   .metric-card {
     min-height: 112px;
   }

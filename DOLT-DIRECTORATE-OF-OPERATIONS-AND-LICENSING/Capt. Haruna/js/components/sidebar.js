@@ -5,8 +5,14 @@
 
 const Sidebar = {
   init() {
+    this.initCollapseState();
     this.bindEvents();
     this.updateActiveLink();
+  },
+
+  initCollapseState() {
+    const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
   },
 
   bindEvents() {
@@ -18,6 +24,14 @@ const Sidebar = {
     window.addEventListener('app-login', (event) => {
       this.applyRoleRestrictions(event.detail.role);
     });
+
+    const toggleBtn = document.getElementById('btnSidebarToggle');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+        localStorage.setItem('sidebar-collapsed', isCollapsed);
+      });
+    }
   },
 
   updateActiveLink() {
