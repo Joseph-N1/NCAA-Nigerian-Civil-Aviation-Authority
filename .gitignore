@@ -43,6 +43,14 @@
 **/npm-debug.log*
 **/.parcel-cache/
 **/.vite/
+**/package-lock.json
+**/dist/
+
+# User-generated exports and data files
+**/*.csv
+**/*.json.backup
+**/dolt-secretary-records-*.csv
+**/dolt-secretary-backup-*.json
 
 # Environment variables and secrets
 .env
@@ -54,6 +62,7 @@
 !.vscode/extensions.json
 !.vscode/settings.json
 .idea/
+.agents/
 *.swp
 *.swo
 *~
