@@ -465,7 +465,7 @@ body.sidebar-collapsed .sidebar-footer {
 .auth-overlay {
   position: fixed;
   inset: 0;
-  background: var(--color-bg-primary);
+  background: linear-gradient(180deg, rgba(10, 22, 40, 0.96), rgba(10, 22, 40, 0.92));
   z-index: var(--z-auth);
   display: flex;
   align-items: center;
@@ -482,14 +482,26 @@ body.sidebar-collapsed .sidebar-footer {
 
 .auth-container {
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
   padding: var(--space-8);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-6);
   border-radius: 28px;
+  background: rgba(10, 22, 40, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
   box-shadow: var(--shadow-raised), var(--shadow-inset-edge);
+}
+
+/* Responsive: Larger auth container on desktop */
+@media (min-width: 768px) {
+  .auth-container {
+    max-width: 520px;
+    padding: var(--space-10) var(--space-12);
+    gap: var(--space-8);
+  }
 }
 
 .auth-logo {
@@ -529,6 +541,14 @@ body.sidebar-collapsed .sidebar-footer {
   margin: var(--space-4) 0;
 }
 
+/* Responsive: Better spacing on desktop */
+@media (min-width: 768px) {
+  .pin-display {
+    gap: var(--space-4);
+    margin: var(--space-6) 0;
+  }
+}
+
 .pin-dot {
   width: 16px;
   height: 16px;
@@ -536,6 +556,14 @@ body.sidebar-collapsed .sidebar-footer {
   border: 2px solid var(--color-border-input);
   background: transparent;
   transition: all var(--transition-fast);
+}
+
+/* Responsive: Slightly larger dots on desktop */
+@media (min-width: 768px) {
+  .pin-dot {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .pin-dot.active {
@@ -551,6 +579,16 @@ body.sidebar-collapsed .sidebar-footer {
   width: 100%;
 }
 
+/* Responsive: 4-column grid on desktop for better laptop layout */
+@media (min-width: 768px) {
+  .pin-pad {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+    max-width: 380px;
+    margin: 0 auto;
+  }
+}
+
 .pin-btn {
   height: 64px;
   border-radius: 50%;
@@ -563,6 +601,15 @@ body.sidebar-collapsed .sidebar-footer {
   align-items: center;
   justify-content: center;
   transition: all var(--transition-fast);
+  aspect-ratio: 1 / 1;
+}
+
+/* Responsive: Larger buttons on desktop */
+@media (min-width: 768px) {
+  .pin-btn {
+    height: 72px;
+    font-size: var(--font-size-lg);
+  }
 }
 
 .pin-btn:hover {
@@ -593,6 +640,13 @@ body.sidebar-collapsed .sidebar-footer {
   width: 100%;
 }
 
+/* Responsive: Better spacing on desktop */
+@media (min-width: 768px) {
+  .role-selector {
+    gap: var(--space-4);
+  }
+}
+
 .role-card {
   flex: 1;
   background: var(--color-bg-secondary);
@@ -603,6 +657,13 @@ body.sidebar-collapsed .sidebar-footer {
   cursor: pointer;
   transition: all var(--transition-normal);
   box-shadow: var(--shadow-raised-soft), var(--shadow-inset-edge);
+}
+
+/* Responsive: Better padding on desktop */
+@media (min-width: 768px) {
+  .role-card {
+    padding: var(--space-5) var(--space-6);
+  }
 }
 
 .role-card:hover {
@@ -621,10 +682,25 @@ body.sidebar-collapsed .sidebar-footer {
   margin-bottom: var(--space-2);
 }
 
+/* Responsive: Larger icon on desktop */
+@media (min-width: 768px) {
+  .role-icon {
+    font-size: 28px;
+    margin-bottom: var(--space-3);
+  }
+}
+
 .role-title {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
+}
+
+/* Responsive: Larger title on desktop */
+@media (min-width: 768px) {
+  .role-title {
+    font-size: var(--font-size-base);
+  }
 }
 
 .role-desc {
