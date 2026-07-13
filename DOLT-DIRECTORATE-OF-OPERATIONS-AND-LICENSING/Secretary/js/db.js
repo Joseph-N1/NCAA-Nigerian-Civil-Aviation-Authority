@@ -107,6 +107,17 @@ const db = {
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => reject(req.error);
     });
+  },
+
+  async clearAllRecords() {
+    if (!this.db) return;
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction('records', 'readwrite');
+      const store = tx.objectStore('records');
+      const req = store.clear();
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
   }
 };
 

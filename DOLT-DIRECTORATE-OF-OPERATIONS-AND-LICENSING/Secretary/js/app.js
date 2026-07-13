@@ -100,6 +100,10 @@ const App = {
     if (backupExportBtn) {
       backupExportBtn.addEventListener('click', () => this.exportBackup());
     }
+    const clearDbBtn = document.getElementById('clearDbBtn');
+    if (clearDbBtn) {
+      clearDbBtn.addEventListener('click', () => this.clearAllData());
+    }
   },
 
   switchTab(tabName) {
@@ -638,51 +642,117 @@ const App = {
     }
 
     const text = await file.text();
+    const isCsv = file.name.toLowerCase().endsWith('.csv');
     let importedRecords;
 
     try {
-      importedRecords = JSON.parse(text);
-      if (!Array.isArray(importedRecords)) {
-        throw new Error('Backup file is not a valid records array.');
+      if (isCsv) {
+        importedRecords = this.parseCsvToRecords(text);
+      } else {
+        importedRecords = JSON.parse(text);
+        if (!Array.isArray(importedRecords)) {
+          throw new Error('Backup file is not a valid records array.');
+        }
       }
     } catch (error) {
       this.showToast('Import failed: ' + error.message, 'error');
       return;
     }
 
-    const confirmImport = confirm(`Import ${importedRecords.length} records from backup? This will append them to existing data.`);
+    if (!importedRecords || importedRecords.length === 0) {
+      this.showToast('No records found in the file.', 'error');
+      return;
+    }
+
+    const confirmImport = confirm(`Import ${importedRecords.length} records from ${isCsv ? 'CSV' : 'JSON'}? This will append them to existing data.`);
     if (!confirmImport) {
       return;
     }
 
     for (const imported of importedRecords) {
       const record = {
-        serialNumber: imported.serialNumber || imported.SN || imported.serial || '',
-        dateReceived: imported.dateReceived || imported.date || '',
-        name: imported.name || '',
-        companyAirline: imported.companyAirline || imported.company || imported.airline || '',
-        licenseNumber: imported.licenseNumber || imported.license || '',
-        subject: imported.subject || '',
-        licenseValidation: imported.licenseValidation || imported.validation || '',
-        dispatchedTo: imported.dispatchedTo || imported.dispatched || 'Head-FCL',
-        remark: imported.remark || '',
-        status: imported.status || 'received',
-        followUpDate: imported.followUpDate || '',
-        followUpStatus: imported.followUpStatus || 'pending',
-        followUpResult: imported.followUpResult || '',
+        serialNumber: imported.serialNumber || imported['S/N'] || imported.SN || imported.serial || '',
+        dateReceived: imported.dateReceived || imported['Date'] || imported.date || '',
+        name: imported.name || imported['Name'] || '',
+        companyAirline: imported.companyAirline || imported['Company / Airline'] || imported['Company/Airline'] || imported.company || imported.airline || '',
+        licenseNumber: imported.licenseNumber || imported['License Type/Number'] || imported['License'] || imported.license || '',
+        subject: imported.subject || imported['Subject'] || '',
+        licenseValidation: imported.licenseValidation || imported['License Validation'] || imported.validation || '',
+        dispatchedTo: imported.dispatchedTo || imported['Dispatched'] || imported.dispatched || 'Head-FCL',
+        remark: imported.remark || imported['Remark'] || '',
+        status: imported.status || imported['Status'] || 'received',
+        followUpDate: imported.followUpDate || imported['Follow-up Date'] || '',
+        followUpStatus: imported.followUpStatus || imported['Follow-up Status'] || 'pending',
+        followUpResult: imported.followUpResult || imported['Follow-up Result'] || '',
         createdAt: new Date().toISOString(),
-        createdBy: this.currentUser ? this.currentUser.email : 'backup'
+        createdBy: this.currentUser ? this.currentUser.email : 'import'
       };
       const id = await db.addRecord(record);
       record.id = id;
       this.records.push(record);
     }
 
-    await this.logAudit('Import Backup', null, null, null, `Imported ${importedRecords.length} records from backup JSON`);
+    await this.logAudit('Import Backup', null, null, null, `Imported ${importedRecords.length} records from ${isCsv ? 'CSV' : 'JSON'} file: ${file.name}`);
     event.target.value = '';
     this.updateSummary();
     this.renderTable();
-    this.showToast('Backup imported successfully!', 'success');
+    this.showToast(`${importedRecords.length} records imported successfully!`, 'success');
+  },
+
+  parseCsvToRecords(csvText) {
+    const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+    if (lines.length < 2) {
+      throw new Error('CSV file must have a header row and at least one data row.');
+    }
+
+    const headers = this.parseCsvLine(lines[0]);
+    const records = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const values = this.parseCsvLine(lines[i]);
+      if (values.length === 0 || (values.length === 1 && values[0] === '')) continue;
+
+      const obj = {};
+      headers.forEach((header, idx) => {
+        obj[header.trim()] = (values[idx] || '').trim();
+      });
+      records.push(obj);
+    }
+
+    return records;
+  },
+
+  parseCsvLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (inQuotes) {
+        if (char === '"') {
+          if (i + 1 < line.length && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          current += char;
+        }
+      } else {
+        if (char === '"') {
+          inQuotes = true;
+        } else if (char === ',') {
+          result.push(current);
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+    }
+    result.push(current);
+    return result;
   },
 
   exportBackup() {
@@ -695,6 +765,30 @@ const App = {
     link.click();
     URL.revokeObjectURL(url);
     this.showToast('Backup exported.', 'success');
+  },
+
+  async clearAllData() {
+    const count = this.records.length;
+    if (count === 0) {
+      this.showToast('Database is already empty.', 'info');
+      return;
+    }
+
+    if (!confirm(`⚠️ This will permanently delete all ${count} records from the database.\n\nThis action cannot be undone.\n\nProceed?`)) {
+      return;
+    }
+
+    try {
+      await db.clearAllRecords();
+      await this.logAudit('Clear All Data', null, null, null, `Cleared all ${count} records from the database`);
+      this.records = [];
+      localStorage.removeItem('doltSampleSeeded');
+      this.updateSummary();
+      this.renderTable();
+      this.showToast(`All ${count} records cleared successfully. You can now import new data.`, 'success');
+    } catch (err) {
+      this.showToast('Failed to clear data: ' + err.message, 'error');
+    }
   },
 
   exportCsv() {
