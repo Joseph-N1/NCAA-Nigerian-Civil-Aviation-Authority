@@ -9,7 +9,7 @@ const db = {
       return;
     }
 
-    const request = window.indexedDB.open('NCAADoltSecretaryDB', 1);
+    const request = window.indexedDB.open('NCAADoltSecretaryDB', 2);
 
     request.onupgradeneeded = (event) => {
       const database = event.target.result;
@@ -22,6 +22,13 @@ const db = {
         store.createIndex('licenseNumber', 'licenseNumber', { unique: false });
         store.createIndex('dispatchedTo', 'dispatchedTo', { unique: false });
         store.createIndex('dateReceived', 'dateReceived', { unique: false });
+      }
+
+      if (!database.objectStoreNames.contains('audit_log')) {
+        const store = database.createObjectStore('audit_log', { keyPath: 'id', autoIncrement: true });
+        store.createIndex('recordId', 'recordId', { unique: false });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
+        store.createIndex('user', 'user', { unique: false });
       }
     };
 
@@ -76,6 +83,28 @@ const db = {
       const store = tx.objectStore('records');
       const req = store.delete(id);
       req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  },
+
+  async addAuditEntry(entry) {
+    if (!this.db) return;
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction('audit_log', 'readwrite');
+      const store = tx.objectStore('audit_log');
+      const req = store.add(entry);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  },
+
+  async getAllAuditEntries() {
+    if (!this.db) return [];
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction('audit_log', 'readonly');
+      const store = tx.objectStore('audit_log');
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => reject(req.error);
     });
   }

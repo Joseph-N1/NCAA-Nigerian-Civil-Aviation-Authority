@@ -146,9 +146,107 @@
   animation: fadeIn 0.25s ease-out;
 }
 
+/* ── Tab navigation ── */
+@layer components {
+  .tab-button {
+    @apply px-5 py-3 text-sm font-semibold text-ncaa-muted border-b-2 border-transparent transition-all duration-200 cursor-pointer hover:text-ncaa-text;
+  }
+
+  .tab-button.active {
+    @apply text-ncaa-accent border-ncaa-accent;
+  }
+}
+
+/* ── Notification banner ── */
+@layer components {
+  #notificationBanner {
+    @apply bg-ncaa-danger/10 border-ncaa-danger/30;
+  }
+}
+
+/* ── Follow-up specific styles ── */
+@layer components {
+  .follow-up-card {
+    @apply border-l-4 p-4 bg-white/[0.03] border border-ncaa-border rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-200;
+  }
+
+  .follow-up-card.overdue {
+    @apply border-ncaa-danger bg-ncaa-danger/5;
+  }
+
+  .follow-up-card.due-soon {
+    @apply border-ncaa-warning bg-ncaa-warning/5;
+  }
+
+  .follow-up-card.on-track {
+    @apply border-ncaa-success/30 bg-ncaa-success/5;
+  }
+
+  .follow-up-badge {
+    @apply inline-flex items-center gap-2 text-xs font-semibold;
+  }
+
+  .follow-up-badge.overdue { @apply text-ncaa-danger; }
+  .follow-up-badge.due-soon { @apply text-ncaa-warning; }
+  .follow-up-badge.on-track { @apply text-ncaa-success; }
+}
+
 /* ── Print styles ── */
 @media print {
   .no-print { display: none !important; }
   body { background: white; color: black; }
   .glass-card, .glass-card-sm { background: white; border: 1px solid #ddd; box-shadow: none; }
+}
+
+/* ── Audit log timeline & table styling ── */
+.audit-entry-details {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--color-ncaa-muted);
+  max-width: 480px;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* ── SVG Charts styling ── */
+.chart-bar {
+  transition: fill 0.2s ease, opacity 0.2s ease;
+  cursor: pointer;
+}
+.chart-bar:hover {
+  opacity: 0.85;
+}
+
+.chart-slice {
+  transition: transform 0.2s ease, filter 0.2s ease;
+  cursor: pointer;
+  transform-origin: center;
+}
+.chart-slice:hover {
+  filter: brightness(1.15);
+}
+
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-ncaa-muted);
+}
+
+/* ── Tooltip ── */
+.chart-tooltip {
+  position: absolute;
+  padding: 0.5rem 0.75rem;
+  background: rgba(18, 32, 57, 0.95);
+  border: 1px solid rgba(74, 156, 255, 0.25);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #fff;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 10;
+  white-space: nowrap;
 }
