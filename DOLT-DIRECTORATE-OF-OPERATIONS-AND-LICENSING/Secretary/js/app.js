@@ -238,7 +238,29 @@ const App = {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
     const dispatchFilter = document.getElementById('dispatchFilter').value;
-    const isGM = this.currentUser?.role === 'GM';
+    const hasWriteAccess = this.currentUser?.role === 'Secretary';
+
+    // Show/hide write action elements in UI dynamically
+    const addRecordBtn = document.getElementById('addRecordBtn');
+    if (addRecordBtn) {
+      if (hasWriteAccess) addRecordBtn.classList.remove('hidden');
+      else addRecordBtn.classList.add('hidden');
+    }
+    const importBtn = document.getElementById('importBtn');
+    if (importBtn) {
+      if (hasWriteAccess) importBtn.classList.remove('hidden');
+      else importBtn.classList.add('hidden');
+    }
+    const clearDbBtn = document.getElementById('clearDbBtn');
+    if (clearDbBtn) {
+      if (hasWriteAccess) clearDbBtn.classList.remove('hidden');
+      else clearDbBtn.classList.add('hidden');
+    }
+    const sampleDataBtn = document.getElementById('sampleDataBtn');
+    if (sampleDataBtn) {
+      if (hasWriteAccess) sampleDataBtn.classList.remove('hidden');
+      else sampleDataBtn.classList.add('hidden');
+    }
 
     const filtered = this.records.filter((record) => {
       const matchesSearch = [record.serialNumber, record.name, record.companyAirline, record.licenseNumber, record.subject, record.remark]
@@ -269,8 +291,12 @@ const App = {
         <td>${statusDot}${record.dispatchedTo || ''}</td>
         <td class="max-w-[160px] truncate text-ncaa-muted" title="${record.remark || ''}">${record.remark || ''}</td>
         <td class="no-print whitespace-nowrap">
-          <button class="btn-secondary !py-1.5 !px-3 text-xs mr-1" onclick="App.editRecord(${record.id})">Edit</button>
-          ${isGM ? `<button class="btn-danger !py-1.5 !px-3 text-xs" onclick="App.deleteRecord(${record.id})">Delete</button>` : ''}
+          ${hasWriteAccess ? `
+            <button class="btn-secondary !py-1.5 !px-3 text-xs mr-1" onclick="App.editRecord(${record.id})">Edit</button>
+            <button class="btn-danger !py-1.5 !px-3 text-xs" onclick="App.deleteRecord(${record.id})">Delete</button>
+          ` : `
+            <button class="btn-secondary !py-1.5 !px-3 text-xs" onclick="App.editRecord(${record.id})">View</button>
+          `}
         </td>
       </tr>
     `;
@@ -297,13 +323,17 @@ const App = {
   },
 
   openModal(record = null) {
-    const restricted = this.currentUser?.role === 'Secretary';
+    const hasWriteAccess = this.currentUser?.role === 'Secretary';
 
     const overlay = document.getElementById('recordModalOverlay');
     overlay.classList.remove('hidden');
     overlay.classList.add('flex');
     
-    document.getElementById('recordModalTitle').textContent = record ? 'Edit record' : 'Add record';
+    if (hasWriteAccess) {
+      document.getElementById('recordModalTitle').textContent = record ? 'Edit record' : 'Add record';
+    } else {
+      document.getElementById('recordModalTitle').textContent = 'View record';
+    }
 
     document.getElementById('recordId').value = record ? record.id : '';
     document.getElementById('recordSerial').value = record ? record.serialNumber : '';
@@ -320,8 +350,21 @@ const App = {
     document.getElementById('recordFollowUpStatus').value = record ? record.followUpStatus : 'pending';
     document.getElementById('recordFollowUpResult').value = record ? record.followUpResult : '';
 
-    document.getElementById('recordDispatched').disabled = restricted;
-    document.getElementById('recordStatus').disabled = restricted;
+    // Disable or enable all fields based on write access
+    const formFields = document.querySelectorAll('#recordForm input, #recordForm select, #recordForm textarea');
+    formFields.forEach(field => {
+      field.disabled = !hasWriteAccess;
+    });
+
+    // Hide or show save buttons container based on write access
+    const saveContainer = document.querySelector('#recordForm button[type="submit"]')?.parentElement;
+    if (saveContainer) {
+      if (hasWriteAccess) {
+        saveContainer.classList.remove('hidden');
+      } else {
+        saveContainer.classList.add('hidden');
+      }
+    }
 
     // Show change history inside the edit modal
     const modalHistorySection = document.getElementById('modalHistorySection');
@@ -363,8 +406,11 @@ const App = {
     
     document.getElementById('recordForm').reset();
     document.getElementById('recordId').value = '';
-    document.getElementById('recordDispatched').disabled = false;
-    document.getElementById('recordStatus').disabled = false;
+    
+    const formFields = document.querySelectorAll('#recordForm input, #recordForm select, #recordForm textarea');
+    formFields.forEach(field => {
+      field.disabled = false;
+    });
   },
 
   editRecord(id) {
@@ -376,6 +422,12 @@ const App = {
 
   async saveRecord(event) {
     event.preventDefault();
+    const hasWriteAccess = this.currentUser?.role === 'Secretary';
+    if (!hasWriteAccess) {
+      this.showToast('You do not have permission to save records.', 'error');
+      return;
+    }
+
     const id = document.getElementById('recordId').value;
     const record = {
       serialNumber: document.getElementById('recordSerial').value.trim(),
@@ -437,8 +489,9 @@ const App = {
   },
 
   async deleteRecord(id) {
-    if (this.currentUser?.role !== 'GM') {
-      this.showToast('Only GM users can delete records.', 'error');
+    const hasWriteAccess = this.currentUser?.role === 'Secretary';
+    if (!hasWriteAccess) {
+      this.showToast('Only Secretary users can delete records.', 'error');
       return;
     }
 
@@ -636,6 +689,13 @@ const App = {
   },
 
   async importBackup(event) {
+    const hasWriteAccess = this.currentUser?.role === 'Secretary';
+    if (!hasWriteAccess) {
+      this.showToast('Only Secretary users can import backups.', 'error');
+      event.target.value = '';
+      return;
+    }
+
     const file = event.target.files?.[0];
     if (!file) {
       return;
@@ -643,60 +703,101 @@ const App = {
 
     const text = await file.text();
     const isCsv = file.name.toLowerCase().endsWith('.csv');
-    let importedRecords;
+    let importedRecords = [];
+    let importedAudit = [];
+    let isFullBackup = false;
 
     try {
       if (isCsv) {
         importedRecords = this.parseCsvToRecords(text);
       } else {
-        importedRecords = JSON.parse(text);
-        if (!Array.isArray(importedRecords)) {
-          throw new Error('Backup file is not a valid records array.');
+        const parsed = JSON.parse(text);
+        if (parsed && parsed.version === '2.0' && Array.isArray(parsed.records)) {
+          importedRecords = parsed.records;
+          importedAudit = parsed.auditLog || [];
+          isFullBackup = true;
+        } else if (Array.isArray(parsed)) {
+          importedRecords = parsed;
+        } else {
+          throw new Error('Backup file is not in a recognized format.');
         }
       }
     } catch (error) {
       this.showToast('Import failed: ' + error.message, 'error');
+      event.target.value = '';
       return;
     }
 
     if (!importedRecords || importedRecords.length === 0) {
       this.showToast('No records found in the file.', 'error');
+      event.target.value = '';
       return;
     }
 
-    const confirmImport = confirm(`Import ${importedRecords.length} records from ${isCsv ? 'CSV' : 'JSON'}? This will append them to existing data.`);
+    const confirmImport = confirm(`This will REPLACE all existing database records and audit history with the ${importedRecords.length} records from this backup file. Click OK to proceed, or Cancel to abort.`);
     if (!confirmImport) {
+      event.target.value = '';
       return;
     }
 
-    for (const imported of importedRecords) {
-      const record = {
-        serialNumber: imported.serialNumber || imported['S/N'] || imported.SN || imported.serial || '',
-        dateReceived: imported.dateReceived || imported['Date'] || imported.date || '',
-        name: imported.name || imported['Name'] || '',
-        companyAirline: imported.companyAirline || imported['Company / Airline'] || imported['Company/Airline'] || imported.company || imported.airline || '',
-        licenseNumber: imported.licenseNumber || imported['License Type/Number'] || imported['License'] || imported.license || '',
-        subject: imported.subject || imported['Subject'] || '',
-        licenseValidation: imported.licenseValidation || imported['License Validation'] || imported.validation || '',
-        dispatchedTo: imported.dispatchedTo || imported['Dispatched'] || imported.dispatched || 'Head-FCL',
-        remark: imported.remark || imported['Remark'] || '',
-        status: imported.status || imported['Status'] || 'received',
-        followUpDate: imported.followUpDate || imported['Follow-up Date'] || '',
-        followUpStatus: imported.followUpStatus || imported['Follow-up Status'] || 'pending',
-        followUpResult: imported.followUpResult || imported['Follow-up Result'] || '',
-        createdAt: new Date().toISOString(),
-        createdBy: this.currentUser ? this.currentUser.email : 'import'
-      };
-      const id = await db.addRecord(record);
-      record.id = id;
-      this.records.push(record);
-    }
+    try {
+      // Clear current data completely to prevent duplication
+      await db.clearAllRecords();
+      await db.clearAllAuditLog();
+      this.records = [];
 
-    await this.logAudit('Import Backup', null, null, null, `Imported ${importedRecords.length} records from ${isCsv ? 'CSV' : 'JSON'} file: ${file.name}`);
-    event.target.value = '';
-    this.updateSummary();
-    this.renderTable();
-    this.showToast(`${importedRecords.length} records imported successfully!`, 'success');
+      // Restore records
+      for (const imported of importedRecords) {
+        const record = {
+          serialNumber: imported.serialNumber || imported['S/N'] || imported.SN || imported.serial || '',
+          dateReceived: imported.dateReceived || imported['Date'] || imported.date || '',
+          name: imported.name || imported['Name'] || '',
+          companyAirline: imported.companyAirline || imported['Company / Airline'] || imported['Company/Airline'] || imported.company || imported.airline || '',
+          licenseNumber: imported.licenseNumber || imported['License Type/Number'] || imported['License'] || imported.license || '',
+          subject: imported.subject || imported['Subject'] || '',
+          licenseValidation: imported.licenseValidation || imported['License Validation'] || imported.validation || '',
+          dispatchedTo: imported.dispatchedTo || imported['Dispatched'] || imported.dispatched || 'Head-FCL',
+          remark: imported.remark || imported['Remark'] || '',
+          status: imported.status || imported['Status'] || 'received',
+          followUpDate: imported.followUpDate || imported['Follow-up Date'] || '',
+          followUpStatus: imported.followUpStatus || imported['Follow-up Status'] || 'pending',
+          followUpResult: imported.followUpResult || imported['Follow-up Result'] || '',
+          createdAt: imported.createdAt || new Date().toISOString(),
+          createdBy: imported.createdBy || (this.currentUser ? this.currentUser.email : 'import')
+        };
+        const id = await db.addRecord(record);
+        record.id = id;
+        this.records.push(record);
+      }
+
+      // Restore audit logs
+      if (isFullBackup && importedAudit.length > 0) {
+        for (const entry of importedAudit) {
+          const newEntry = {
+            timestamp: entry.timestamp || new Date().toISOString(),
+            user: entry.user || 'imported',
+            action: entry.action || 'Imported',
+            recordId: entry.recordId || null,
+            serialNumber: entry.serialNumber || null,
+            name: entry.name || null,
+            details: entry.details || ''
+          };
+          await db.addAuditEntry(newEntry);
+        }
+      }
+
+      // Log the restore event itself
+      await this.logAudit('Import Backup', null, null, null, `Imported/Restored ${importedRecords.length} records and ${importedAudit.length} history entries from file: ${file.name}`);
+      
+      this.updateSummary();
+      this.renderTable();
+      this.showToast(`${importedRecords.length} records and history restored successfully!`, 'success');
+    } catch (err) {
+      console.error(err);
+      this.showToast('Import failed: ' + err.message, 'error');
+    } finally {
+      event.target.value = '';
+    }
   },
 
   parseCsvToRecords(csvText) {
@@ -755,37 +856,54 @@ const App = {
     return result;
   },
 
-  exportBackup() {
-    const backupData = JSON.stringify(this.records, null, 2);
-    const blob = new Blob([backupData], { type: 'application/json;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `dolt-secretary-backup-${new Date().toISOString().slice(0,10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    this.showToast('Backup exported.', 'success');
+  async exportBackup() {
+    try {
+      const auditLog = await db.getAllAuditEntries() || [];
+      const backupObj = {
+        version: '2.0',
+        records: this.records,
+        auditLog: auditLog
+      };
+      const backupData = JSON.stringify(backupObj, null, 2);
+      const blob = new Blob([backupData], { type: 'application/json;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `dolt-secretary-backup-${new Date().toISOString().slice(0,10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      this.showToast('Backup exported with full history.', 'success');
+    } catch (err) {
+      console.error(err);
+      this.showToast('Failed to export backup: ' + err.message, 'error');
+    }
   },
 
   async clearAllData() {
+    const hasWriteAccess = this.currentUser?.role === 'Secretary';
+    if (!hasWriteAccess) {
+      this.showToast('Only Secretary users can clear database.', 'error');
+      return;
+    }
+
     const count = this.records.length;
     if (count === 0) {
       this.showToast('Database is already empty.', 'info');
       return;
     }
 
-    if (!confirm(`⚠️ This will permanently delete all ${count} records from the database.\n\nThis action cannot be undone.\n\nProceed?`)) {
+    if (!confirm(`⚠️ This will permanently delete all ${count} records and change history from the database.\n\nThis action cannot be undone.\n\nProceed?`)) {
       return;
     }
 
     try {
       await db.clearAllRecords();
-      await this.logAudit('Clear All Data', null, null, null, `Cleared all ${count} records from the database`);
+      await db.clearAllAuditLog();
       this.records = [];
       localStorage.removeItem('doltSampleSeeded');
       this.updateSummary();
       this.renderTable();
-      this.showToast(`All ${count} records cleared successfully. You can now import new data.`, 'success');
+      this.showToast(`All ${count} records and history cleared successfully.`, 'success');
     } catch (err) {
       this.showToast('Failed to clear data: ' + err.message, 'error');
     }

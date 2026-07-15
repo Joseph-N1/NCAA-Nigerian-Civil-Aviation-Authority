@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="DOLT Secretary Office Correspondence Records Dashboard — NCAA Nigeria">
+  <title>DOLT Secretary Dashboard</title>
+  <!-- PWA Support -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#08101f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="./assets/index-DSvQilOE.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-DQFAZ3vL.css">
+</head>
+<body class="min-h-screen font-[Inter,sans-serif]">
+
+  <!-- Toast container (for minor fix #1) -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="max-w-[1440px] mx-auto px-6 py-6 space-y-6" id="appShell">
+
+    <!-- ═══════════ HEADER ═══════════ -->
+    <header class="glass-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div>
+        <p class="text-ncaa-accent text-xs uppercase tracking-[0.16em] font-semibold mb-1">
+          NCAA · Directorate of Licensing &amp; Operations
+        </p>
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight m-0">
+          Office Correspondence Records
+        </h1>
+      </div>
+      <div class="flex items-center gap-4 no-print">
+        <div class="text-right flex items-center gap-3">
+          <div class="text-right">
+            <span class="block font-bold text-sm" id="userName">Guest</span>
+            <small class="text-ncaa-muted text-xs" id="userRole">Visitor</small>
+          </div>
+          <select id="userSwitcher" class="form-select text-xs !py-1.5 !px-2.5 bg-white/[0.05] border-white/[0.1] rounded-lg cursor-pointer text-ncaa-text" style="width: auto;">
+            <option value="guest@ncaa.gov.ng">Guest (GM)</option>
+            <option value="gm@ncaa.gov.ng">GM (gm@ncaa.gov.ng)</option>
+            <option value="sec1@ncaa.gov.ng">Secretary 1 (sec1@ncaa.gov.ng)</option>
+            <option value="sec2@ncaa.gov.ng">Secretary 2 (sec2@ncaa.gov.ng)</option>
+          </select>
+        </div>
+        <button class="btn-secondary text-sm !py-2 !px-4" id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <!-- ═══════════ NOTIFICATIONS BANNER ═══════════ -->
+    <div class="glass-card border-l-4 border-ncaa-danger hidden" id="notificationBanner">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex-1">
+          <p class="font-semibold text-ncaa-danger m-0 mb-1">⚠️ Follow-up Items Require Attention</p>
+          <p class="text-sm text-ncaa-muted m-0"><span id="overdueCount">0</span> overdue • <span id="dueCount">0</span> due soon</p>
+        </div>
+        <button class="btn-primary text-sm" id="viewFollowUpsBtn">View Follow-ups</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ SUMMARY CARDS ═══════════ -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div class="glass-card group hover:border-ncaa-accent/30 transition-all duration-300 hover:-translate-y-1">
+        <h2 class="text-ncaa-muted text-sm font-medium m-0 mb-2">Total Records</h2>
+        <p class="text-4xl font-extrabold m-0 text-ncaa-text group-hover:text-ncaa-accent transition-colors" id="totalCount">0</p>
+      </div>
+      <div class="glass-card group hover:border-ncaa-success/30 transition-all duration-300 hover:-translate-y-1">
+        <h2 class="text-ncaa-muted text-sm font-medium m-0 mb-2">Dispatched</h2>
+        <p class="text-4xl font-extrabold m-0 text-ncaa-success" id="dispatchedCount">0</p>
+      </div>
+      <div class="glass-card group hover:border-ncaa-warning/30 transition-all duration-300 hover:-translate-y-1">
+        <h2 class="text-ncaa-muted text-sm font-medium m-0 mb-2">Pending</h2>
+        <p class="text-4xl font-extrabold m-0 text-ncaa-warning" id="pendingCount">0</p>
+      </div>
+      <div class="glass-card group hover:border-ncaa-danger/30 transition-all duration-300 hover:-translate-y-1">
+        <h2 class="text-ncaa-muted text-sm font-medium m-0 mb-2">Expired Validation</h2>
+        <p class="text-4xl font-extrabold m-0 text-ncaa-danger" id="validationCount">0</p>
+      </div>
+      <div class="glass-card group hover:border-ncaa-accent/30 transition-all duration-300 hover:-translate-y-1">
+        <h2 class="text-ncaa-muted text-sm font-medium m-0 mb-2">Follow-ups Pending</h2>
+        <p class="text-4xl font-extrabold m-0 text-ncaa-accent" id="followUpCount">0</p>
+      </div>
+    </section>
+
+    <!-- ═══════════ TAB NAVIGATION ═══════════ -->
+    <div class="glass-card no-print border-b border-white/[0.08]">
+      <div class="flex flex-wrap gap-2">
+        <button class="tab-button active" data-tab="all-records" id="allRecordsTab">📋 All Records</button>
+        <button class="tab-button" data-tab="follow-ups" id="followUpAgendaTab">📅 Follow-up Agenda</button>
+        <button class="tab-button" data-tab="audit-log" id="auditLogTab">📜 Audit Log</button>
+        <button class="tab-button" data-tab="analytics" id="analyticsTab">📊 Analytics Dashboard</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ TOOLBAR ═══════════ -->
+    <section class="glass-card space-y-4 no-print">
+      <!-- Search row -->
+      <div class="flex flex-wrap gap-3 items-center">
+        <div class="relative flex-1 min-w-[220px]">
+          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ncaa-muted pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="searchInput" type="search" class="form-input !pl-10" placeholder="Search by name, company, license, subject, or remark…">
+        </div>
+        <button class="btn-primary text-sm" id="exportBtn">
+          <span class="inline-flex items-center gap-1.5">📄 Export CSV</span>
+        </button>
+        <button class="btn-secondary text-sm" id="backupExportBtn">
+          <span class="inline-flex items-center gap-1.5">💾 Export Backup</span>
+        </button>
+      </div>
+
+      <!-- Filter row -->
+      <div class="flex flex-wrap gap-3 items-center">
+        <select id="statusFilter" class="form-select max-w-[200px]">
+          <option value="all">All statuses</option>
+          <option value="received">Received</option>
+          <option value="in-review">In Review</option>
+          <option value="dispatched">Dispatched</option>
+        </select>
+        <select id="dispatchFilter" class="form-select max-w-[240px]">
+          <option value="all">All dispatch destinations</option>
+          <option value="Head-FCL">Head-FCL</option>
+          <option value="Head-FDL">Head-FDL</option>
+          <option value="Head-CCL">Head-CCL</option>
+          <option value="Head-AMEL">Head-AMEL</option>
+          <option value="Others">Others</option>
+        </select>
+        <div class="flex-1"></div>
+        <button class="btn-secondary text-sm" id="printBtn">🖨️ Print</button>
+        <button class="btn-secondary text-sm" id="importBtn">📥 Import</button>
+        <button class="btn-secondary text-sm" id="sampleDataBtn">📋 Sample Data</button>
+        <button class="btn-danger text-sm" id="clearDbBtn">🗑️ Clear Data</button>
+        <button class="btn-primary text-sm" id="addRecordBtn">
+          <span class="inline-flex items-center gap-1.5">＋ Add Record</span>
+        </button>
+      </div>
+      <input type="file" id="importFileInput" accept=".json,.csv" hidden>
+    </section>
+
+    <!-- ═══════════ DATA TABLE - ALL RECORDS ═══════════ -->
+    <section class="glass-card overflow-x-auto" id="allRecordsSection">
+      <!-- Empty state (for minor fix #3) -->
+      <div class="hidden flex-col items-center justify-center py-16 text-center" id="emptyState">
+        <div class="text-6xl mb-4 opacity-40">📂</div>
+        <h3 class="text-ncaa-muted text-lg font-semibold m-0 mb-2">No records yet</h3>
+        <p class="text-ncaa-muted/60 text-sm max-w-xs m-0">Click <strong>"Add Record"</strong> or <strong>"Sample Data"</strong> to get started.</p>
+      </div>
+      <table class="data-table" id="recordsTable">
+        <thead>
+          <tr>
+            <th>S/N</th>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Company / Airline</th>
+            <th>License</th>
+            <th>Subject</th>
+            <th>Validation</th>
+            <th>Dispatched</th>
+            <th>Remark</th>
+            <th class="no-print">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="recordsTableBody">
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ═══════════ FOLLOW-UP AGENDA VIEW ═══════════ -->
+    <section class="glass-card hidden" id="followUpSection">
+      <div class="space-y-4">
+        <div id="followUpContainer">
+          <!-- Follow-up cards will be rendered here -->
+        </div>
+        <div class="flex justify-end gap-2 pt-4 border-t border-white/[0.08]" id="followUpBulkActions">
+          <button class="btn-secondary text-sm" id="exportFollowUpBtn">📄 Export Follow-ups</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ AUDIT LOG VIEW ═══════════ -->
+    <section class="glass-card hidden" id="auditLogSection">
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 no-print">
+          <div class="flex flex-wrap items-center gap-3">
+            <input id="auditSearchInput" type="search" class="form-input text-sm !py-2 !px-4 max-w-[280px]" placeholder="Search logs...">
+            <select id="auditActionFilter" class="form-select text-sm !py-2 !px-4 max-w-[180px]">
+              <option value="all">All Actions</option>
+              <option value="Create">Create</option>
+              <option value="Update">Update</option>
+              <option value="Delete">Delete</option>
+              <option value="Seed Sample Data">Seed Sample Data</option>
+              <option value="Import Backup">Import Backup</option>
+            </select>
+            <select id="auditUserFilter" class="form-select text-sm !py-2 !px-4 max-w-[180px]">
+              <option value="all">All Users</option>
+            </select>
+          </div>
+          <button class="btn-secondary text-sm !py-2" id="exportAuditBtn">📄 Export Audit Trail</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="data-table" id="auditTable">
+            <thead>
+              <tr>
+                <th style="width: 180px;">Timestamp</th>
+                <th style="width: 180px;">User</th>
+                <th style="width: 130px;">Action</th>
+                <th style="width: 150px;">Record (S/N)</th>
+                <th>Details of Changes</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody">
+              <!-- Audit logs rendered here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ ANALYTICS VIEW ═══════════ -->
+    <section class="glass-card hidden" id="analyticsSection">
+      <div class="space-y-6">
+        <!-- Summary Stats Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="glass-card-sm text-center">
+            <h3 class="text-ncaa-muted text-xs font-semibold uppercase tracking-wider mb-1">Avg Cycle Time</h3>
+            <p class="text-2xl font-extrabold text-ncaa-accent m-0" id="avgCycleTime">0.0 days</p>
+            <span class="text-[10px] text-ncaa-muted/60">Received to Dispatched</span>
+          </div>
+          <div class="glass-card-sm text-center">
+            <h3 class="text-ncaa-muted text-xs font-semibold uppercase tracking-wider mb-1">Dispatch Rate</h3>
+            <p class="text-2xl font-extrabold text-ncaa-success m-0" id="dispatchRate">0%</p>
+            <span class="text-[10px] text-ncaa-muted/60">Of total records</span>
+          </div>
+          <div class="glass-card-sm text-center">
+            <h3 class="text-ncaa-muted text-xs font-semibold uppercase tracking-wider mb-1">Backlog Percentage</h3>
+            <p class="text-2xl font-extrabold text-ncaa-warning m-0" id="backlogRate">0%</p>
+            <span class="text-[10px] text-ncaa-muted/60">Pending action</span>
+          </div>
+          <div class="glass-card-sm text-center">
+            <h3 class="text-ncaa-muted text-xs font-semibold uppercase tracking-wider mb-1">Expired Licenses</h3>
+            <p class="text-2xl font-extrabold text-ncaa-danger m-0" id="expiredRate">0</p>
+            <span class="text-[10px] text-ncaa-muted/60">Require immediate action</span>
+          </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Dispatch Efficiency -->
+          <div class="glass-card-sm flex flex-col justify-between min-h-[300px]">
+            <h3 class="text-sm font-semibold mb-4 text-ncaa-text">Avg Processing Time by Department (Days)</h3>
+            <div id="efficiencyChartContainer" class="h-64 flex items-end justify-center pb-4 relative">
+              <!-- SVG chart inserted here -->
+            </div>
+          </div>
+          <!-- Department Workload -->
+          <div class="glass-card-sm flex flex-col justify-between min-h-[300px]">
+            <h3 class="text-sm font-semibold mb-4 text-ncaa-text">Department Workload Volume</h3>
+            <div id="workloadChartContainer" class="h-64 flex items-center justify-center pb-4 relative">
+              <!-- SVG chart inserted here -->
+            </div>
+          </div>
+          <!-- License Type Distribution -->
+          <div class="glass-card-sm flex flex-col justify-between lg:col-span-2 min-h-[300px]">
+            <h3 class="text-sm font-semibold mb-4 text-ncaa-text">License Type Distribution</h3>
+            <div id="licenseChartContainer" class="h-64 flex items-center justify-center pb-4 relative">
+              <!-- SVG chart inserted here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ FOOTER ═══════════ -->
+    <footer class="text-center text-ncaa-muted/50 text-xs py-4 no-print">
+      NCAA · DOLT Secretary Dashboard · Offline-first · © 2026
+    </footer>
+  </div>
+
+  <!-- ═══════════ MODAL OVERLAY ═══════════ -->
+  <div class="hidden fixed inset-0 bg-[rgba(2,11,24,0.88)] z-[100] flex items-center justify-center p-4" id="recordModalOverlay">
+    <div class="modal-card-inner glass-card w-full max-w-[920px] max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center gap-3 mb-6">
+        <h2 class="text-xl font-bold m-0" id="recordModalTitle">Add record</h2>
+        <button id="closeModalBtn" class="btn-icon">✕</button>
+      </div>
+      <form id="recordForm" class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
+        <div>
+          <label for="recordSerial" class="block text-ncaa-muted text-sm mb-1.5">S/N</label>
+          <input id="recordSerial" type="text" class="form-input" required>
+        </div>
+        <div>
+          <label for="recordDate" class="block text-ncaa-muted text-sm mb-1.5">Date</label>
+          <input id="recordDate" type="date" class="form-input" required>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="recordName" class="block text-ncaa-muted text-sm mb-1.5">Name</label>
+          <input id="recordName" type="text" class="form-input" required>
+        </div>
+        <div>
+          <label for="recordCompany" class="block text-ncaa-muted text-sm mb-1.5">Company / Airline</label>
+          <input id="recordCompany" type="text" class="form-input" required>
+        </div>
+        <div>
+          <label for="recordLicense" class="block text-ncaa-muted text-sm mb-1.5">License Type / Number</label>
+          <input id="recordLicense" type="text" class="form-input" required>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="recordSubject" class="block text-ncaa-muted text-sm mb-1.5">Subject</label>
+          <input id="recordSubject" type="text" class="form-input" required>
+        </div>
+        <div>
+          <label for="recordValidation" class="block text-ncaa-muted text-sm mb-1.5">License Validation</label>
+          <input id="recordValidation" type="date" class="form-input" required>
+        </div>
+        <div>
+          <label for="recordDispatched" class="block text-ncaa-muted text-sm mb-1.5">Dispatched To</label>
+          <select id="recordDispatched" class="form-select" required>
+            <option value="Head-FCL">Head-FCL</option>
+            <option value="Head-FDL">Head-FDL</option>
+            <option value="Head-CCL">Head-CCL</option>
+            <option value="Head-AMEL">Head-AMEL</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="recordRemark" class="block text-ncaa-muted text-sm mb-1.5">Remark</label>
+          <textarea id="recordRemark" rows="3" class="form-input resize-y"></textarea>
+        </div>
+        <div>
+          <label for="recordStatus" class="block text-ncaa-muted text-sm mb-1.5">Status</label>
+          <select id="recordStatus" class="form-select" required>
+            <option value="received">Received</option>
+            <option value="in-review">In Review</option>
+            <option value="dispatched">Dispatched</option>
+          </select>
+        </div>
+        <div>
+          <label for="recordFollowUpDate" class="block text-ncaa-muted text-sm mb-1.5">Follow-up Date (optional)</label>
+          <input id="recordFollowUpDate" type="date" class="form-input">
+        </div>
+        <div>
+          <label for="recordFollowUpStatus" class="block text-ncaa-muted text-sm mb-1.5">Follow-up Status</label>
+          <select id="recordFollowUpStatus" class="form-select">
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="recordFollowUpResult" class="block text-ncaa-muted text-sm mb-1.5">Follow-up Result / Notes</label>
+          <textarea id="recordFollowUpResult" rows="2" class="form-input resize-y" placeholder="What was the outcome?"></textarea>
+        </div>
+        <div class="sm:col-span-2 pt-4 mt-2 border-t border-white/[0.08] hidden" id="modalHistorySection">
+          <h3 class="text-sm font-bold text-ncaa-muted mb-2">Record Change History</h3>
+          <div class="max-h-[150px] overflow-y-auto space-y-2 text-xs" id="modalHistoryContainer">
+            <!-- Timeline of modifications for this specific record -->
+          </div>
+        </div>
+        <div class="flex items-end justify-end gap-3">
+          <!-- spacer column -->
+        </div>
+        <div class="sm:col-span-2 flex justify-end gap-3 pt-4 border-t border-white/[0.08]">
+          <button type="button" class="btn-secondary" id="cancelRecordBtn">Cancel</button>
+          <button type="submit" class="btn-primary">Save Record</button>
+        </div>
+        <input type="hidden" id="recordId">
+      </form>
+    </div>
+  </div>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => {
+            console.log('ServiceWorker registered: ', reg.scope);
+            reg.update();
+          })
+          .catch(err => console.log('ServiceWorker registration failed: ', err));
+      });
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+    }
+  </script>
+</body>
+</html>

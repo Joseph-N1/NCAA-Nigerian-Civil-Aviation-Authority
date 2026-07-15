@@ -1,0 +1,10 @@
+{
+  "name": "NCAA DOLT Secretary Dashboard",
+  "short_name": "Secretary DB",
+  "description": "Office Correspondence Records Dashboard for NCAA Directorate of Licensing & Operations",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#08101f",
+  "theme_color": "#4a9cff",
+  "orientation": "any"
+}

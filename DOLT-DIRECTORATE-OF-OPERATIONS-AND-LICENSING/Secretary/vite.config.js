@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [tailwindcss()],
+  base: './',
   root: '.',
   build: {
     outDir: 'dist',

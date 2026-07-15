@@ -118,6 +118,17 @@ const db = {
       req.onsuccess = () => resolve();
       req.onerror = () => reject(req.error);
     });
+  },
+
+  async clearAllAuditLog() {
+    if (!this.db) return;
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction('audit_log', 'readwrite');
+      const store = tx.objectStore('audit_log');
+      const req = store.clear();
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
   }
 };
 
