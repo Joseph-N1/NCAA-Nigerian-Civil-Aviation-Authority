@@ -2,9 +2,10 @@
 import db from './db.js';
 
 const USERS = [
-  { email: 'gm@ncaa.gov.ng', role: 'GM', pin: '1111' },
-  { email: 'sec1@ncaa.gov.ng', role: 'Secretary', pin: '2222' },
-  { email: 'sec2@ncaa.gov.ng', role: 'Secretary', pin: '3333' }
+  { email: 'gml@ncaa.gov.ng', role: 'GML', pin: '1111', canWrite: false},
+  { email: 'sec1@ncaa.gov.ng', role: 'Galadanchi Abdulrahaman Suleiman', pin: '2222', canWrite: true },
+  { email: 'sec2@ncaa.gov.ng', role: 'Amira Daji', pin: '3333', canWrite: true },
+  { email: 'sec3@ncaa.gov.ng', role: 'Rinret Friday', pin: '4444', canWrite: true } 
 ];
 
 const App = {
@@ -12,7 +13,7 @@ const App = {
   records: [],
 
   async init() {
-    this.currentUser = { email: 'guest@ncaa.gov.ng', role: 'GM' };
+    this.currentUser = { email: 'guest@ncaa.gov.ng', role: 'GUEST' };
     this.bindEvents();
 
     // Await DB readiness before rendering so the table is never empty on load.
@@ -194,6 +195,7 @@ const App = {
     dispatchedCount.textContent = this.records.filter((record) => record.status === 'dispatched').length;
     pendingCount.textContent = this.records.filter((record) => record.status !== 'dispatched').length;
     validationCount.textContent = this.records.filter((record) => {
+      if (!record.licenseValidation) return false;
       const validationDate = new Date(record.licenseValidation);
       return validationDate < new Date();
     }).length;
@@ -238,7 +240,7 @@ const App = {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
     const dispatchFilter = document.getElementById('dispatchFilter').value;
-    const hasWriteAccess = this.currentUser?.role === 'Secretary';
+    const hasWriteAccess = !!this.currentUser?.canWrite;
 
     // Show/hide write action elements in UI dynamically
     const addRecordBtn = document.getElementById('addRecordBtn');
@@ -323,7 +325,7 @@ const App = {
   },
 
   openModal(record = null) {
-    const hasWriteAccess = this.currentUser?.role === 'Secretary';
+    const hasWriteAccess = !!this.currentUser?.canWrite;
 
     const overlay = document.getElementById('recordModalOverlay');
     overlay.classList.remove('hidden');
@@ -422,7 +424,7 @@ const App = {
 
   async saveRecord(event) {
     event.preventDefault();
-    const hasWriteAccess = this.currentUser?.role === 'Secretary';
+    const hasWriteAccess = !!this.currentUser?.canWrite;
     if (!hasWriteAccess) {
       this.showToast('You do not have permission to save records.', 'error');
       return;
@@ -447,7 +449,7 @@ const App = {
       updatedBy: this.currentUser ? this.currentUser.email : 'unknown'
     };
 
-    if (!record.serialNumber || !record.dateReceived || !record.name || !record.companyAirline || !record.licenseNumber || !record.subject || !record.licenseValidation) {
+    if (!record.serialNumber || !record.dateReceived || !record.name || !record.companyAirline || !record.licenseNumber || !record.subject) {
       this.showToast('Please fill in all required fields.', 'error');
       return;
     }
@@ -489,7 +491,7 @@ const App = {
   },
 
   async deleteRecord(id) {
-    const hasWriteAccess = this.currentUser?.role === 'Secretary';
+    const hasWriteAccess = !!this.currentUser?.canWrite;
     if (!hasWriteAccess) {
       this.showToast('Only Secretary users can delete records.', 'error');
       return;
@@ -689,7 +691,7 @@ const App = {
   },
 
   async importBackup(event) {
-    const hasWriteAccess = this.currentUser?.role === 'Secretary';
+    const hasWriteAccess = !!this.currentUser?.canWrite;
     if (!hasWriteAccess) {
       this.showToast('Only Secretary users can import backups.', 'error');
       event.target.value = '';
@@ -880,7 +882,7 @@ const App = {
   },
 
   async clearAllData() {
-    const hasWriteAccess = this.currentUser?.role === 'Secretary';
+    const hasWriteAccess = !!this.currentUser?.canWrite;
     if (!hasWriteAccess) {
       this.showToast('Only Secretary users can clear database.', 'error');
       return;
@@ -1172,7 +1174,7 @@ const App = {
     document.getElementById('expiredRate').textContent = expiredCount;
 
     // 2. Charts Calculations
-    const depts = ['Head-FCL', 'Head-FDL', 'Head-CCL', 'Head-AMEL', 'Others'];
+    const depts = ['Head-FCL', 'Head-FDL', 'Head-CCL', 'Head-AMEL', 'Registry', 'Others'];
     const deptStats = depts.map(dept => {
       const records = this.records.filter(r => r.dispatchedTo === dept && r.status === 'dispatched');
       if (records.length === 0) {

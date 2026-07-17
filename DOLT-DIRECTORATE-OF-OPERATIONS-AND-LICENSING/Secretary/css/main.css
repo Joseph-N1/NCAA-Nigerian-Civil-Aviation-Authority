@@ -250,3 +250,15 @@
   z-index: 10;
   white-space: nowrap;
 }
+
+/* Ensure dropdown options are highly visible with a dark navy/slate tone that fits the NCAA aesthetic */
+.form-select option {
+  background-color: #ffffff; /* Explicit white background */
+  color: #0f172a;            /* Deep slate/dark navy text for clear contrast */
+}
+
+/* If you also have a user selection dropdown at login using standard selects */
+select option {
+  background-color: #ffffff;
+  color: #0f172a !important;
+}
