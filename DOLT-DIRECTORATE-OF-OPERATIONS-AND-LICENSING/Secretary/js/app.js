@@ -2,6 +2,7 @@
 import db from './db.js';
 
 const USERS = [
+  { email: 'guest@ncaa.gov.ng', role: 'Visitor', pin: '', canWrite: false },
   { email: 'gml@ncaa.gov.ng', role: 'GML', pin: '1111', canWrite: false},
   { email: 'sec1@ncaa.gov.ng', role: 'Galadanchi Abdulrahaman Suleiman', pin: '2222', canWrite: true },
   { email: 'sec2@ncaa.gov.ng', role: 'Amira Daji', pin: '3333', canWrite: true },
@@ -13,7 +14,7 @@ const App = {
   records: [],
 
   async init() {
-    this.currentUser = { email: 'guest@ncaa.gov.ng', role: 'GUEST' };
+    this.currentUser = { email: 'guest@ncaa.gov.ng', role: 'Visitor' };
     this.bindEvents();
 
     // Await DB readiness before rendering so the table is never empty on load.
@@ -170,7 +171,11 @@ const App = {
     document.getElementById('appShell').classList.remove('hidden');
     document.getElementById('userName').textContent = 'Guest';
     document.getElementById('userRole').textContent = 'Visitor';
-    this.currentUser = { email: 'guest@ncaa.gov.ng', role: 'GM' };
+    this.currentUser = { email: 'guest@ncaa.gov.ng', role: 'Visitor' };
+    const userSwitcher = document.getElementById('userSwitcher');
+    if (userSwitcher) {
+      userSwitcher.value = this.currentUser.email;
+    }
     this.renderTable();
   },
 

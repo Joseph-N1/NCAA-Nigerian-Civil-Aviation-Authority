@@ -9,8 +9,8 @@ const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './assets/index-DSvQilOE.js',
-  './assets/index-DQFAZ3vL.css'
+  './assets/index-0liM9bSy.js',
+  './assets/index-DrPsvDt8.css'
 ];
 
 // Install: Cache all static assets
