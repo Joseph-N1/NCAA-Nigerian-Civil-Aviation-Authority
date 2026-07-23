@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Rano Air AMO CPCP Progress Tracker Dashboard — Abuja Airport">
+  <title>Rano Air CPCP Progress Tracker</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen">
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ═══════════ MAIN SHELL ═══════════ -->
+  <div class="max-w-[1440px] mx-auto px-6 py-6 space-y-6 no-print" id="appShell">
+    
+    <!-- HEADER -->
+    <header class="glass-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div>
+        <p class="text-ncaa-accent text-xs uppercase tracking-[0.16em] font-semibold mb-1">
+          Rano Air AMO · Abuja Airport Hangar
+        </p>
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight m-0">
+          CPCP Check Progress Tracker
+        </h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="text-right flex items-center gap-3">
+          <div class="text-right">
+            <span class="block font-bold text-sm" id="userName">Line Manager</span>
+            <small class="text-ncaa-muted text-xs" id="userRole">Manager</small>
+          </div>
+          <select id="userSwitcher" class="form-select text-xs !py-1.5 !px-2.5 bg-white/[0.05] border-white/[0.1] rounded-lg cursor-pointer text-ncaa-text" style="width: auto;">
+            <option value="manager">Line Maintenance Manager</option>
+            <option value="engr1">Engr. Musa Ibrahim</option>
+            <option value="engr2">Engr. Fatima Yusuf</option>
+            <option value="cert1">Certifier Jatau Usman</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <!-- ACTIVE CHECK METADATA CARD -->
+    <div id="checkMetaContainer" class="glass-card hidden">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div>
+          <span class="block text-xs text-ncaa-muted uppercase tracking-wider">AIRCRAFT</span>
+          <span class="font-bold text-ncaa-text" id="metaReg">-</span>
+          <span class="text-xs text-ncaa-muted" id="metaType">(-)</span>
+        </div>
+        <div>
+          <span class="block text-xs text-ncaa-muted uppercase tracking-wider">MSN</span>
+          <span class="font-semibold text-ncaa-text" id="metaMSN">-</span>
+        </div>
+        <div>
+          <span class="block text-xs text-ncaa-muted uppercase tracking-wider">STARTED</span>
+          <span class="font-semibold text-ncaa-text" id="metaStartDate">-</span>
+        </div>
+        <div>
+          <span class="block text-xs text-ncaa-muted uppercase tracking-wider">EST. RTS</span>
+          <span class="font-semibold text-ncaa-text" id="metaRTS">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUMMARY METRICS -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="metricsRow">
+      <div class="glass-card-sm">
+        <h2 class="text-ncaa-muted text-xs font-semibold m-0 mb-1 uppercase tracking-wider">Total Tasks</h2>
+        <p class="text-3xl font-extrabold m-0 text-ncaa-text" id="totalTasksCount">0</p>
+      </div>
+      <div class="glass-card-sm">
+        <h2 class="text-ncaa-muted text-xs font-semibold m-0 mb-1 uppercase tracking-wider">Tasks Closed</h2>
+        <p class="text-3xl font-extrabold m-0 text-ncaa-success" id="closedTasksCount">0</p>
+      </div>
+      <div class="glass-card-sm">
+        <h2 class="text-ncaa-muted text-xs font-semibold m-0 mb-1 uppercase tracking-wider">Tasks Open</h2>
+        <p class="text-3xl font-extrabold m-0 text-ncaa-warning" id="openTasksCount">0</p>
+      </div>
+      <div class="glass-card-sm">
+        <h2 class="text-ncaa-muted text-xs font-semibold m-0 mb-1 uppercase tracking-wider">Overall Progress</h2>
+        <p class="text-3xl font-extrabold m-0 text-ncaa-accent" id="overallPercentage">0%</p>
+      </div>
+    </section>
+
+    <!-- TABS -->
+    <div class="glass-card border-b border-white/[0.08] !p-2">
+      <div class="flex flex-wrap gap-2">
+        <button class="tab-button active" data-tab="dashboard" id="dashboardTab">📊 Progress Dashboard</button>
+        <button class="tab-button" data-tab="engineers" id="engineersTab">👷 Engineer Allocation</button>
+        <button class="tab-button" data-tab="handover" id="handoverTab">📅 Handover Summary</button>
+        <button class="tab-button" data-tab="audit" id="auditTab">📜 Audit Log</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD SECTION -->
+    <section id="tab-dashboard" class="space-y-6">
+      
+      <!-- Pie Charts & Progress Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Master Pie Card -->
+        <div class="glass-card flex flex-col items-center justify-center min-h-[260px] text-center md:col-span-1">
+          <h3 class="text-sm font-semibold mb-4 text-ncaa-text uppercase tracking-wider">TOTAL COMPLETION STATUS</h3>
+          <div id="masterPieContainer" class="w-full flex justify-center items-center">
+            <!-- Dynamic SVG Donut Chart -->
+          </div>
+        </div>
+        <!-- Individual Package Pies -->
+        <div class="glass-card md:col-span-2">
+          <h3 class="text-sm font-semibold mb-4 text-ncaa-text uppercase tracking-wider">WORK PACKAGE PROGRESS</h3>
+          <div id="packagePieGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <!-- Mini Donut charts here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Adjuster Table -->
+      <div class="glass-card overflow-x-auto">
+        <h3 class="text-sm font-semibold mb-4 text-ncaa-text uppercase tracking-wider">LIVE WORKPACKAGE PROGRESS REGISTER</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>WORK PACKAGE / CHECK TYPE</th>
+              <th class="text-center">PLANNED TASKS</th>
+              <th class="text-center">CLOSED TASKS</th>
+              <th class="text-center">PROGRESS</th>
+              <th class="text-center">REMAINING</th>
+              <th class="text-center">STATUS INCREMENTS</th>
+            </tr>
+          </thead>
+          <tbody id="progressTableBody">
+            <!-- Dynamic rows with +/- controls -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex flex-wrap gap-4">
+        <button class="btn-primary" id="generateDsrBtn">📋 Generate Daily Status Report (DSR)</button>
+        <button class="btn-secondary" id="addDefectBtn">⚠ Report Non-Routine Defect</button>
+        <button class="btn-secondary" id="exportBackupBtn">💾 Export System Backup</button>
+        <button class="btn-secondary" id="importBackupBtn">📥 Restore Backup</button>
+        <button class="btn-danger ml-auto" id="closeCheckBtn">🏁 Terminate/Complete Check</button>
+        <input type="file" id="backupFileInput" accept=".json" hidden>
+      </div>
+
+    </section>
+
+    <!-- ENGINEERS ALLOCATION SECTION -->
+    <section id="tab-engineers" class="glass-card space-y-6 hidden">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-bold text-ncaa-text m-0">Personnel Allocations</h3>
+        <button class="btn-primary !py-2 !px-4 text-xs" id="addEngineerBtn">Add Engineer/Certifier</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>PERSONNEL</th>
+              <th>ROLE</th>
+              <th class="text-center">TASKS ALLOCATED</th>
+              <th class="text-center">TASKS COMPLETED (TODAY)</th>
+              <th>SHIFT HANDOVER REMARKS</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="personnelTableBody">
+            <!-- Dynamic Personnel List -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SHIFT HANDOVER SECTION -->
+    <section id="tab-handover" class="glass-card space-y-6 hidden">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-bold text-ncaa-text m-0">Handover Highlights (Current Shift)</h3>
+        <button class="btn-primary !py-2 !px-4 text-xs" id="saveHandoverBtn">Save Handover Notes</button>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-ncaa-muted text-sm mb-1.5">Shift handovers include defects reported, critical delays, parts awaiting, and visual checks carried out during the current 12-hour period.</label>
+          <textarea id="handoverRemarksInput" rows="6" class="form-input resize-y" placeholder="Write handover notes here..."></textarea>
+        </div>
+        <div class="glass-card-sm bg-white/[0.01]">
+          <h4 class="text-sm font-semibold mb-2">Automated Shift Metrics</h4>
+          <ul class="text-sm text-ncaa-muted space-y-1 list-disc pl-5">
+            <li>Check Type Workload updates recorded: <span id="shiftTotalActions">0</span> events</li>
+            <li>New Non-Routine defects raised: <span id="shiftNewDefects">0</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUDIT LOG SECTION -->
+    <section id="tab-audit" class="glass-card space-y-4 hidden">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-bold text-ncaa-text m-0">Safety & Completion Audit Log</h3>
+        <button class="btn-secondary !py-2 !px-4 text-xs" id="clearAuditBtn">Wipe Log</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>TIMESTAMP</th>
+              <th>USER</th>
+              <th>ACTION PERFORMED</th>
+              <th>DETAILS</th>
+            </tr>
+          </thead>
+          <tbody id="auditTableBody">
+            <!-- Dynamic Logs -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ═══════════ CHECK SETUP WIZARD ═══════════ -->
+  <div class="max-w-[800px] mx-auto px-6 py-12 hidden no-print" id="setupWizard">
+    <div class="glass-card space-y-6">
+      <div class="text-center">
+        <p class="text-ncaa-accent text-xs uppercase tracking-[0.16em] font-semibold mb-1">RANO AIR AMO</p>
+        <h2 class="text-2xl font-bold text-ncaa-text m-0">Setup New Aircraft Check</h2>
+      </div>
+
+      <form id="setupForm" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="setupReg" class="block text-ncaa-muted text-sm mb-1.5">Aircraft Registration</label>
+            <input id="setupReg" type="text" class="form-input" required placeholder="5N-BZY">
+          </div>
+          <div>
+            <label for="setupType" class="block text-ncaa-muted text-sm mb-1.5">Aircraft Type</label>
+            <select id="setupType" class="form-select" required>
+              <option value="EMB 145LR">Embraer EMB 145LR</option>
+              <option value="Boeing 737">Boeing 737</option>
+            </select>
+          </div>
+          <div>
+            <label for="setupMSN" class="block text-ncaa-muted text-sm mb-1.5">Aircraft MSN</label>
+            <input id="setupMSN" type="text" class="form-input" required placeholder="145562">
+          </div>
+          <div>
+            <label for="setupStartDate" class="block text-ncaa-muted text-sm mb-1.5">Check Start Date</label>
+            <input id="setupStartDate" type="date" class="form-input" required>
+          </div>
+        </div>
+
+        <div class="border-t border-white/[0.08] pt-4">
+          <label class="block text-ncaa-text font-semibold text-sm mb-3">Select Active Check Packages & Tasks</label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="checkTypeSelectGrid">
+            <!-- Dynamic check types selection -->
+          </div>
+        </div>
+
+        <div id="taskCountInputsContainer" class="space-y-3 pt-3 border-t border-white/[0.08]">
+          <!-- Task counts input fields will spawn here -->
+        </div>
+
+        <div class="pt-4 text-center">
+          <button type="submit" class="btn-primary w-full sm:w-auto">Initialize Check & Dashboard</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════ PRINTABLE DSR CONTAINER (PRINT-ONLY) ═══════════ -->
+  <div id="dsrPrintSection" class="print-only">
+    <!-- DSR markup injection -->
+  </div>
+
+  <!-- MODALS -->
+  <div class="hidden fixed inset-0 bg-[rgba(2,11,24,0.85)] z-[100] flex items-center justify-center p-4" id="defectModal">
+    <div class="glass-card w-full max-w-[500px] modal-card-inner">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-ncaa-text m-0">Add Non-Routine Defect</h3>
+        <button class="btn-icon" onclick="document.getElementById('defectModal').classList.add('hidden')">✕</button>
+      </div>
+      <form id="defectForm" class="space-y-4">
+        <div>
+          <label for="defectTitle" class="block text-ncaa-muted text-sm mb-1.5">Defect Description</label>
+          <input id="defectTitle" type="text" class="form-input" required placeholder="e.g. Corrosion found on LH elevator hinge pin">
+        </div>
+        <div>
+          <label for="defectAssignee" class="block text-ncaa-muted text-sm mb-1.5">Assigned Engineer</label>
+          <select id="defectAssignee" class="form-select"></select>
+        </div>
+        <div class="flex justify-end gap-3 pt-4 border-t border-white/[0.08]">
+          <button type="button" class="btn-secondary" onclick="document.getElementById('defectModal').classList.add('hidden')">Cancel</button>
+          <button type="submit" class="btn-primary">Log Defect</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="hidden fixed inset-0 bg-[rgba(2,11,24,0.85)] z-[100] flex items-center justify-center p-4" id="engineerModal">
+    <div class="glass-card w-full max-w-[500px] modal-card-inner">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-ncaa-text m-0">Add Personnel</h3>
+        <button class="btn-icon" onclick="document.getElementById('engineerModal').classList.add('hidden')">✕</button>
+      </div>
+      <form id="engineerForm" class="space-y-4">
+        <div>
+          <label for="engName" class="block text-ncaa-muted text-sm mb-1.5">Full Name</label>
+          <input id="engName" type="text" class="form-input" required placeholder="Engr. Jatau Usman">
+        </div>
+        <div>
+          <label for="engStaffId" class="block text-ncaa-muted text-sm mb-1.5">Staff ID</label>
+          <input id="engStaffId" type="text" class="form-input" required placeholder="RAN/AMO/2026">
+        </div>
+        <div>
+          <label for="engRole" class="block text-ncaa-muted text-sm mb-1.5">Role</label>
+          <select id="engRole" class="form-select">
+            <option value="engineer">Junior / Line Engineer</option>
+            <option value="certifier">Certifier / Certifying Staff</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-3 pt-4 border-t border-white/[0.08]">
+          <button type="button" class="btn-secondary" onclick="document.getElementById('engineerModal').classList.add('hidden')">Cancel</button>
+          <button type="submit" class="btn-primary">Add Personnel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="hidden fixed inset-0 bg-[rgba(2,11,24,0.85)] z-[100] flex items-center justify-center p-4" id="dsrPreviewModal">
+    <div class="glass-card w-full max-w-[900px] max-h-[90vh] overflow-y-auto modal-card-inner">
+      <div class="flex justify-between items-center mb-4 no-print">
+        <h3 class="text-lg font-bold text-ncaa-text m-0">DSR Report Preview</h3>
+        <div class="flex gap-2">
+          <button class="btn-primary !py-2 !px-4" id="printDsrTriggerBtn">🖨️ Print / Save PDF</button>
+          <button class="btn-secondary !py-2 !px-4" onclick="document.getElementById('dsrPreviewModal').classList.add('hidden')">Close</button>
+        </div>
+      </div>
+      <div id="dsrPreviewContainer">
+        <!-- Rendered DSR here -->
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/db.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
