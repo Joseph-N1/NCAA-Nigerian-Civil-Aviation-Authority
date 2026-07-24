@@ -103,6 +103,11 @@ const App = {
       this.openDSRPreview();
     });
 
+    document.getElementById('quickPrintDsrBtn')?.addEventListener('click', async () => {
+      await this.openDSRPreview();
+      window.print();
+    });
+
     document.getElementById('printDsrTriggerBtn').addEventListener('click', () => {
       window.print();
     });
