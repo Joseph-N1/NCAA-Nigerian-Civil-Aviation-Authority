@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-CG9KbBRl.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-B4NAsApi.css">
+  <script type="module" crossorigin src="./assets/index-C8wQyGD_.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-aGiOO2pt.css">
 </head>
 <body class="min-h-screen">
 
@@ -354,11 +354,14 @@
     <div class="glass-card w-full max-w-[900px] max-h-[90vh] overflow-y-auto modal-card-inner">
       <div class="flex justify-between items-center mb-4 no-print">
         <h3 class="text-lg font-bold text-ncaa-text m-0">DSR Report Preview</h3>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2 justify-end">
           <button class="btn-primary !py-2 !px-4" id="printDsrTriggerBtn">🖨️ Print / Save PDF</button>
+          <button class="btn-secondary !py-2 !px-4" id="saveDsrDownloadsBtn">Save to Downloads</button>
+          <button class="btn-secondary !py-2 !px-4" id="saveDsrDocumentsBtn">Save to Documents</button>
           <button class="btn-secondary !py-2 !px-4" onclick="document.getElementById('dsrPreviewModal').classList.add('hidden')">Close</button>
         </div>
       </div>
+      <p class="text-xs text-ncaa-muted mb-4 no-print">Print uses A4 paper size. For PDF, choose "Save as PDF" in the print dialog, then pick Downloads or Documents.</p>
       <div id="dsrPreviewContainer">
         <!-- Rendered DSR here -->
       </div>

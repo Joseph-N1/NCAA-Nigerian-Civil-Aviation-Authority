@@ -3,14 +3,14 @@
 // Service Worker - Offline-First Caching
 // ============================================
 
-const CACHE_NAME = 'rano-air-cpcp-v1';
+const CACHE_NAME = 'rano-air-cpcp-v2';
 
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './assets/index-CG9KbBRl.js',
-  './assets/index-B4NAsApi.css'
+  './assets/index-C8wQyGD_.js',
+  './assets/index-aGiOO2pt.css'
 ];
 
 self.addEventListener('install', (event) => {

@@ -107,6 +107,14 @@ const App = {
       window.print();
     });
 
+    document.getElementById('saveDsrDownloadsBtn').addEventListener('click', () => {
+      this.saveDSRToDownloads();
+    });
+
+    document.getElementById('saveDsrDocumentsBtn').addEventListener('click', async () => {
+      await this.saveDSRToDocuments();
+    });
+
     document.getElementById('saveHandoverBtn').addEventListener('click', async () => {
       await this.saveHandoverNotes();
     });
@@ -655,6 +663,75 @@ const App = {
         document.getElementById('dsrPreviewModal').classList.remove('hidden');
       });
     });
+  },
+
+  getDSRFileName(extension = 'html') {
+    const reg = this.activeCheck?.aircraftRegistration || 'aircraft';
+    const date = new Date().toISOString().substring(0, 10);
+    return `rano-air-dsr-${reg}-${date}.${extension}`.replace(/[^a-z0-9._-]/gi, '-');
+  },
+
+  buildDSRDocumentHTML() {
+    const dsrHTML = document.getElementById('dsrPrintSection').innerHTML || document.getElementById('dsrPreviewContainer').innerHTML;
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rano Air DSR</title>
+  <style>
+    @page { size: A4 portrait; margin: 12mm; }
+    body { margin: 0; background: #ffffff; }
+    @media print {
+      body { width: 210mm; min-height: 297mm; }
+    }
+  </style>
+</head>
+<body>
+${dsrHTML}
+</body>
+</html>`;
+  },
+
+  saveDSRToDownloads() {
+    const blob = new Blob([this.buildDSRDocumentHTML()], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = this.getDSRFileName('html');
+    link.click();
+    URL.revokeObjectURL(url);
+    this.showToast('DSR saved to your browser downloads.', 'success');
+  },
+
+  async saveDSRToDocuments() {
+    const fileName = this.getDSRFileName('html');
+    const content = this.buildDSRDocumentHTML();
+
+    if ('showSaveFilePicker' in window) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: fileName,
+          startIn: 'documents',
+          types: [
+            {
+              description: 'HTML document',
+              accept: { 'text/html': ['.html'] }
+            }
+          ]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(content);
+        await writable.close();
+        this.showToast('DSR saved to your selected Documents folder.', 'success');
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+
+    this.saveDSRToDownloads();
+    this.showToast('Your browser does not support direct Documents saving. Move the downloaded file to Documents.', 'info');
   },
 
   async closeCheck() {

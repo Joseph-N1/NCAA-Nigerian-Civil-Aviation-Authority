@@ -181,14 +181,32 @@ select option {
 }
 
 /* ── Print styles for DSR ── */
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
 @media print {
   .no-print { display: none !important; }
   body {
     background: #ffffff !important;
     color: #000000 !important;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
   }
   .print-only {
     display: block !important;
+    width: 100%;
+  }
+  #dsrPrintSection > div {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
   }
 }
 .print-only {
