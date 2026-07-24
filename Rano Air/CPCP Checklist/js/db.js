@@ -151,6 +151,17 @@ const db = {
     });
   },
 
+  async getAllTasks() {
+    if (!this.db) return [];
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction('tasks', 'readonly');
+      const store = tx.objectStore('tasks');
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  },
+
   async updateTask(task) {
     if (!this.db) return;
     return new Promise((resolve, reject) => {
@@ -243,6 +254,43 @@ const db = {
     });
   },
 
+  async getAllAuditEntries() {
+    if (!this.db) return [];
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction('audit_log', 'readonly');
+      const store = tx.objectStore('audit_log');
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  },
+
+  async clearAuditEntriesForCheck(checkId) {
+    if (!this.db) return;
+    const entries = await this.getAuditEntriesForCheck(checkId);
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction('audit_log', 'readwrite');
+      const store = tx.objectStore('audit_log');
+      let index = 0;
+
+      function deleteNext() {
+        if (index >= entries.length) {
+          resolve();
+          return;
+        }
+
+        const req = store.delete(entries[index].id);
+        req.onsuccess = () => {
+          index++;
+          deleteNext();
+        };
+        req.onerror = () => reject(req.error);
+      }
+
+      deleteNext();
+    });
+  },
+
   // DSR snapshots operations
   async addDSRSnapshot(snapshot) {
     if (!this.db) return;
@@ -262,6 +310,17 @@ const db = {
       const store = tx.objectStore('dsr_snapshots');
       const index = store.index('checkId');
       const req = index.getAll(checkId);
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  },
+
+  async getAllDSRSnapshots() {
+    if (!this.db) return [];
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction('dsr_snapshots', 'readonly');
+      const store = tx.objectStore('dsr_snapshots');
+      const req = store.getAll();
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => reject(req.error);
     });

@@ -1,0 +1,10 @@
+{
+  "name": "Rano Air CPCP Progress Tracker",
+  "short_name": "CPCP Tracker",
+  "description": "Offline check progress tracker and Daily Status Report dashboard for Rano Air AMO",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#08101f",
+  "theme_color": "#4a9cff",
+  "orientation": "any"
+}

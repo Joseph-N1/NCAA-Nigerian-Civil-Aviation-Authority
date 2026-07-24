@@ -117,9 +117,9 @@ const App = {
 
     document.getElementById('clearAuditBtn').addEventListener('click', async () => {
       if (confirm('Are you sure you want to clear the safety audit log for this check?')) {
-        // Simple log clearing helper could go here but we will just write a clear entry.
-        await db.clearAll();
-        window.location.reload();
+        await db.clearAuditEntriesForCheck(this.activeCheck.id);
+        await this.renderAuditTab();
+        this.showToast('Audit entries cleared for this check only.', 'success');
       }
     });
 
@@ -338,6 +338,7 @@ const App = {
     tableBody.innerHTML += this.createProgressRowHTML('Non-Routine', nrStats.total, nrStats.closed, true);
 
     this.bindTableControls();
+    await this.renderDSRHistory();
   },
 
   createProgressRowHTML(type, total, closed, isNonRoutine) {
@@ -482,17 +483,34 @@ const App = {
   },
 
   renderPersonnelTab() {
+    this.renderPersonnelTabAsync();
+  },
+
+  async renderPersonnelTabAsync() {
     const body = document.getElementById('personnelTableBody');
     body.innerHTML = '';
 
+    const logs = this.activeCheck ? await db.getAuditEntriesForCheck(this.activeCheck.id) : [];
+    const today = new Date().toISOString().substring(0, 10);
+
     this.personnel.forEach(p => {
+      const assignedTasks = logs.filter(log => {
+        return log.action === 'Non-Routine Defect Logged' && log.details.includes(`Allocated assignee: ${p.name}`);
+      }).length;
+      const completedToday = logs.filter(log => {
+        return log.userName === p.name && log.action === 'Progress Updated' && log.timestamp.substring(0, 10) === today;
+      }).length;
+      const latestHandover = logs
+        .filter(log => log.userName === p.name && log.action === 'Handover Remarks Saved')
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+
       body.innerHTML += `
         <tr>
           <td class="font-bold text-ncaa-text">${p.name}</td>
           <td class="text-xs uppercase tracking-wider text-ncaa-muted">${p.role}</td>
-          <td class="text-center font-semibold">-</td>
-          <td class="text-center font-semibold text-ncaa-success">-</td>
-          <td><span class="text-xs text-ncaa-muted">Allocated to daily checklist tasks</span></td>
+          <td class="text-center font-semibold">${assignedTasks}</td>
+          <td class="text-center font-semibold text-ncaa-success">${completedToday}</td>
+          <td><span class="text-xs text-ncaa-muted">${latestHandover ? latestHandover.details : 'No handover remarks recorded.'}</span></td>
           <td>
             <button class="btn-danger !py-1 !px-2 text-xs" ${!this.canWrite() ? 'disabled' : ''}>Remove</button>
           </td>
@@ -549,7 +567,7 @@ const App = {
     });
   },
 
-  openDSRPreview() {
+  buildDSRStats() {
     let grandTotal = 0;
     let grandClosed = 0;
     const stats = {};
@@ -559,15 +577,84 @@ const App = {
       grandClosed += t.closed;
     });
     stats.total = { total: grandTotal, closed: grandClosed };
+    return stats;
+  },
 
+  async openDSRPreview() {
+    const stats = this.buildDSRStats();
     const highlights = document.getElementById('handoverRemarksInput').value;
     const dsrHTML = generateDSR(this.activeCheck, stats, highlights);
+    const generatedAt = new Date().toISOString();
     
     // Inject DSR
     document.getElementById('dsrPreviewContainer').innerHTML = dsrHTML;
     document.getElementById('dsrPrintSection').innerHTML = dsrHTML;
 
+    await db.addDSRSnapshot({
+      checkId: this.activeCheck.id,
+      generatedAt,
+      generatedBy: this.currentUser.name,
+      headerData: { ...this.activeCheck },
+      progressData: stats,
+      highlights,
+      totalCompletion: stats.total.total > 0 ? Math.round((stats.total.closed / stats.total.total) * 100) : 0,
+      html: dsrHTML
+    });
+
+    await db.addAuditEntry({
+      checkId: this.activeCheck.id,
+      timestamp: generatedAt,
+      userId: this.currentUser.name,
+      userName: this.currentUser.name,
+      action: 'DSR Snapshot Generated',
+      details: `Daily Status Report saved at ${new Date(generatedAt).toLocaleString('en-GB')}.`
+    });
+
+    await this.renderDSRHistory();
     document.getElementById('dsrPreviewModal').classList.remove('hidden');
+  },
+
+  async renderDSRHistory() {
+    const body = document.getElementById('dsrHistoryTableBody');
+    if (!body || !this.activeCheck) return;
+
+    const snapshots = await db.getDSRSnapshots(this.activeCheck.id);
+    snapshots.sort((a, b) => new Date(b.generatedAt) - new Date(a.generatedAt));
+
+    if (snapshots.length === 0) {
+      body.innerHTML = `
+        <tr>
+          <td colspan="6" class="text-center text-ncaa-muted py-4">No DSR snapshots generated yet.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    body.innerHTML = '';
+    snapshots.forEach(snapshot => {
+      body.innerHTML += `
+        <tr>
+          <td class="text-xs text-ncaa-muted">${new Date(snapshot.generatedAt).toLocaleString('en-GB')}</td>
+          <td class="font-semibold text-ncaa-text">${snapshot.generatedBy || 'Line Manager'}</td>
+          <td class="text-center">${snapshot.progressData?.total?.total || 0}</td>
+          <td class="text-center text-ncaa-success font-semibold">${snapshot.progressData?.total?.closed || 0}</td>
+          <td class="text-center font-bold text-ncaa-accent">${snapshot.totalCompletion || 0}%</td>
+          <td class="text-center">
+            <button class="btn-secondary !py-1 !px-3 text-xs view-dsr-snapshot-btn" data-id="${snapshot.id}">View</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    document.querySelectorAll('.view-dsr-snapshot-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const snapshot = snapshots.find(item => item.id === parseInt(button.dataset.id));
+        if (!snapshot) return;
+        document.getElementById('dsrPreviewContainer').innerHTML = snapshot.html;
+        document.getElementById('dsrPrintSection').innerHTML = snapshot.html;
+        document.getElementById('dsrPreviewModal').classList.remove('hidden');
+      });
+    });
   },
 
   async closeCheck() {
@@ -612,15 +699,17 @@ const App = {
     // Export IndexedDB data to JSON
     Promise.all([
       db.getAllChecks(),
-      db.db.transaction('tasks').objectStore('tasks').getAll(),
+      db.getAllTasks(),
       db.getAllPersonnel(),
-      db.db.transaction('audit_log').objectStore('audit_log').getAll()
-    ]).then(([checks, tasks, personnel, audit]) => {
+      db.getAllAuditEntries(),
+      db.getAllDSRSnapshots()
+    ]).then(([checks, tasks, personnel, audit, dsrSnapshots]) => {
       const backupData = {
         checks,
         tasks,
         personnel,
         audit,
+        dsrSnapshots,
         exportedAt: new Date().toISOString()
       };
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
@@ -673,6 +762,12 @@ const App = {
         const auditStore = db.db.transaction('audit_log', 'readwrite').objectStore('audit_log');
         for (const a of data.audit || []) {
           await auditStore.add(a);
+        }
+
+        // Restore DSR snapshots
+        const dsrStore = db.db.transaction('dsr_snapshots', 'readwrite').objectStore('dsr_snapshots');
+        for (const snapshot of data.dsrSnapshots || []) {
+          await dsrStore.add(snapshot);
         }
 
         this.showToast('Backup restored successfully!', 'success');
