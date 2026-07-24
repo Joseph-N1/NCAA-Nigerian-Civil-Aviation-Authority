@@ -9,8 +9,8 @@ const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './assets/index-C8wQyGD_.js',
-  './assets/index-aGiOO2pt.css'
+  './assets/index-De1Z2O1j.js',
+  './assets/index-DcIk96ax.css'
 ];
 
 self.addEventListener('install', (event) => {

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Rano Air AMO CPCP Progress Tracker Dashboard — Abuja Airport">
   <title>Rano Air CPCP Progress Tracker</title>
+  <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="css/main.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -352,14 +353,25 @@
     <div class="glass-card w-full max-w-[900px] max-h-[90vh] overflow-y-auto modal-card-inner">
       <div class="flex justify-between items-center mb-4 no-print">
         <h3 class="text-lg font-bold text-ncaa-text m-0">DSR Report Preview</h3>
-        <div class="flex flex-wrap gap-2 justify-end">
-          <button class="btn-primary !py-2 !px-4" id="printDsrTriggerBtn">🖨️ Print / Save PDF</button>
-          <button class="btn-secondary !py-2 !px-4" id="saveDsrDownloadsBtn">Save to Downloads</button>
-          <button class="btn-secondary !py-2 !px-4" id="saveDsrDocumentsBtn">Save to Documents</button>
+        <div class="flex flex-wrap gap-3 justify-end items-center">
+          <div class="flex items-center gap-1 border-r border-white/[0.1] pr-3 mr-1">
+            <button class="btn-primary !py-2 !px-4 flex items-center gap-2" id="printDsrTriggerBtn">
+              <span>🖨️</span> Print DSR (A4)
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-ncaa-muted mr-1 font-medium">Save As:</span>
+            <button class="btn-secondary !py-2 !px-4 flex items-center gap-2" id="saveDsrDownloadsBtn">
+              <span>📥</span> Downloads Folder
+            </button>
+            <button class="btn-secondary !py-2 !px-4 flex items-center gap-2" id="saveDsrDocumentsBtn">
+              <span>📂</span> Documents Folder
+            </button>
+          </div>
           <button class="btn-secondary !py-2 !px-4" onclick="document.getElementById('dsrPreviewModal').classList.add('hidden')">Close</button>
         </div>
       </div>
-      <p class="text-xs text-ncaa-muted mb-4 no-print">Print uses A4 paper size. For PDF, choose "Save as PDF" in the print dialog, then pick Downloads or Documents.</p>
+      <p class="text-xs text-ncaa-muted mb-4 no-print">📄 <strong>A4 Paper Size</strong> is pre-configured. Use <strong>Print DSR</strong> for physical printouts or to "Print to PDF". Use <strong>Save As</strong> options to download the standalone HTML report.</p>
       <div id="dsrPreviewContainer">
         <!-- Rendered DSR here -->
       </div>
@@ -368,5 +380,12 @@
 
   <script type="module" src="js/db.js"></script>
   <script type="module" src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>
