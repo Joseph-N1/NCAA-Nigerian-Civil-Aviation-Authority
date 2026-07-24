@@ -595,7 +595,7 @@ const App = {
 
   async openDSRPreview() {
     const stats = this.buildDSRStats();
-    const highlights = document.getElementById('handoverRemarksInput').value;
+    const highlights = document.getElementById('handoverRemarksInput')?.value || '';
     const dsrHTML = generateDSR(this.activeCheck, stats, highlights);
     const generatedAt = new Date().toISOString();
     
