@@ -1,6 +1,7 @@
 import db from './db.js';
 import { renderDonutChart, renderMasterDonutChart } from './charts.js';
 import { generateDSR } from './dsr.js';
+import { APP_CONFIG, AUTH_USERS, STORAGE_KEYS } from './config.js';
 
 // Predefined check options
 const PREDEFINED_CHECKS = [
@@ -21,6 +22,14 @@ const App = {
   tasks: [],
   personnel: [],
   currentUser: { name: 'Line Manager', role: 'manager' },
+  authReady: false,
+  autoSaveDebounceTimer: null,
+  autoSaveIntervalId: null,
+  idleTimer: null,
+  lastSavedAt: null,
+  isSaving: false,
+  pendingDraft: null,
+  exportFormat: 'html',
 
   async init() {
     // Wait for DB ready
@@ -30,6 +39,9 @@ const App = {
     });
 
     this.bindEvents();
+    this.setupAuth();
+    this.setupAutoSave();
+    this.setupInactivityWarning();
     await this.loadInitialData();
   },
 
@@ -99,13 +111,26 @@ const App = {
       document.getElementById('engineerModal').classList.remove('hidden');
     });
 
+    document.getElementById('newCheckBtn')?.addEventListener('click', () => {
+      this.showSetupWizard();
+    });
+
     document.getElementById('generateDsrBtn').addEventListener('click', () => {
       this.openDSRPreview();
     });
 
-    document.getElementById('quickPrintDsrBtn')?.addEventListener('click', async () => {
+    document.getElementById('printDsrBtn')?.addEventListener('click', async () => {
       await this.openDSRPreview();
       window.print();
+    });
+
+    document.getElementById('saveDsrBtn')?.addEventListener('click', async () => {
+      await this.openDSRPreview();
+      if (this.exportFormat === 'pdf') {
+        window.print();
+      } else {
+        this.showToast('Choose PDF or HTML in the preview window before saving.', 'info');
+      }
     });
 
     document.getElementById('printDsrTriggerBtn').addEventListener('click', () => {
@@ -119,6 +144,13 @@ const App = {
     document.getElementById('saveDsrDocumentsBtn').addEventListener('click', async () => {
       await this.saveDSRToDocuments();
     });
+
+    document.getElementById('exportFormatSelect')?.addEventListener('change', (e) => {
+      this.exportFormat = e.target.value;
+    });
+
+    document.getElementById('confirmLogoutBtn')?.addEventListener('click', () => this.logout());
+    document.getElementById('loginForm')?.addEventListener('submit', (e) => this.handleLogin(e));
 
     document.getElementById('saveHandoverBtn').addEventListener('click', async () => {
       await this.saveHandoverNotes();
@@ -145,8 +177,14 @@ const App = {
   },
 
   async loadInitialData() {
+    if (!this.authReady) {
+      this.renderAuthScreen();
+      return;
+    }
+
     this.activeCheck = await db.getActiveCheck();
     this.personnel = await db.getAllPersonnel();
+    this.restoreDraftState();
 
     // Default personnel seeding if empty
     if (this.personnel.length === 0) {
@@ -171,12 +209,148 @@ const App = {
       this.populateCheckMeta();
       await this.refreshDashboard();
     } else {
-      document.getElementById('checkMetaContainer').classList.add('hidden');
-      document.getElementById('appShell').classList.add('hidden');
-      document.getElementById('setupWizard').classList.remove('hidden');
-      this.renderSetupWizard();
+      this.showSetupWizard();
     }
     this.refreshPermissions();
+  },
+
+  setupAuth() {
+    const storedAuth = localStorage.getItem(STORAGE_KEYS.AUTH);
+    if (storedAuth) {
+      try {
+        const parsed = JSON.parse(storedAuth);
+        this.currentUser = { name: parsed.name, role: parsed.role };
+        this.authReady = true;
+      } catch {
+        this.authReady = false;
+      }
+    }
+
+    this.renderAuthScreen();
+  },
+
+  renderAuthScreen() {
+    const authScreen = document.getElementById('authScreen');
+    const appShell = document.getElementById('appShell');
+    const setupWizard = document.getElementById('setupWizard');
+
+    if (!this.authReady) {
+      authScreen?.classList.remove('hidden');
+      appShell?.classList.add('hidden');
+      setupWizard?.classList.add('hidden');
+      return;
+    }
+
+    authScreen?.classList.add('hidden');
+    appShell?.classList.remove('hidden');
+  },
+
+  async handleLogin(event) {
+    event.preventDefault();
+    const username = document.getElementById('loginUsername').value.trim().toUpperCase();
+    const pin = document.getElementById('loginPin').value.trim();
+    const user = AUTH_USERS[username];
+
+    if (user && user.pin === pin) {
+      this.currentUser = { name: user.displayName, role: user.role };
+      this.authReady = true;
+      localStorage.setItem(STORAGE_KEYS.AUTH, JSON.stringify({ name: user.displayName, role: user.role }));
+      this.renderAuthScreen();
+      this.refreshPermissions();
+      await this.loadInitialData();
+      this.showToast(`Logged in as ${user.displayName}`, 'success');
+      return;
+    }
+
+    this.showToast('Invalid credentials. Please try again.', 'error');
+  },
+
+  logout() {
+    localStorage.removeItem(STORAGE_KEYS.AUTH);
+    this.authReady = false;
+    this.currentUser = { name: 'Line Manager', role: 'manager' };
+    this.renderAuthScreen();
+    this.showToast('You have been logged out.', 'info');
+  },
+
+  setupAutoSave() {
+    const persistState = () => {
+      if (!this.activeCheck) return;
+      const draft = {
+        activeCheck: this.activeCheck,
+        tasks: this.tasks,
+        personnel: this.personnel,
+        currentUser: this.currentUser,
+        highlights: document.getElementById('handoverRemarksInput')?.value || '',
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(STORAGE_KEYS.DRAFT, JSON.stringify(draft));
+      this.lastSavedAt = new Date();
+      this.updateSaveIndicator('✓ All changes saved');
+    };
+
+    const scheduleSave = () => {
+      clearTimeout(this.autoSaveDebounceTimer);
+      this.updateSaveIndicator('Saving...');
+      this.autoSaveDebounceTimer = setTimeout(() => {
+        persistState();
+      }, APP_CONFIG.autoSaveDelayMs);
+    };
+
+    document.addEventListener('input', (event) => {
+      if (event.target.matches('input, textarea, select')) {
+        scheduleSave();
+      }
+    });
+
+    this.autoSaveIntervalId = setInterval(() => {
+      if (this.activeCheck) {
+        persistState();
+      }
+    }, APP_CONFIG.autoSaveIntervalMs);
+
+    window.addEventListener('beforeunload', () => persistState());
+  },
+
+  setupInactivityWarning() {
+    const resetTimer = () => {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = setTimeout(() => {
+        this.showToast('Session inactive. You will be logged out soon.', 'info');
+        setTimeout(() => this.logout(), 3000);
+      }, APP_CONFIG.authTimeoutMinutes * 60 * 1000);
+    };
+
+    ['click', 'keydown', 'mousemove', 'scroll'].forEach((eventName) => {
+      window.addEventListener(eventName, resetTimer, { passive: true });
+    });
+    resetTimer();
+  },
+
+  restoreDraftState() {
+    const draft = localStorage.getItem(STORAGE_KEYS.DRAFT);
+    if (!draft) return;
+
+    try {
+      const parsed = JSON.parse(draft);
+      if (parsed.highlights) {
+        const handoverField = document.getElementById('handoverRemarksInput');
+        if (handoverField) handoverField.value = parsed.highlights;
+      }
+      if (parsed.activeCheck) {
+        this.pendingDraft = parsed;
+        this.showToast('A previous draft was restored.', 'info');
+      }
+    } catch {
+      localStorage.removeItem(STORAGE_KEYS.DRAFT);
+    }
+  },
+
+  updateSaveIndicator(message) {
+    const indicator = document.getElementById('saveStatusIndicator');
+    if (indicator) {
+      indicator.textContent = message;
+    }
   },
 
   populateCheckMeta() {
@@ -187,26 +361,41 @@ const App = {
     document.getElementById('metaRTS').textContent = this.activeCheck.estimatedRTS || 'TBD';
   },
 
+  showSetupWizard() {
+    document.getElementById('checkMetaContainer').classList.add('hidden');
+    document.getElementById('appShell').classList.add('hidden');
+    document.getElementById('setupWizard').classList.remove('hidden');
+    document.getElementById('setupWizard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    this.renderSetupWizard();
+  },
+
   renderSetupWizard() {
     const grid = document.getElementById('checkTypeSelectGrid');
-    grid.innerHTML = '';
-    PREDEFINED_CHECKS.forEach(c => {
-      grid.innerHTML += `
-        <label class="flex items-center gap-2 p-2 bg-white/[0.02] border border-white/[0.08] rounded-lg cursor-pointer hover:bg-white/[0.05]">
-          <input type="checkbox" name="checkType" value="${c.code}" class="check-type-cb">
-          <span class="text-sm font-semibold text-ncaa-text">${c.code}</span>
-        </label>
-      `;
-    });
+    if (!grid) return;
 
-    // Handle check/uncheck events to show inputs
+    grid.innerHTML = PREDEFINED_CHECKS.map(c => `
+      <label class="setup-option-card">
+        <div class="flex items-start gap-3">
+          <input type="checkbox" name="checkType" value="${c.code}" class="check-type-cb mt-1">
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold text-ncaa-text">${c.code}</span>
+              <span class="setup-badge">Scope</span>
+            </div>
+            <p class="mt-1 text-xs text-ncaa-muted">${c.name}</p>
+            <div class="mt-2 h-1.5 rounded-full" style="background: ${c.color};"></div>
+          </div>
+        </div>
+      </label>
+    `).join('');
+
     const cbs = document.querySelectorAll('.check-type-cb');
     cbs.forEach(cb => {
       cb.addEventListener('change', () => this.updateSetupWizardInputs());
     });
 
-    // Default dates
     document.getElementById('setupStartDate').value = new Date().toISOString().substring(0, 10);
+    this.updateSetupWizardInputs();
   },
 
   updateSetupWizardInputs() {
@@ -217,11 +406,16 @@ const App = {
     selected.forEach(code => {
       const predefined = PREDEFINED_CHECKS.find(c => c.code === code);
       container.innerHTML += `
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white/[0.03] border border-white/[0.06] rounded-lg">
-          <span class="text-sm font-bold text-ncaa-accent">${predefined.name} (${code})</span>
-          <div class="flex items-center gap-2">
-            <label class="text-xs text-ncaa-muted">Task Cards Planned:</label>
-            <input type="number" id="setup-count-${code}" value="${predefined.defaultCount}" min="1" class="form-input !py-1 !px-2 w-24 text-center">
+        <div class="setup-task-card">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-sm font-bold text-ncaa-text">${predefined.name} (${code})</span>
+              <p class="text-xs text-ncaa-muted mt-1">Set the planned card count for this work package.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-ncaa-muted">Planned cards</label>
+              <input type="number" id="setup-count-${code}" value="${predefined.defaultCount}" min="1" class="form-input !py-1 !px-2 w-24 text-center">
+            </div>
           </div>
         </div>
       `;
@@ -596,7 +790,7 @@ const App = {
   async openDSRPreview() {
     const stats = this.buildDSRStats();
     const highlights = document.getElementById('handoverRemarksInput')?.value || '';
-    const dsrHTML = generateDSR(this.activeCheck, stats, highlights);
+    const dsrHTML = generateDSR(this.activeCheck, stats, highlights, this.exportFormat);
     const generatedAt = new Date().toISOString();
     
     // Inject DSR
@@ -686,31 +880,45 @@ const App = {
   <title>Rano Air DSR</title>
   <style>
     @page { size: A4 portrait; margin: 12mm; }
-    body { margin: 0; background: #ffffff; }
+    html, body { margin: 0; padding: 0; background: #ffffff; color: #111827; }
+    body { width: 210mm; min-height: 297mm; box-sizing: border-box; }
+    .dsr-a4-sheet {
+      width: 100%;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 10mm;
+      box-sizing: border-box;
+      background: #ffffff;
+    }
+    table { border-collapse: collapse; width: 100%; }
     @media print {
-      body { width: 210mm; min-height: 297mm; }
+      body { width: 210mm; min-height: 297mm; margin: 0; }
+      .dsr-a4-sheet { padding: 0; }
     }
   </style>
 </head>
 <body>
+<div class="dsr-a4-sheet">
 ${dsrHTML}
+</div>
 </body>
 </html>`;
   },
 
   saveDSRToDownloads() {
-    const blob = new Blob([this.buildDSRDocumentHTML()], { type: 'text/html' });
+    const content = this.buildDSRDocumentHTML();
+    const blob = new Blob([content], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = this.getDSRFileName('html');
+    link.download = this.getDSRFileName(this.exportFormat === 'pdf' ? 'pdf' : 'html');
     link.click();
     URL.revokeObjectURL(url);
-    this.showToast('DSR saved to your browser downloads.', 'success');
+    this.showToast(`DSR saved as ${this.exportFormat.toUpperCase()} to your browser downloads.`, 'success');
   },
 
   async saveDSRToDocuments() {
-    const fileName = this.getDSRFileName('html');
+    const fileName = this.getDSRFileName(this.exportFormat === 'pdf' ? 'pdf' : 'html');
     const content = this.buildDSRDocumentHTML();
 
     if ('showSaveFilePicker' in window) {
@@ -761,7 +969,7 @@ ${dsrHTML}
   },
 
   canWrite() {
-    return this.currentUser.role === 'manager' || this.currentUser.role === 'certifier';
+    return this.authReady && (this.currentUser.role === 'manager' || this.currentUser.role === 'certifier');
   },
 
   refreshPermissions() {
@@ -770,6 +978,7 @@ ${dsrHTML}
     // Enable/disable key controls
     document.getElementById('addDefectBtn').disabled = !isWritable;
     document.getElementById('closeCheckBtn').disabled = !isWritable;
+    document.getElementById('saveHandoverBtn').disabled = !isWritable;
 
     // Refresh dynamic lists
     if (document.getElementById('tab-dashboard').classList.contains('hidden') === false) {

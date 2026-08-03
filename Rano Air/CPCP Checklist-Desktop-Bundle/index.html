@@ -9,15 +9,40 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-Dtysm2mN.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-C0fF4Xlc.css">
+  <script type="module" crossorigin src="./assets/index-DhvUzQv8.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-4nAvMXgy.css">
 </head>
 <body class="min-h-screen">
 
   <div class="toast-container" id="toastContainer"></div>
 
+  <div class="min-h-screen flex items-center justify-center p-6 no-print" id="authScreen">
+    <div class="glass-card w-full max-w-[420px] space-y-5">
+      <div class="text-center">
+        <p class="text-ncaa-accent text-xs uppercase tracking-[0.16em] font-semibold mb-2">Rano Air AMO</p>
+        <h1 class="text-2xl font-bold">CPCP Checklist Access</h1>
+        <p class="text-sm text-ncaa-muted mt-2">Sign in with your authorised staff credentials.</p>
+      </div>
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label for="loginUsername" class="block text-sm text-ncaa-muted mb-2">Username</label>
+          <input id="loginUsername" class="form-input" placeholder="DCA" required />
+        </div>
+        <div>
+          <label for="loginPin" class="block text-sm text-ncaa-muted mb-2">PIN</label>
+          <input id="loginPin" type="password" class="form-input" placeholder="4821" required />
+        </div>
+        <button class="btn-primary w-full" type="submit">Access Checklist</button>
+      </form>
+      <div class="text-xs text-ncaa-muted border-t border-white/[0.08] pt-3">
+        <p><strong>Test users:</strong> DCA / LBMM / MCC</p>
+        <p><strong>Sample PINs:</strong> 4821 / 7135 / 9064</p>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════════ MAIN SHELL ═══════════ -->
-  <div class="max-w-[1440px] mx-auto px-6 py-6 space-y-6 no-print" id="appShell">
+  <div class="max-w-[1440px] mx-auto px-6 py-6 space-y-6 no-print hidden" id="appShell">
     
     <!-- HEADER -->
     <header class="glass-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -31,6 +56,8 @@
       </div>
       <div class="flex items-center gap-4">
         <div class="text-right flex items-center gap-3">
+          <button class="btn-secondary !py-2 !px-3 text-xs" id="confirmLogoutBtn">Logout</button>
+          <div class="rounded-full border border-white/[0.12] px-3 py-1 text-xs text-ncaa-muted" id="saveStatusIndicator">Saving...</div>
           <div class="text-right">
             <span class="block font-bold text-sm" id="userName">Line Manager</span>
             <small class="text-ncaa-muted text-xs" id="userRole">Manager</small>
@@ -141,11 +168,19 @@
 
       <!-- Action buttons -->
       <div class="flex flex-wrap gap-4">
-        <button class="btn-primary" id="generateDsrBtn">📋 Preview Daily Status Report (DSR)</button>
-        <button class="btn-primary flex items-center gap-2 !bg-emerald-600 hover:!bg-emerald-500" id="quickPrintDsrBtn">🖨️ Print DSR (A4 Paper)</button>
+        <button class="btn-primary" id="generateDsrBtn">📋 Preview DSR</button>
+        <button class="btn-primary flex items-center gap-2 !bg-emerald-600 hover:!bg-emerald-500" id="printDsrBtn">🖨️ Print DSR (A4)</button>
+        <button class="btn-secondary flex items-center gap-2" id="saveDsrBtn">💾 Save DSR</button>
         <button class="btn-secondary" id="addDefectBtn">⚠ Report Non-Routine Defect</button>
         <button class="btn-secondary" id="exportBackupBtn">💾 Export System Backup</button>
         <button class="btn-secondary" id="importBackupBtn">📥 Restore Backup</button>
+        <label class="flex items-center gap-2 text-sm text-ncaa-muted">
+          <span>Export as</span>
+          <select id="exportFormatSelect" class="form-select !py-2 !px-3 !w-auto min-w-[120px]">
+            <option value="html">HTML</option>
+            <option value="pdf">PDF</option>
+          </select>
+        </label>
         <button class="btn-danger ml-auto" id="closeCheckBtn">🏁 Terminate/Complete Check</button>
         <input type="file" id="backupFileInput" accept=".json" hidden>
       </div>
@@ -362,23 +397,27 @@
             </button>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-xs text-ncaa-muted mr-1 font-medium">Save As:</span>
+            <span class="text-xs text-ncaa-muted mr-1 font-medium">Save:</span>
             <button class="btn-secondary !py-2 !px-4 flex items-center gap-2" id="saveDsrDownloadsBtn">
-              <span>📥</span> Downloads Folder
+              <span>📥</span> Downloads
             </button>
             <button class="btn-secondary !py-2 !px-4 flex items-center gap-2" id="saveDsrDocumentsBtn">
-              <span>📂</span> Documents Folder
+              <span>📂</span> Documents
             </button>
           </div>
           <button class="btn-secondary !py-2 !px-4" onclick="document.getElementById('dsrPreviewModal').classList.add('hidden')">Close</button>
         </div>
       </div>
-      <p class="text-xs text-ncaa-muted mb-4 no-print">📄 <strong>A4 Paper Size</strong> is pre-configured. Use <strong>Print DSR</strong> for physical printouts or to "Print to PDF". Use <strong>Save As</strong> options to download the standalone HTML report.</p>
+      <p class="text-xs text-ncaa-muted mb-4 no-print">📄 <strong>A4 portrait</strong> is pre-configured for every print and PDF export. Choose <strong>HTML</strong> or <strong>PDF</strong> before saving, then use the report preview actions to export the document.</p>
       <div id="dsrPreviewContainer">
         <!-- Rendered DSR here -->
       </div>
     </div>
   </div>
+
+  <footer class="text-center text-xs text-ncaa-muted py-4 no-print">
+    <span>CPCP Checklist v2.0.0 | Last Updated: 03 Aug 2026</span>
+  </footer>
 
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {

@@ -1,29 +1,52 @@
 @import "tailwindcss";
 
 /* ── Custom design tokens ── */
-@theme {
-  --color-ncaa-bg: #08101f;
-  --color-ncaa-surface: #122039;
-  --color-ncaa-surface-2: #172846;
-  --color-ncaa-text: #e8eef8;
-  --color-ncaa-muted: #9bb4d6;
-  --color-ncaa-accent: #4a9cff;
-  --color-ncaa-accent-dark: #1c59a0;
-  --color-ncaa-border: rgba(255, 255, 255, 0.08);
-  --color-ncaa-danger: #ff5f5f;
-  --color-ncaa-danger-dark: #d93636;
-  --color-ncaa-warning: #ffad33;
-  --color-ncaa-success: #34d399;
+:root {
+  --color-ncaa-bg: #140d18;
+  --color-ncaa-surface: #24132d;
+  --color-ncaa-surface-2: #341a3f;
+  --color-ncaa-text: #fffaf7;
+  --color-ncaa-muted: #d9c8cf;
+  --color-ncaa-accent: #7f1d5b;
+  --color-ncaa-accent-dark: #4b133e;
+  --color-ncaa-border: rgba(255, 255, 255, 0.14);
+  --color-ncaa-danger: #f97316;
+  --color-ncaa-danger-dark: #dc2626;
+  --color-ncaa-warning: #f59e0b;
+  --color-ncaa-success: #2f8f65;
 
-  /* === Aviation Progress Colors === */
   --color-progress-red: #ef4444;
   --color-progress-yellow: #f59e0b;
-  --color-progress-green: #22c55e;
-  --color-check-cpcp: #8b5cf6;        /* Purple for CPCP */
-  --color-check-a-series: #3b82f6;    /* Blue for A-checks */
-  --color-check-nonroutine: #f97316;  /* Orange for non-routine */
-  --color-check-opp: #06b6d4;         /* Cyan for OOP */
-  --color-check-routine: #10b981;     /* Green for routine */
+  --color-progress-green: #2f8f65;
+  --color-check-cpcp: #7c3aed;
+  --color-check-a-series: #f59e0b;
+  --color-check-nonroutine: #f97316;
+  --color-check-opp: #ea580c;
+  --color-check-routine: #a855f7;
+}
+
+@theme {
+  --color-ncaa-bg: #140d18;
+  --color-ncaa-surface: #24132d;
+  --color-ncaa-surface-2: #341a3f;
+  --color-ncaa-text: #fffaf7;
+  --color-ncaa-muted: #d9c8cf;
+  --color-ncaa-accent: #7f1d5b;
+  --color-ncaa-accent-dark: #4b133e;
+  --color-ncaa-border: rgba(255, 255, 255, 0.14);
+  --color-ncaa-danger: #f97316;
+  --color-ncaa-danger-dark: #dc2626;
+  --color-ncaa-warning: #f59e0b;
+  --color-ncaa-success: #2f8f65;
+
+  --color-progress-red: #ef4444;
+  --color-progress-yellow: #f59e0b;
+  --color-progress-green: #2f8f65;
+  --color-check-cpcp: #7c3aed;
+  --color-check-a-series: #f59e0b;
+  --color-check-nonroutine: #f97316;
+  --color-check-opp: #ea580c;
+  --color-check-routine: #a855f7;
 }
 
 /* ── Global base styles ── */
@@ -31,8 +54,8 @@
   body {
     @apply bg-ncaa-bg text-ncaa-text font-[Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe_UI",sans-serif] m-0;
     background-image:
-      radial-gradient(circle at top, rgba(74, 156, 255, 0.15), transparent 35%),
-      linear-gradient(180deg, #06101a 0%, #08101f 100%);
+      radial-gradient(circle at top, rgba(127, 29, 91, 0.25), transparent 35%),
+      linear-gradient(135deg, #170d1a 0%, #24132d 45%, #331a3f 100%);
   }
 
   *, *::before, *::after {
@@ -51,7 +74,32 @@
   }
 
   .btn-primary {
-    @apply bg-gradient-to-br from-ncaa-accent to-[#2f7ff2] text-white font-semibold px-5 py-3 rounded-xl border-none cursor-pointer transition-all duration-200 hover:shadow-[0_6px_24px_rgba(74,156,255,0.35)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
+    @apply bg-gradient-to-br from-[#7f1d5b] via-[#7c3aed] to-[#f59e0b] text-white font-semibold px-5 py-3 rounded-xl border-none cursor-pointer transition-all duration-200 hover:shadow-[0_6px_24px_rgba(127,29,91,0.28)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .setup-hero-panel {
+    @apply rounded-3xl border border-ncaa-accent/25 bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-transparent p-6 shadow-[0_20px_50px_rgba(0,0,0,0.18)] backdrop-blur-sm;
+  }
+
+  .setup-hero-badge,
+  .setup-badge {
+    @apply inline-flex items-center rounded-full border border-ncaa-accent/30 bg-ncaa-accent/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-ncaa-accent;
+  }
+
+  .setup-section-card {
+    @apply rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.08)];
+  }
+
+  .setup-option-card {
+    @apply flex flex-col gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-ncaa-accent/40 hover:bg-white/[0.06];
+  }
+
+  .setup-option-card input {
+    accent-color: var(--color-ncaa-accent);
+  }
+
+  .setup-task-card {
+    @apply flex flex-col gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3 shadow-[0_8px_20px_rgba(0,0,0,0.06)];
   }
 
   .btn-secondary {
@@ -194,6 +242,9 @@ select option {
     width: 210mm;
     min-height: 297mm;
     margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .print-only {
     display: block !important;
@@ -201,9 +252,9 @@ select option {
   }
   #dsrPrintSection > div {
     width: 100% !important;
-    max-width: none !important;
+    max-width: 210mm !important;
     margin: 0 auto !important;
-    padding: 0 !important;
+    padding: 10mm !important;
     border: 0 !important;
     box-shadow: none !important;
     box-sizing: border-box !important;
