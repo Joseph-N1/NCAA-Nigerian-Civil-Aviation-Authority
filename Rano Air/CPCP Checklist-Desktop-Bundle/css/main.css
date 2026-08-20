@@ -7,8 +7,8 @@
   --color-ncaa-surface-2: #f8fafc;
   --color-ncaa-text: #0f172a;
   --color-ncaa-muted: #475569;
-  --color-ncaa-accent: #A50050;          /* Rano Air Signature Plum Magenta (from ranoair.com) */
-  --color-ncaa-accent-rose: #8F0145;     /* Rano Air Dark Plum (from ranoair.com) */
+  --color-ncaa-accent: #9B0056;          /* Rano Air Signature Plum Magenta (from ranoair.com) */
+  --color-ncaa-accent-rose: #f8f9fa;     /* Offwhite Secondary */
   --color-ncaa-accent-crimson: #DD5353;  /* Rano Air Crimson Coral (from ranoair.com) */
   --color-ncaa-accent-navy: #1D1B4C;     /* NCAA Port Gore Navy */
   --color-ncaa-accent-blue: #4A6FA5;     /* Steel Blue */
@@ -35,8 +35,8 @@
   --color-ncaa-surface-2: #f8fafc;
   --color-ncaa-text: #0f172a;
   --color-ncaa-muted: #475569;
-  --color-ncaa-accent: #A50050;
-  --color-ncaa-accent-rose: #8F0145;
+  --color-ncaa-accent: #9B0056;
+  --color-ncaa-accent-rose: #f8f9fa;
   --color-ncaa-accent-crimson: #DD5353;
   --color-ncaa-accent-navy: #1D1B4C;
   --color-ncaa-accent-blue: #4A6FA5;
@@ -106,11 +106,11 @@
   }
 
   .btn-primary {
-    @apply bg-gradient-to-r from-[#A50050] to-[#8F0145] text-white font-bold px-5 py-3 rounded-xl border border-[#A50050] cursor-pointer transition-all duration-200 hover:shadow-[0_6px_20px_rgba(165,0,80,0.35)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
+    @apply bg-gradient-to-r from-[#9B0056] to-[#f8f9fa] text-slate-900 font-bold px-5 py-3 rounded-xl border border-[#9B0056] cursor-pointer transition-all duration-200 hover:shadow-[0_6px_20px_rgba(155,0,86,0.35)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .setup-hero-panel {
-    @apply rounded-2xl border border-rose-200/40 bg-gradient-to-r from-[#A50050] via-[#8F0145] to-[#DD5353] p-6 shadow-lg text-white;
+    @apply rounded-2xl border border-rose-200/40 bg-gradient-to-r from-[#9B0056] via-[#f8f9fa] to-[#DD5353] p-6 shadow-lg text-slate-900;
   }
 
   .setup-hero-badge,
@@ -138,13 +138,13 @@
   }
 
   .setup-option-card:hover {
-    border-color: #A50050;
-    box-shadow: 0 4px 12px rgba(165, 0, 80, 0.08);
+    border-color: #9B0056;
+    box-shadow: 0 4px 12px rgba(155, 0, 86, 0.08);
     transform: translateY(-1px);
   }
 
   .setup-option-card input {
-    accent-color: #A50050;
+    accent-color: #9B0056;
   }
 
   .setup-task-card {
@@ -169,11 +169,11 @@
   }
 
   .form-input {
-    @apply w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#A50050]/40 focus:border-[#A50050] transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#9B0056]/40 focus:border-[#9B0056] transition-all duration-200;
   }
 
   .form-select {
-    @apply w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#A50050]/40 focus:border-[#A50050] transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#9B0056]/40 focus:border-[#9B0056] transition-all duration-200;
   }
 
   .hidden {
@@ -263,11 +263,11 @@ div[id$="Modal"]:not(.hidden) .modal-card-inner {
 /* ── Tab navigation ── */
 @layer components {
   .tab-button {
-    @apply px-5 py-3 text-sm font-bold text-slate-600 border-b-2 border-transparent transition-all duration-200 cursor-pointer hover:text-[#A50050] hover:bg-slate-100/70 rounded-t-lg;
+    @apply px-5 py-3 text-sm font-bold text-slate-600 border-b-2 border-transparent transition-all duration-200 cursor-pointer hover:text-[#9B0056] hover:bg-slate-100/70 rounded-t-lg;
   }
 
   .tab-button.active {
-    @apply text-[#A50050] border-[#A50050] bg-white font-extrabold shadow-sm;
+    @apply text-[#9B0056] border-[#9B0056] bg-white font-extrabold shadow-sm;
     border-bottom-width: 3px;
   }
 }
