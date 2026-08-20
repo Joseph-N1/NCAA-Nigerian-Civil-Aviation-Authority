@@ -1188,12 +1188,14 @@ ${dsrHTML}
 </html>`;
   },
 
-  saveDSRToDownloads() {
-    return this.saveDSRAsPDF();
+  async saveDSRToDownloads() {
+    await this.saveDSRAsPDF();
+    this.saveDSRAsHTML();
   },
 
   async saveDSRToDocuments() {
-    return this.saveDSRAsPDF({ preferFilePicker: true });
+    await this.saveDSRAsPDF({ preferFilePicker: true });
+    await this.saveDSRHTMLToDocuments();
   },
 
   async saveDSRAsPDF(options = {}) {
