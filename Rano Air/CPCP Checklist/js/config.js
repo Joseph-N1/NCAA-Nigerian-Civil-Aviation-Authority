@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
   companyName: 'Rano Air AMO',
-  companyTagline: 'Abuja Airport Hangar · Maintenance Control',
+  companyTagline: 'Nnamdi Azikiwe International Airport (NAIA) · Maintenance Control',
   appVersion: '2.0.0',
   lastUpdated: '20 Aug 2026',
   authTimeoutMinutes: 30,
@@ -30,9 +30,9 @@ export const AUTH_USERS = {
 };
 
 export const STORAGE_KEYS = {
-  AUTH: 'rano-air-cpcp-auth',
-  DRAFT: 'rano-air-cpcp-draft',
-  INACTIVITY: 'rano-air-cpcp-inactivity',
-  PEER_ID: 'rano-air-cpcp-peer-id'
+  AUTH: 'rano-air-tracker-auth',
+  DRAFT: 'rano-air-tracker-draft',
+  INACTIVITY: 'rano-air-tracker-inactivity',
+  PEER_ID: 'rano-air-tracker-peer-id'
 };
 

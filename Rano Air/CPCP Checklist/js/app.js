@@ -8,7 +8,7 @@ import syncEngine from './sync.js';
 
 // Predefined check options with official Rano Air palette variables
 const PREDEFINED_CHECKS = [
-  { code: 'CPCP', name: 'CPCP Work Scope Tasks', defaultCount: 362, color: '#A50050' },
+  { code: 'CPCP', name: 'Maintenance Work Scope Tasks', defaultCount: 362, color: '#A50050' },
   { code: '1A', name: '1A Check Tasks', defaultCount: 20, color: '#4A6FA5' },
   { code: '2A', name: '2A Check Tasks', defaultCount: 25, color: '#4A6FA5' },
   { code: '3A', name: '3A Check Tasks', defaultCount: 20, color: '#4A6FA5' },
@@ -487,7 +487,7 @@ const App = {
   renderVersionFooter() {
     const footerText = document.getElementById('versionFooterText');
     if (footerText) {
-      footerText.textContent = `${APP_CONFIG.companyName} CPCP Checklist v${APP_CONFIG.appVersion} | Last Updated: ${APP_CONFIG.lastUpdated}`;
+      footerText.textContent = `${APP_CONFIG.companyName} Check Progress Tracker v${APP_CONFIG.appVersion} | Last Updated: ${APP_CONFIG.lastUpdated}`;
     }
   },
 
@@ -1392,7 +1392,7 @@ ${dsrHTML}
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `rano-air-cpcp-backup-${new Date().toISOString().substring(0, 10)}.json`;
+      a.download = `rano-air-backup-${new Date().toISOString().substring(0, 10)}.json`;
       a.click();
     });
   },
