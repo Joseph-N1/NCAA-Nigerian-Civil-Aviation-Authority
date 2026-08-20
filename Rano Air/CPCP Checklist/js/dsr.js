@@ -162,17 +162,6 @@ export function generateDSR(check, stats, highlights, exportFormat = 'html') {
         </ul>
       </div>
 
-      <!-- APPROVAL / SIGN-OFF BLOCK -->
-      <div style="display: flex; justify-content: space-between; gap: 20px; font-size: 10.5px; color: #334155; margin-top: 8px;">
-        <div style="flex: 1; border-top: 1px solid #cbd5e1; padding-top: 6px;">
-          <div><strong>Certifying Engineer:</strong> ___________________________</div>
-          <div style="margin-top: 4px;"><strong>Licence No:</strong> ______________ <strong>Date:</strong> ___________</div>
-        </div>
-        <div style="flex: 1; border-top: 1px solid #cbd5e1; padding-top: 6px;">
-          <div><strong>Line Maintenance Manager:</strong> ___________________________</div>
-          <div style="margin-top: 4px;"><strong>Stamp / Sign:</strong> ____________ <strong>Date:</strong> ___________</div>
-        </div>
-      </div>
     </div>
   `;
 }
