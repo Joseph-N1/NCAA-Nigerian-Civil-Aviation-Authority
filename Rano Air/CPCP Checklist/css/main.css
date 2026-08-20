@@ -1,61 +1,73 @@
 @import "tailwindcss";
 
-/* ── Custom design tokens ── */
+/* ── Custom design tokens: Official Rano Air (ranoair.com) & NCAA Palette ── */
 :root {
-  --color-ncaa-bg: #140d18;
-  --color-ncaa-surface: #24132d;
-  --color-ncaa-surface-2: #341a3f;
-  --color-ncaa-text: #fffaf7;
-  --color-ncaa-muted: #d9c8cf;
-  --color-ncaa-accent: #7f1d5b;
-  --color-ncaa-accent-dark: #4b133e;
-  --color-ncaa-border: rgba(255, 255, 255, 0.14);
-  --color-ncaa-danger: #f97316;
-  --color-ncaa-danger-dark: #dc2626;
-  --color-ncaa-warning: #f59e0b;
-  --color-ncaa-success: #2f8f65;
+  --color-ncaa-bg: #1C0312;
+  --color-ncaa-surface: #ffffff;
+  --color-ncaa-surface-2: #f8fafc;
+  --color-ncaa-text: #0f172a;
+  --color-ncaa-muted: #475569;
+  --color-ncaa-accent: #A50050;          /* Rano Air Signature Plum Magenta (from ranoair.com) */
+  --color-ncaa-accent-rose: #8F0145;     /* Rano Air Dark Plum (from ranoair.com) */
+  --color-ncaa-accent-crimson: #DD5353;  /* Rano Air Crimson Coral (from ranoair.com) */
+  --color-ncaa-accent-navy: #1D1B4C;     /* NCAA Port Gore Navy */
+  --color-ncaa-accent-blue: #4A6FA5;     /* Steel Blue */
+  --color-ncaa-border: #cbd5e1;
+  --color-ncaa-silver: #94a3b8;
+  --color-ncaa-danger: #DD5353;
+  --color-ncaa-danger-dark: #c53030;
+  --color-ncaa-warning: #d97706;
+  --color-ncaa-success: #16a34a;
 
   --color-progress-red: #ef4444;
   --color-progress-yellow: #f59e0b;
-  --color-progress-green: #2f8f65;
-  --color-check-cpcp: #7c3aed;
-  --color-check-a-series: #f59e0b;
-  --color-check-nonroutine: #f97316;
-  --color-check-opp: #ea580c;
-  --color-check-routine: #a855f7;
+  --color-progress-green: #16a34a;
+  --color-check-cpcp: #A50050;
+  --color-check-a-series: #4A6FA5;
+  --color-check-nonroutine: #d97706;
+  --color-check-oop: #ea580c;
+  --color-check-routine: #7c3aed;
 }
 
 @theme {
-  --color-ncaa-bg: #140d18;
-  --color-ncaa-surface: #24132d;
-  --color-ncaa-surface-2: #341a3f;
-  --color-ncaa-text: #fffaf7;
-  --color-ncaa-muted: #d9c8cf;
-  --color-ncaa-accent: #7f1d5b;
-  --color-ncaa-accent-dark: #4b133e;
-  --color-ncaa-border: rgba(255, 255, 255, 0.14);
-  --color-ncaa-danger: #f97316;
-  --color-ncaa-danger-dark: #dc2626;
-  --color-ncaa-warning: #f59e0b;
-  --color-ncaa-success: #2f8f65;
+  --color-ncaa-bg: #1C0312;
+  --color-ncaa-surface: #ffffff;
+  --color-ncaa-surface-2: #f8fafc;
+  --color-ncaa-text: #0f172a;
+  --color-ncaa-muted: #475569;
+  --color-ncaa-accent: #A50050;
+  --color-ncaa-accent-rose: #8F0145;
+  --color-ncaa-accent-crimson: #DD5353;
+  --color-ncaa-accent-navy: #1D1B4C;
+  --color-ncaa-accent-blue: #4A6FA5;
+  --color-ncaa-border: #cbd5e1;
+  --color-ncaa-silver: #94a3b8;
+  --color-ncaa-danger: #DD5353;
+  --color-ncaa-danger-dark: #c53030;
+  --color-ncaa-warning: #d97706;
+  --color-ncaa-success: #16a34a;
 
   --color-progress-red: #ef4444;
   --color-progress-yellow: #f59e0b;
-  --color-progress-green: #2f8f65;
-  --color-check-cpcp: #7c3aed;
-  --color-check-a-series: #f59e0b;
-  --color-check-nonroutine: #f97316;
-  --color-check-opp: #ea580c;
-  --color-check-routine: #a855f7;
+  --color-progress-green: #16a34a;
+  --color-check-cpcp: #A50050;
+  --color-check-a-series: #4A6FA5;
+  --color-check-nonroutine: #d97706;
+  --color-check-oop: #ea580c;
+  --color-check-routine: #7c3aed;
 }
 
-/* ── Global base styles ── */
+/* ── Global base styles (Matching ranoair.com blended background) ── */
 @layer base {
   body {
-    @apply bg-ncaa-bg text-ncaa-text font-[Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe_UI",sans-serif] m-0;
+    @apply bg-[#1C0312] text-slate-900 m-0 min-h-screen;
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background-image:
-      radial-gradient(circle at top, rgba(127, 29, 91, 0.25), transparent 35%),
-      linear-gradient(135deg, #170d1a 0%, #24132d 45%, #331a3f 100%);
+      radial-gradient(circle at 15% 10%, rgba(221, 83, 83, 0.25) 0%, transparent 45%),
+      radial-gradient(circle at 85% 15%, rgba(165, 0, 80, 0.35) 0%, transparent 50%),
+      radial-gradient(circle at 50% 85%, rgba(29, 27, 76, 0.4) 0%, transparent 55%),
+      linear-gradient(135deg, #1C0312 0%, #3A0420 35%, #8F0145 70%, #1D1B4C 100%);
+    background-attachment: fixed;
   }
 
   *, *::before, *::after {
@@ -63,63 +75,105 @@
   }
 }
 
-/* ── Reusable component classes ── */
+/* ── Reusable component classes: Minimalist Frosted White Aesthetic ── */
 @layer components {
   .glass-card {
-    @apply bg-white/[0.03] border border-ncaa-border rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.15)] backdrop-blur-sm;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.02);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 18px;
+    padding: 1.5rem;
+    color: #0f172a;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
   }
 
   .glass-card-sm {
-    @apply bg-white/[0.03] border border-ncaa-border rounded-xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-sm;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(241, 245, 249, 0.9);
+    box-shadow: 0 6px 20px -3px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.02);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.25rem;
+    color: #0f172a;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .glass-card-sm:hover {
+    box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.1);
   }
 
   .btn-primary {
-    @apply bg-gradient-to-br from-[#7f1d5b] via-[#7c3aed] to-[#f59e0b] text-white font-semibold px-5 py-3 rounded-xl border-none cursor-pointer transition-all duration-200 hover:shadow-[0_6px_24px_rgba(127,29,91,0.28)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
+    @apply bg-gradient-to-r from-[#A50050] to-[#8F0145] text-white font-bold px-5 py-3 rounded-xl border border-[#A50050] cursor-pointer transition-all duration-200 hover:shadow-[0_6px_20px_rgba(165,0,80,0.35)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .setup-hero-panel {
-    @apply rounded-3xl border border-ncaa-accent/25 bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-transparent p-6 shadow-[0_20px_50px_rgba(0,0,0,0.18)] backdrop-blur-sm;
+    @apply rounded-2xl border border-rose-200/40 bg-gradient-to-r from-[#A50050] via-[#8F0145] to-[#DD5353] p-6 shadow-lg text-white;
   }
 
   .setup-hero-badge,
   .setup-badge {
-    @apply inline-flex items-center rounded-full border border-ncaa-accent/30 bg-ncaa-accent/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-ncaa-accent;
+    @apply inline-flex items-center rounded-full border border-rose-300/40 bg-white/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white;
   }
 
   .setup-section-card {
-    @apply rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.08)];
+    background: rgba(248, 250, 252, 0.9);
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.25rem;
+    color: #0f172a;
   }
 
   .setup-option-card {
-    @apply flex flex-col gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-ncaa-accent/40 hover:bg-white/[0.06];
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 0.875rem 1rem;
+    text-align: left;
+    transition: all 0.2s ease;
+    color: #0f172a;
+    cursor: pointer;
+  }
+
+  .setup-option-card:hover {
+    border-color: #A50050;
+    box-shadow: 0 4px 12px rgba(165, 0, 80, 0.08);
+    transform: translateY(-1px);
   }
 
   .setup-option-card input {
-    accent-color: var(--color-ncaa-accent);
+    accent-color: #A50050;
   }
 
   .setup-task-card {
-    @apply flex flex-col gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3 shadow-[0_8px_20px_rgba(0,0,0,0.06)];
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 0.875rem 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    color: #0f172a;
   }
 
   .btn-secondary {
-    @apply bg-white/[0.08] text-ncaa-text font-semibold px-5 py-3 rounded-xl border border-ncaa-border cursor-pointer transition-all duration-200 hover:bg-white/[0.14] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
+    @apply bg-slate-100 text-slate-800 font-semibold px-4 py-2.5 rounded-xl border border-slate-300 cursor-pointer transition-all duration-200 hover:bg-slate-200 hover:border-slate-400 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .btn-danger {
-    @apply bg-gradient-to-br from-ncaa-danger to-ncaa-danger-dark text-white font-semibold px-4 py-2 rounded-xl border-none cursor-pointer transition-all duration-200 hover:shadow-[0_6px_24px_rgba(255,95,95,0.35)] hover:-translate-y-0.5 disabled:opacity-50;
+    @apply bg-gradient-to-br from-[#DD5353] to-[#c53030] text-white font-bold px-4 py-2.5 rounded-xl border border-rose-600 cursor-pointer transition-all duration-200 hover:shadow-[0_6px_20px_rgba(221,83,83,0.35)] hover:-translate-y-0.5 disabled:opacity-50;
   }
 
   .btn-icon {
-    @apply bg-transparent text-ncaa-text text-lg border border-ncaa-border rounded-lg w-9 h-9 flex items-center justify-center cursor-pointer transition-colors duration-150 hover:bg-white/10;
+    @apply bg-slate-100 text-slate-700 text-base border border-slate-300 rounded-lg w-9 h-9 flex items-center justify-center cursor-pointer transition-colors duration-150 hover:bg-slate-200;
   }
 
   .form-input {
-    @apply w-full px-4 py-3 rounded-xl border border-white/[0.12] bg-white/[0.05] text-ncaa-text placeholder:text-ncaa-muted/60 focus:outline-none focus:ring-2 focus:ring-ncaa-accent/50 focus:border-ncaa-accent/50 transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#A50050]/40 focus:border-[#A50050] transition-all duration-200;
   }
 
   .form-select {
-    @apply w-full px-4 py-3 rounded-xl border border-white/[0.12] bg-white/[0.05] text-ncaa-text focus:outline-none focus:ring-2 focus:ring-ncaa-accent/50 focus:border-ncaa-accent/50 transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#A50050]/40 focus:border-[#A50050] transition-all duration-200;
   }
 
   .hidden {
@@ -130,15 +184,15 @@
 /* ── Table-specific styles ── */
 @layer components {
   .data-table {
-    @apply w-full border-collapse;
+    @apply w-full border-collapse bg-white rounded-xl overflow-hidden shadow-sm;
   }
 
   .data-table th {
-    @apply text-left text-ncaa-muted text-sm font-medium px-4 py-3.5 border-b border-white/[0.08] uppercase tracking-wider;
+    @apply text-left text-slate-700 text-xs font-bold px-4 py-3.5 border-b border-slate-200 uppercase tracking-wider bg-slate-100/90;
   }
 
   .data-table td {
-    @apply px-4 py-3.5 text-ncaa-text text-sm border-b border-white/[0.06];
+    @apply px-4 py-3.5 text-slate-800 text-sm border-b border-slate-100;
   }
 
   .data-table tbody tr {
@@ -146,20 +200,20 @@
   }
 
   .data-table tbody tr:hover {
-    @apply bg-white/[0.04];
+    background-color: rgba(248, 250, 252, 0.8);
   }
 }
 
 /* ── Progress bar and chips ── */
 @layer components {
   .progress-bar-container {
-    @apply w-full bg-white/[0.05] rounded-full h-3 overflow-hidden border border-white/[0.04];
+    @apply w-full bg-slate-100 rounded-full h-3.5 overflow-hidden border border-slate-200;
   }
   .progress-bar-fill {
-    @apply h-full transition-all duration-500 ease-out;
+    @apply h-full transition-all duration-500 ease-out rounded-full;
   }
   .check-type-chip {
-    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-white/[0.08] border border-white/[0.12];
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full bg-slate-100 border border-slate-300 text-slate-800;
   }
 }
 
@@ -170,19 +224,19 @@
   }
 
   .toast {
-    @apply pointer-events-auto flex items-center gap-3 px-5 py-3 text-sm font-medium animate-[slideIn_0.3s_ease-out] min-w-[280px] max-w-[420px] bg-white/[0.03] border border-ncaa-border rounded-xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-sm;
+    @apply pointer-events-auto flex items-center gap-3 px-5 py-3.5 text-sm font-semibold animate-[slideIn_0.3s_ease-out] min-w-[280px] max-w-[420px] bg-white border border-slate-200 rounded-xl shadow-2xl text-slate-900;
   }
 
   .toast.success {
-    @apply border-ncaa-success/30 text-ncaa-success;
+    @apply border-emerald-500 text-emerald-900 bg-emerald-50;
   }
 
   .toast.error {
-    @apply border-ncaa-danger/30 text-ncaa-danger;
+    @apply border-rose-500 text-rose-900 bg-rose-50;
   }
 
   .toast.info {
-    @apply border-ncaa-accent/30 text-ncaa-accent;
+    @apply border-[#A50050] text-purple-900 bg-purple-50;
   }
 }
 
@@ -193,23 +247,28 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.97); }
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* ── Modal entrance animation ── */
-.modal-overlay:not(.hidden) .modal-card-inner {
-  animation: fadeIn 0.25s ease-out;
+/* ── Modal styling ── */
+.modal-overlay {
+  transition: opacity 0.2s ease-in-out;
+}
+
+div[id$="Modal"]:not(.hidden) .modal-card-inner {
+  animation: fadeIn 0.2s ease-out;
 }
 
 /* ── Tab navigation ── */
 @layer components {
   .tab-button {
-    @apply px-5 py-3 text-sm font-semibold text-ncaa-muted border-b-2 border-transparent transition-all duration-200 cursor-pointer hover:text-ncaa-text;
+    @apply px-5 py-3 text-sm font-bold text-slate-600 border-b-2 border-transparent transition-all duration-200 cursor-pointer hover:text-[#A50050] hover:bg-slate-100/70 rounded-t-lg;
   }
 
   .tab-button.active {
-    @apply text-ncaa-accent border-ncaa-accent;
+    @apply text-[#A50050] border-[#A50050] bg-white font-extrabold shadow-sm;
+    border-bottom-width: 3px;
   }
 }
 
@@ -218,44 +277,39 @@
   transition: stroke-dashoffset 0.5s ease-out;
 }
 
-/* Ensure dropdown options are highly visible */
-.form-select option {
+/* Dropdown option contrast */
+.form-select option, select option {
   background-color: #ffffff;
   color: #0f172a;
 }
-select option {
-  background-color: #ffffff;
-  color: #0f172a !important;
-}
 
-/* ── Print styles for DSR ── */
+/* ── Print styles for DSR (A4 Standard) ── */
 @page {
   size: A4 portrait;
-  margin: 12mm;
+  margin: 8mm;
 }
 
 @media print {
   .no-print { display: none !important; }
-  body {
+  html, body {
     background: #ffffff !important;
     color: #000000 !important;
-    width: 210mm;
-    min-height: 297mm;
-    margin: 0;
-    padding: 0;
+    width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
   .print-only {
     display: block !important;
-    width: 100%;
+    width: 100% !important;
   }
   #dsrPrintSection > div {
     width: 100% !important;
-    max-width: 210mm !important;
+    max-width: 194mm !important;
     margin: 0 auto !important;
-    padding: 10mm !important;
-    border: 0 !important;
+    padding: 2mm !important;
+    border: none !important;
     box-shadow: none !important;
     box-sizing: border-box !important;
   }

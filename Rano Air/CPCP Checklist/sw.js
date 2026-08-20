@@ -3,11 +3,33 @@
 // Service Worker - Offline-First Production Cache
 // ============================================
 
-const CACHE_NAME = 'rano-air-cpcp-v6';
+const CACHE_NAME = 'rano-air-cpcp-v8';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html', './manifest.json']))
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const urlsToCache = [
+        './',
+        './index.html',
+        './manifest.json',
+        './css/main.css',
+        './assets/logo.png',
+        './js/config.js',
+        './js/db.js',
+        './js/app.js',
+        './js/charts.js',
+        './js/dsr.js',
+        './js/html2pdf.bundle.min.js',
+        './js/sync.js'
+      ];
+      for (const url of urlsToCache) {
+        try {
+          await cache.add(url);
+        } catch (e) {
+          console.warn('[SW] Could not cache:', url);
+        }
+      }
+    })
   );
   self.skipWaiting();
 });

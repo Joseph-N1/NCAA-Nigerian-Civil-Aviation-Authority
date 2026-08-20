@@ -2,19 +2,23 @@ import db from './db.js';
 import { renderDonutChart, renderMasterDonutChart } from './charts.js';
 import { generateDSR } from './dsr.js';
 import { APP_CONFIG, AUTH_USERS, STORAGE_KEYS } from './config.js';
+import syncEngine from './sync.js';
 
-// Predefined check options
+// Predefined check options with official Rano Air palette variables
 const PREDEFINED_CHECKS = [
-  { code: 'CPCP', name: 'CPCP Work Scope Tasks', defaultCount: 362, color: 'var(--color-check-cpcp)' },
-  { code: '1A', name: '1A Check Tasks', defaultCount: 20, color: 'var(--color-check-a-series)' },
-  { code: '2A', name: '2A Check Tasks', defaultCount: 25, color: 'var(--color-check-a-series)' },
-  { code: '3A', name: '3A Check Tasks', defaultCount: 20, color: 'var(--color-check-a-series)' },
-  { code: '4A', name: '4A Check Tasks', defaultCount: 15, color: 'var(--color-check-a-series)' },
-  { code: '5A', name: '5A Check Tasks', defaultCount: 20, color: 'var(--color-check-a-series)' },
-  { code: 'OOP', name: 'Out of Phase Tasks', defaultCount: 10, color: 'var(--color-check-opp)' },
-  { code: 'Daily', name: 'Daily Check Tasks', defaultCount: 10, color: 'var(--color-check-routine)' },
-  { code: 'Weekly', name: 'Weekly Check Tasks', defaultCount: 15, color: 'var(--color-check-routine)' },
-  { code: 'Routine', name: 'Routine Tasks', defaultCount: 30, color: 'var(--color-check-routine)' }
+  { code: 'CPCP', name: 'CPCP Work Scope Tasks', defaultCount: 362, color: '#A50050' },
+  { code: '1A', name: '1A Check Tasks', defaultCount: 20, color: '#4A6FA5' },
+  { code: '2A', name: '2A Check Tasks', defaultCount: 25, color: '#4A6FA5' },
+  { code: '3A', name: '3A Check Tasks', defaultCount: 20, color: '#4A6FA5' },
+  { code: '4A', name: '4A Check Tasks', defaultCount: 15, color: '#4A6FA5' },
+  { code: '5A', name: '5A Check Tasks', defaultCount: 20, color: '#4A6FA5' },
+  { code: '1C', name: '1C Check Tasks', defaultCount: 20, color: '#8F0145' },
+  { code: '2C', name: '2C Check Tasks', defaultCount: 20, color: '#8F0145' },
+  { code: '3C', name: '3C Check Tasks', defaultCount: 20, color: '#8F0145' },
+  { code: 'OOP', name: 'Out of Phase Tasks', defaultCount: 10, color: '#ea580c' },
+  { code: 'Daily', name: 'Daily Check Tasks', defaultCount: 10, color: '#7c3aed' },
+  { code: 'Weekly', name: 'Weekly Check Tasks', defaultCount: 15, color: '#7c3aed' },
+  { code: 'Routine', name: 'Routine Tasks', defaultCount: 30, color: '#7c3aed' }
 ];
 
 const App = {
@@ -30,18 +34,28 @@ const App = {
   isSaving: false,
   pendingDraft: null,
   exportFormat: 'html',
+  wizardStep: 1,
 
   async init() {
-    // Wait for DB ready
+    // 1. Wait for DB ready
     await new Promise((resolve) => {
       window.addEventListener('db-ready', resolve, { once: true });
       db.init();
+    });
+
+    // 2. Initialize 3-laptop peer sync network
+    syncEngine.init();
+
+    // 3. Listen for live peer sync broadcasts from other laptops
+    window.addEventListener('peer-sync-update', async (e) => {
+      await this.handleRemotePeerUpdate(e.detail);
     });
 
     this.bindEvents();
     this.setupAuth();
     this.setupAutoSave();
     this.setupInactivityWarning();
+    this.renderVersionFooter();
     await this.loadInitialData();
   },
 
@@ -83,8 +97,60 @@ const App = {
       });
     });
 
-    // Check Wizard Submit
+    // Back to Dashboard Buttons
+    const backBtns = ['backToDashFromEng', 'backToDashFromHandover', 'backToDashFromAudit'];
+    backBtns.forEach(btnId => {
+      document.getElementById(btnId)?.addEventListener('click', () => {
+        this.switchToTab('dashboard');
+      });
+    });
+
+    // Multi-Step Wizard Step Buttons
+    document.getElementById('step1NextBtn')?.addEventListener('click', () => {
+      const reg = document.getElementById('setupReg').value.trim();
+      const msn = document.getElementById('setupMSN').value.trim();
+      const startDate = document.getElementById('setupStartDate').value;
+      if (!reg || !msn || !startDate) {
+        this.showToast('Please fill in all aircraft details before proceeding.', 'error');
+        return;
+      }
+      this.goToWizardStep(2);
+    });
+
+    document.getElementById('step2BackBtn')?.addEventListener('click', () => {
+      this.goToWizardStep(1);
+    });
+
+    document.getElementById('step2NextBtn')?.addEventListener('click', () => {
+      const selected = document.querySelectorAll('.check-type-cb:checked');
+      if (selected.length === 0) {
+        this.showToast('Please select at least one check type package.', 'error');
+        return;
+      }
+      this.updateSetupWizardInputs();
+      this.goToWizardStep(3);
+    });
+
+    document.getElementById('step3BackBtn')?.addEventListener('click', () => {
+      this.goToWizardStep(2);
+    });
+
+    document.getElementById('cancelWizardBtn')?.addEventListener('click', () => {
+      if (this.activeCheck) {
+        document.getElementById('setupWizard').classList.add('hidden');
+        document.getElementById('appShell').classList.remove('hidden');
+        document.getElementById('checkMetaContainer').classList.remove('hidden');
+      } else {
+        this.showToast('No active check available to return to. Please complete initialization.', 'info');
+      }
+    });
+
+    // Check Wizard Submit & Button Click
     document.getElementById('setupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await this.initializeNewCheck();
+    });
+    document.getElementById('initCheckBtn')?.addEventListener('click', async (e) => {
       e.preventDefault();
       await this.initializeNewCheck();
     });
@@ -102,13 +168,32 @@ const App = {
     });
 
     // Action button bindings
-    document.getElementById('addDefectBtn').addEventListener('click', () => {
+    document.getElementById('addDefectBtn')?.addEventListener('click', () => {
       this.populateDefectAssigneeSelect();
       document.getElementById('defectModal').classList.remove('hidden');
     });
 
+    document.getElementById('addDefectDockBtn')?.addEventListener('click', () => {
+      this.populateDefectAssigneeSelect();
+      document.getElementById('defectModal').classList.remove('hidden');
+    });
+
+    document.getElementById('closeDefectModalBtn')?.addEventListener('click', () => {
+      document.getElementById('defectModal').classList.add('hidden');
+    });
+    document.getElementById('cancelDefectModalBtn')?.addEventListener('click', () => {
+      document.getElementById('defectModal').classList.add('hidden');
+    });
+
     document.getElementById('addEngineerBtn').addEventListener('click', () => {
       document.getElementById('engineerModal').classList.remove('hidden');
+    });
+
+    document.getElementById('closeEngineerModalBtn')?.addEventListener('click', () => {
+      document.getElementById('engineerModal').classList.add('hidden');
+    });
+    document.getElementById('cancelEngineerModalBtn')?.addEventListener('click', () => {
+      document.getElementById('engineerModal').classList.add('hidden');
     });
 
     document.getElementById('newCheckBtn')?.addEventListener('click', () => {
@@ -124,29 +209,55 @@ const App = {
       window.print();
     });
 
-    document.getElementById('saveDsrBtn')?.addEventListener('click', async () => {
+    document.getElementById('saveDsrDownloadsBtnMain')?.addEventListener('click', async () => {
       await this.openDSRPreview();
-      if (this.exportFormat === 'pdf') {
-        window.print();
-      } else {
-        this.showToast('Choose PDF or HTML in the preview window before saving.', 'info');
-      }
+      await this.saveDSRToDownloads();
     });
 
-    document.getElementById('printDsrTriggerBtn').addEventListener('click', () => {
-      window.print();
-    });
-
-    document.getElementById('saveDsrDownloadsBtn').addEventListener('click', () => {
-      this.saveDSRToDownloads();
-    });
-
-    document.getElementById('saveDsrDocumentsBtn').addEventListener('click', async () => {
+    document.getElementById('saveDsrDocumentsBtnMain')?.addEventListener('click', async () => {
+      await this.openDSRPreview();
       await this.saveDSRToDocuments();
     });
 
-    document.getElementById('exportFormatSelect')?.addEventListener('change', (e) => {
-      this.exportFormat = e.target.value;
+    document.getElementById('saveDsrHtmlBtn')?.addEventListener('click', async () => {
+      await this.openDSRPreview();
+      this.saveDSRAsHTML();
+    });
+
+    document.getElementById('printDsrTriggerBtn')?.addEventListener('click', () => {
+      window.print();
+    });
+
+    document.getElementById('saveDsrDownloadsBtn')?.addEventListener('click', async () => {
+      await this.saveDSRToDownloads();
+    });
+
+    document.getElementById('saveDsrDocumentsBtn')?.addEventListener('click', async () => {
+      await this.saveDSRToDocuments();
+    });
+
+    document.getElementById('saveDsrHtmlModalBtn')?.addEventListener('click', () => {
+      this.saveDSRAsHTML();
+    });
+
+    document.getElementById('closeDsrModalBtn')?.addEventListener('click', () => {
+      document.getElementById('dsrPreviewModal').classList.add('hidden');
+    });
+
+    // Close modals on backdrop click
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.add('hidden');
+        }
+      });
+    });
+
+    // Close modals on Escape key press
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+      }
     });
 
     document.getElementById('confirmLogoutBtn')?.addEventListener('click', () => this.logout());
@@ -174,6 +285,22 @@ const App = {
       document.getElementById('backupFileInput').click();
     });
     document.getElementById('backupFileInput').addEventListener('change', (e) => this.importBackup(e));
+  },
+
+  switchToTab(tabName) {
+    const tabs = document.querySelectorAll('.tab-button');
+    tabs.forEach(t => t.classList.remove('active'));
+    
+    const targetTab = document.getElementById(`${tabName}Tab`);
+    if (targetTab) targetTab.classList.add('active');
+
+    const sections = ['dashboard', 'engineers', 'handover', 'audit'];
+    sections.forEach(s => {
+      document.getElementById(`tab-${s}`)?.classList.add('hidden');
+    });
+
+    document.getElementById(`tab-${tabName}`)?.classList.remove('hidden');
+    this.renderTabContent(tabName);
   },
 
   async loadInitialData() {
@@ -262,13 +389,16 @@ const App = {
       return;
     }
 
-    this.showToast('Invalid credentials. Please try again.', 'error');
+    this.showToast('Invalid credentials. Please enter a valid user PIN.', 'error');
   },
 
   logout() {
     localStorage.removeItem(STORAGE_KEYS.AUTH);
     this.authReady = false;
     this.currentUser = { name: 'Line Manager', role: 'manager' };
+    document.getElementById('appShell')?.classList.add('hidden');
+    document.getElementById('setupWizard')?.classList.add('hidden');
+    document.getElementById('checkMetaContainer')?.classList.add('hidden');
     this.renderAuthScreen();
     this.showToast('You have been logged out.', 'info');
   },
@@ -286,7 +416,7 @@ const App = {
       };
       localStorage.setItem(STORAGE_KEYS.DRAFT, JSON.stringify(draft));
       this.lastSavedAt = new Date();
-      this.updateSaveIndicator('✓ All changes saved');
+      this.updateSaveIndicator('✓ All saved');
     };
 
     const scheduleSave = () => {
@@ -316,7 +446,7 @@ const App = {
     const resetTimer = () => {
       clearTimeout(this.idleTimer);
       this.idleTimer = setTimeout(() => {
-        this.showToast('Session inactive. You will be logged out soon.', 'info');
+        this.showToast('Session inactive. Logging out for airworthiness security.', 'info');
         setTimeout(() => this.logout(), 3000);
       }, APP_CONFIG.authTimeoutMinutes * 60 * 1000);
     };
@@ -339,7 +469,6 @@ const App = {
       }
       if (parsed.activeCheck) {
         this.pendingDraft = parsed;
-        this.showToast('A previous draft was restored.', 'info');
       }
     } catch {
       localStorage.removeItem(STORAGE_KEYS.DRAFT);
@@ -350,6 +479,13 @@ const App = {
     const indicator = document.getElementById('saveStatusIndicator');
     if (indicator) {
       indicator.textContent = message;
+    }
+  },
+
+  renderVersionFooter() {
+    const footerText = document.getElementById('versionFooterText');
+    if (footerText) {
+      footerText.textContent = `${APP_CONFIG.companyName} CPCP Checklist v${APP_CONFIG.appVersion} | Last Updated: ${APP_CONFIG.lastUpdated}`;
     }
   },
 
@@ -365,8 +501,45 @@ const App = {
     document.getElementById('checkMetaContainer').classList.add('hidden');
     document.getElementById('appShell').classList.add('hidden');
     document.getElementById('setupWizard').classList.remove('hidden');
+    
+    // Show/hide cancel button depending on active check existence
+    const cancelBtn = document.getElementById('cancelWizardBtn');
+    if (cancelBtn) {
+      if (this.activeCheck) {
+        cancelBtn.classList.remove('hidden');
+      } else {
+        cancelBtn.classList.add('hidden');
+      }
+    }
+
+    this.goToWizardStep(1);
     document.getElementById('setupWizard').scrollIntoView({ behavior: 'smooth', block: 'start' });
     this.renderSetupWizard();
+  },
+
+  goToWizardStep(step) {
+    this.wizardStep = step;
+    ['wizardStep1', 'wizardStep2', 'wizardStep3'].forEach((stepId, index) => {
+      const el = document.getElementById(stepId);
+      if (el) {
+        if (index + 1 === step) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      }
+    });
+
+    // Update Indicators
+    const ind1 = document.getElementById('stepInd1');
+    const ind2 = document.getElementById('stepInd2');
+    const ind3 = document.getElementById('stepInd3');
+
+    if (ind1 && ind2 && ind3) {
+      ind1.className = step >= 1 ? 'flex items-center gap-2 text-[#A50050]' : 'flex items-center gap-2 text-slate-400';
+      ind2.className = step >= 2 ? 'flex items-center gap-2 text-[#A50050]' : 'flex items-center gap-2 text-slate-400';
+      ind3.className = step >= 3 ? 'flex items-center gap-2 text-[#A50050]' : 'flex items-center gap-2 text-slate-400';
+    }
   },
 
   renderSetupWizard() {
@@ -376,13 +549,13 @@ const App = {
     grid.innerHTML = PREDEFINED_CHECKS.map(c => `
       <label class="setup-option-card">
         <div class="flex items-start gap-3">
-          <input type="checkbox" name="checkType" value="${c.code}" class="check-type-cb mt-1">
+          <input type="checkbox" name="checkType" value="${c.code}" class="check-type-cb mt-1" ${c.code === 'CPCP' ? 'checked' : ''}>
           <div class="flex-1">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-semibold text-ncaa-text">${c.code}</span>
-              <span class="setup-badge">Scope</span>
+              <span class="text-sm font-bold text-slate-900">${c.code}</span>
+              <span class="setup-badge !bg-[#A50050] !text-white">Work Scope</span>
             </div>
-            <p class="mt-1 text-xs text-ncaa-muted">${c.name}</p>
+            <p class="mt-1 text-xs text-slate-600">${c.name}</p>
             <div class="mt-2 h-1.5 rounded-full" style="background: ${c.color};"></div>
           </div>
         </div>
@@ -400,6 +573,7 @@ const App = {
 
   updateSetupWizardInputs() {
     const container = document.getElementById('taskCountInputsContainer');
+    if (!container) return;
     container.innerHTML = '';
     const selected = Array.from(document.querySelectorAll('.check-type-cb:checked')).map(cb => cb.value);
 
@@ -409,12 +583,12 @@ const App = {
         <div class="setup-task-card">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <span class="text-sm font-bold text-ncaa-text">${predefined.name} (${code})</span>
-              <p class="text-xs text-ncaa-muted mt-1">Set the planned card count for this work package.</p>
+              <span class="text-sm font-bold text-slate-900">${predefined.name} (${code})</span>
+              <p class="text-xs text-slate-600 mt-0.5">Set planned card count for this package.</p>
             </div>
             <div class="flex items-center gap-2">
-              <label class="text-xs text-ncaa-muted">Planned cards</label>
-              <input type="number" id="setup-count-${code}" value="${predefined.defaultCount}" min="1" class="form-input !py-1 !px-2 w-24 text-center">
+              <label class="text-xs font-bold text-slate-700">Planned Cards:</label>
+              <input type="number" id="setup-count-${code}" value="${predefined.defaultCount}" min="1" class="form-input !py-1 !px-2 w-24 text-center font-bold text-slate-900 border-slate-300">
             </div>
           </div>
         </div>
@@ -436,9 +610,18 @@ const App = {
 
     const checkTypes = selectedCbs.map(code => {
       const input = document.getElementById(`setup-count-${code}`);
-      const count = parseInt(input.value) || 1;
+      const count = input ? (parseInt(input.value) || 1) : 1;
       return { type: code, plannedTasks: count };
     });
+
+    // CRITICAL FIX: Deactivate any existing active checks first
+    const existingChecks = await db.getAllChecks();
+    for (const c of existingChecks) {
+      if (c.isActive) {
+        c.isActive = 0;
+        await db.updateCheck(c);
+      }
+    }
 
     const newCheck = {
       mro: 'Rano Air AMO',
@@ -481,10 +664,17 @@ const App = {
     await db.addAuditEntry({
       checkId: checkId,
       timestamp: new Date().toISOString(),
-      userId: 'manager',
-      userName: 'Line Manager',
+      userId: this.currentUser.name,
+      userName: this.currentUser.name,
       action: 'Check Initialized',
       details: `Initialized check for ${reg} (${type}) with package scope: ${selectedCbs.join('+')}`
+    });
+
+    // Broadcast live sync
+    syncEngine.broadcast({
+      type: 'CHECK_INITIALIZED',
+      checkReg: reg,
+      user: this.currentUser.name
     });
 
     this.showToast('Check tracker initialized successfully.', 'success');
@@ -518,7 +708,7 @@ const App = {
     // Render Master Pie
     renderMasterDonutChart('masterPieContainer', grandClosed, grandTotal - grandClosed);
 
-    // Render Individual pies
+    // Render Individual package pies
     const pieGrid = document.getElementById('packagePieGrid');
     pieGrid.innerHTML = '';
     
@@ -531,7 +721,7 @@ const App = {
       const pct = cStats.total > 0 ? (cStats.closed / cStats.total) * 100 : 0;
       
       // Donut Pie chart
-      const pref = PREDEFINED_CHECKS.find(p => p.code === c.type) || { color: 'var(--color-ncaa-accent)' };
+      const pref = PREDEFINED_CHECKS.find(p => p.code === c.type) || { color: '#A50050' };
       const pieDiv = document.createElement('div');
       pieGrid.appendChild(pieDiv);
       renderDonutChart(pieDiv, pct, c.type, pref.color, 90);
@@ -552,22 +742,35 @@ const App = {
     const pct = total > 0 ? Math.round((closed / total) * 100) : 0;
     const remaining = total - closed;
 
-    const btnClass = "w-8 h-8 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] border border-white/[0.08] flex items-center justify-center font-bold text-ncaa-text cursor-pointer transition-colors";
-    
-    // Read only checks for visitor
+    const btnClass = "px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center font-bold text-xs text-slate-800 cursor-pointer transition-colors shadow-sm active:scale-95";
     const controlsDisabled = !this.canWrite();
+
+    // Workflow Enhancement: Interactive Status Badge
+    let statusBadgeHTML = '';
+    if (pct === 100) {
+      statusBadgeHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 inline-block"></span>100% Closed</span>`;
+    } else if (pct > 0) {
+      statusBadgeHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300"><span class="w-2 h-2 rounded-full bg-amber-500 mr-1.5 inline-block"></span>In Progress</span>`;
+    } else {
+      statusBadgeHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300"><span class="w-2 h-2 rounded-full bg-rose-500 mr-1.5 inline-block"></span>Open</span>`;
+    }
 
     return `
       <tr>
-        <td class="font-bold text-ncaa-text">${type}</td>
-        <td class="text-center font-semibold">${total}</td>
-        <td class="text-center text-ncaa-success font-semibold" id="closed-count-${type}">${closed}</td>
-        <td class="text-center font-bold text-ncaa-accent">${pct}%</td>
-        <td class="text-center text-ncaa-muted">${remaining}</td>
+        <td class="font-bold text-slate-900 flex items-center gap-2">
+          <span>${type}</span>
+          ${isNonRoutine ? '<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">Defects</span>' : ''}
+        </td>
+        <td class="text-center font-semibold text-slate-700">${total}</td>
+        <td class="text-center text-emerald-700 font-extrabold text-base" id="closed-count-${type}">${closed}</td>
+        <td class="text-center">${statusBadgeHTML}</td>
+        <td class="text-center font-black text-[#A50050]">${pct}%</td>
+        <td class="text-center text-slate-600 font-medium">${remaining}</td>
         <td class="no-print">
-          <div class="flex items-center justify-center gap-3">
-            <button class="${btnClass} action-btn-dec" data-type="${type}" ${controlsDisabled ? 'disabled' : ''}>-</button>
-            <button class="${btnClass} action-btn-inc" data-type="${type}" ${controlsDisabled ? 'disabled' : ''}>+</button>
+          <div class="flex items-center justify-center gap-1.5">
+            <button class="${btnClass} action-btn-dec" data-type="${type}" ${controlsDisabled ? 'disabled' : ''} title="Subtract 1 card">&minus;1</button>
+            <button class="${btnClass} action-btn-inc" data-type="${type}" ${controlsDisabled ? 'disabled' : ''} title="Add 1 card">+1</button>
+            <button class="${btnClass} action-btn-inc5 !bg-purple-100 hover:!bg-purple-200 text-purple-900 border-purple-300" data-type="${type}" ${controlsDisabled ? 'disabled' : ''} title="Add 5 cards">+5</button>
           </div>
         </td>
       </tr>
@@ -577,6 +780,7 @@ const App = {
   bindTableControls() {
     const decBtns = document.querySelectorAll('.action-btn-dec');
     const incBtns = document.querySelectorAll('.action-btn-inc');
+    const inc5Btns = document.querySelectorAll('.action-btn-inc5');
 
     decBtns.forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -589,6 +793,13 @@ const App = {
       btn.addEventListener('click', async () => {
         const type = btn.dataset.type;
         await this.adjustTaskCount(type, 1);
+      });
+    });
+
+    inc5Btns.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const type = btn.dataset.type;
+        await this.adjustTaskCount(type, 5);
       });
     });
   },
@@ -618,11 +829,38 @@ const App = {
       details: `${type} closed count adjusted by ${amount > 0 ? '+' : ''}${amount}. Current: ${newClosed}/${taskRecord.totalPlanned}`
     });
 
+    // Broadcast live peer sync across 3 laptops
+    syncEngine.broadcast({
+      type: 'PROGRESS_UPDATED',
+      checkType: type,
+      amount,
+      newClosed,
+      user: this.currentUser.name
+    });
+
     await this.refreshDashboard();
+  },
+
+  async handleRemotePeerUpdate(data) {
+    if (data.type === 'PROGRESS_UPDATED') {
+      this.showToast(`Live Sync (${data.user}): ${data.checkType} updated`, 'info');
+      if (this.activeCheck) {
+        this.tasks = await db.getTasksForCheck(this.activeCheck.id);
+        await this.refreshDashboard();
+      }
+    } else if (data.type === 'DEFECT_LOGGED') {
+      this.showToast(`Live Sync: New Defect "${data.defectTitle}" logged by ${data.user}`, 'info');
+      if (this.activeCheck) {
+        await this.refreshDashboard();
+      }
+    } else if (data.type === 'HANDOVER_SAVED') {
+      this.showToast(`Live Sync: Shift handover updated by ${data.user}`, 'info');
+    }
   },
 
   populateDefectAssigneeSelect() {
     const select = document.getElementById('defectAssignee');
+    if (!select) return;
     select.innerHTML = '<option value="">Unassigned</option>';
     this.personnel.filter(p => p.role === 'engineer').forEach(eng => {
       select.innerHTML += `<option value="${eng.name}">${eng.name}</option>`;
@@ -648,6 +886,14 @@ const App = {
         details: `Raised Non-Routine item: "${title}". Allocated assignee: ${assignee || 'None'}. Non-routine card count incremented.`
       });
 
+      // Broadcast sync
+      syncEngine.broadcast({
+        type: 'DEFECT_LOGGED',
+        defectTitle: title,
+        assignee,
+        user: this.currentUser.name
+      });
+
       document.getElementById('defectForm').reset();
       document.getElementById('defectModal').classList.add('hidden');
       this.showToast('Non-routine defect logged successfully.', 'success');
@@ -663,7 +909,7 @@ const App = {
 
     try {
       await db.addPerson({ name, staffId, role });
-      this.showToast('Personnel added successfully.', 'success');
+      this.showToast('Personnel registered successfully.', 'success');
       document.getElementById('engineerForm').reset();
       document.getElementById('engineerModal').classList.add('hidden');
       await this.loadInitialData();
@@ -675,7 +921,22 @@ const App = {
         switcher.innerHTML += `<option value="${p.id}">${p.name} (${p.role.toUpperCase()})</option>`;
       });
     } catch (err) {
-      this.showToast('Staff ID already exists.', 'error');
+      this.showToast('Staff ID already registered.', 'error');
+    }
+  },
+
+  async removePersonnel(id, name) {
+    if (!this.canWrite()) return;
+    if (confirm(`Remove personnel record for "${name}"?`)) {
+      if (db.db) {
+        const tx = db.db.transaction('personnel', 'readwrite');
+        tx.objectStore('personnel').delete(id);
+      }
+      this.showToast(`Personnel record for ${name} removed.`, 'info');
+      await this.loadInitialData();
+      if (document.getElementById('tab-engineers').classList.contains('hidden') === false) {
+        this.renderPersonnelTab();
+      }
     }
   },
 
@@ -695,6 +956,7 @@ const App = {
 
   async renderPersonnelTabAsync() {
     const body = document.getElementById('personnelTableBody');
+    if (!body) return;
     body.innerHTML = '';
 
     const logs = this.activeCheck ? await db.getAuditEntriesForCheck(this.activeCheck.id) : [];
@@ -713,21 +975,30 @@ const App = {
 
       body.innerHTML += `
         <tr>
-          <td class="font-bold text-ncaa-text">${p.name}</td>
-          <td class="text-xs uppercase tracking-wider text-ncaa-muted">${p.role}</td>
-          <td class="text-center font-semibold">${assignedTasks}</td>
-          <td class="text-center font-semibold text-ncaa-success">${completedToday}</td>
-          <td><span class="text-xs text-ncaa-muted">${latestHandover ? latestHandover.details : 'No handover remarks recorded.'}</span></td>
-          <td>
-            <button class="btn-danger !py-1 !px-2 text-xs" ${!this.canWrite() ? 'disabled' : ''}>Remove</button>
+          <td class="font-bold text-slate-900">${p.name}</td>
+          <td class="text-xs font-mono font-bold text-[#A50050]">${p.staffId}</td>
+          <td class="text-xs uppercase font-bold tracking-wider text-slate-600">${p.role}</td>
+          <td class="text-center font-bold text-slate-800">${assignedTasks}</td>
+          <td class="text-center font-black text-emerald-700">${completedToday}</td>
+          <td><span class="text-xs text-slate-600">${latestHandover ? latestHandover.details : 'No specific remarks.'}</span></td>
+          <td class="text-center">
+            <button class="btn-danger !py-1 !px-2.5 text-xs remove-personnel-btn" data-id="${p.id}" data-name="${p.name}" ${!this.canWrite() ? 'disabled' : ''}>Remove</button>
           </td>
         </tr>
       `;
     });
+
+    document.querySelectorAll('.remove-personnel-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = parseInt(btn.dataset.id);
+        const name = btn.dataset.name;
+        await this.removePersonnel(id, name);
+      });
+    });
   },
 
   async renderHandoverTab() {
-    // Calculate handover items from last 12 hours
+    if (!this.activeCheck) return;
     const logs = await db.getAuditEntriesForCheck(this.activeCheck.id);
     const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
 
@@ -752,12 +1023,20 @@ const App = {
       details: notes
     });
 
+    syncEngine.broadcast({
+      type: 'HANDOVER_SAVED',
+      notes,
+      user: this.currentUser.name
+    });
+
     this.showToast('Handover remarks saved to audit log.', 'success');
   },
 
   async renderAuditTab() {
     const body = document.getElementById('auditTableBody');
+    if (!body) return;
     body.innerHTML = '';
+    if (!this.activeCheck) return;
     const logs = await db.getAuditEntriesForCheck(this.activeCheck.id);
     logs.reverse(); // Newest first
 
@@ -765,10 +1044,10 @@ const App = {
       const timeStr = new Date(l.timestamp).toLocaleString('en-GB');
       body.innerHTML += `
         <tr>
-          <td class="text-xs text-ncaa-muted">${timeStr}</td>
-          <td class="font-semibold text-ncaa-text">${l.userName}</td>
-          <td class="text-xs uppercase font-bold text-ncaa-accent">${l.action}</td>
-          <td class="text-sm text-ncaa-muted">${l.details}</td>
+          <td class="text-xs text-slate-500 font-mono">${timeStr}</td>
+          <td class="font-bold text-slate-900">${l.userName}</td>
+          <td class="text-xs uppercase font-extrabold text-[#A50050]">${l.action}</td>
+          <td class="text-sm text-slate-800">${l.details}</td>
         </tr>
       `;
     });
@@ -790,10 +1069,10 @@ const App = {
   async openDSRPreview() {
     const stats = this.buildDSRStats();
     const highlights = document.getElementById('handoverRemarksInput')?.value || '';
+    
     const dsrHTML = generateDSR(this.activeCheck, stats, highlights, this.exportFormat);
     const generatedAt = new Date().toISOString();
     
-    // Inject DSR
     document.getElementById('dsrPreviewContainer').innerHTML = dsrHTML;
     document.getElementById('dsrPrintSection').innerHTML = dsrHTML;
 
@@ -831,7 +1110,7 @@ const App = {
     if (snapshots.length === 0) {
       body.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center text-ncaa-muted py-4">No DSR snapshots generated yet.</td>
+          <td colspan="6" class="text-center text-slate-500 py-4">No DSR snapshots generated yet.</td>
         </tr>
       `;
       return;
@@ -841,13 +1120,13 @@ const App = {
     snapshots.forEach(snapshot => {
       body.innerHTML += `
         <tr>
-          <td class="text-xs text-ncaa-muted">${new Date(snapshot.generatedAt).toLocaleString('en-GB')}</td>
-          <td class="font-semibold text-ncaa-text">${snapshot.generatedBy || 'Line Manager'}</td>
-          <td class="text-center">${snapshot.progressData?.total?.total || 0}</td>
-          <td class="text-center text-ncaa-success font-semibold">${snapshot.progressData?.total?.closed || 0}</td>
-          <td class="text-center font-bold text-ncaa-accent">${snapshot.totalCompletion || 0}%</td>
+          <td class="text-xs text-slate-500 font-mono">${new Date(snapshot.generatedAt).toLocaleString('en-GB')}</td>
+          <td class="font-bold text-slate-900">${snapshot.generatedBy || 'Line Manager'}</td>
+          <td class="text-center font-semibold text-slate-800">${snapshot.progressData?.total?.total || 0}</td>
+          <td class="text-center text-emerald-700 font-extrabold">${snapshot.progressData?.total?.closed || 0}</td>
+          <td class="text-center font-black text-[#A50050]">${snapshot.totalCompletion || 0}%</td>
           <td class="text-center">
-            <button class="btn-secondary !py-1 !px-3 text-xs view-dsr-snapshot-btn" data-id="${snapshot.id}">View</button>
+            <button class="btn-secondary !py-1 !px-3 text-xs font-bold view-dsr-snapshot-btn" data-id="${snapshot.id}">View DSR</button>
           </td>
         </tr>
       `;
@@ -877,23 +1156,27 @@ const App = {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rano Air DSR</title>
+  <title>Rano Air AMO - Daily Status Report (DSR)</title>
   <style>
-    @page { size: A4 portrait; margin: 12mm; }
-    html, body { margin: 0; padding: 0; background: #ffffff; color: #111827; }
-    body { width: 210mm; min-height: 297mm; box-sizing: border-box; }
+    @page { size: A4 portrait; margin: 6mm; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #f8fafc; color: #0f172a; font-family: Inter, Arial, sans-serif; }
     .dsr-a4-sheet {
       width: 100%;
       max-width: 210mm;
-      margin: 0 auto;
-      padding: 10mm;
+      margin: 20px auto;
+      padding: 8mm;
       box-sizing: border-box;
       background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     }
     table { border-collapse: collapse; width: 100%; }
     @media print {
-      body { width: 210mm; min-height: 297mm; margin: 0; }
-      .dsr-a4-sheet { padding: 0; }
+      @page { size: A4 portrait; margin: 6mm; }
+      html, body { background: #ffffff !important; width: 210mm; margin: 0 auto; }
+      .dsr-a4-sheet { margin: 0 !important; padding: 2mm !important; border: none !important; box-shadow: none !important; width: 100% !important; max-width: 198mm !important; }
     }
   </style>
 </head>
@@ -906,21 +1189,90 @@ ${dsrHTML}
   },
 
   saveDSRToDownloads() {
-    const content = this.buildDSRDocumentHTML();
-    const blob = new Blob([content], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = this.getDSRFileName(this.exportFormat === 'pdf' ? 'pdf' : 'html');
-    link.click();
-    URL.revokeObjectURL(url);
-    this.showToast(`DSR saved as ${this.exportFormat.toUpperCase()} to your browser downloads.`, 'success');
+    return this.saveDSRAsPDF();
   },
 
   async saveDSRToDocuments() {
-    const fileName = this.getDSRFileName(this.exportFormat === 'pdf' ? 'pdf' : 'html');
-    const content = this.buildDSRDocumentHTML();
+    return this.saveDSRAsPDF({ preferFilePicker: true });
+  },
 
+  async saveDSRAsPDF(options = {}) {
+    const source = document.getElementById('dsrPrintSection') || document.getElementById('dsrPreviewContainer');
+    const pdfName = this.getDSRFileName('pdf');
+
+    if (!source?.innerHTML?.trim()) {
+      await this.openDSRPreview();
+    }
+
+    if (!window.html2pdf) {
+      this.showToast('PDF engine unavailable. Saving HTML instead.', 'error');
+      this.saveDSRAsHTML();
+      return;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.style.background = '#ffffff';
+    wrapper.style.width = '210mm';
+    wrapper.style.minHeight = '297mm';
+    wrapper.style.padding = '6mm';
+    wrapper.style.boxSizing = 'border-box';
+    wrapper.innerHTML = document.getElementById('dsrPrintSection').innerHTML || document.getElementById('dsrPreviewContainer').innerHTML;
+
+    const pdfOptions = {
+      margin: [6, 6, 6, 6],
+      filename: pdfName,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    try {
+      this.showToast('Generating PDF...', 'info');
+
+      if (options.preferFilePicker && 'showSaveFilePicker' in window) {
+        const blob = await window.html2pdf().set(pdfOptions).from(wrapper).outputPdf('blob');
+        const handle = await window.showSaveFilePicker({
+          suggestedName: pdfName,
+          startIn: 'documents',
+          types: [
+            {
+              description: 'PDF Document',
+              accept: { 'application/pdf': ['.pdf'] }
+            }
+          ]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        this.showToast('DSR PDF saved to selected folder.', 'success');
+        return;
+      }
+
+      await window.html2pdf().set(pdfOptions).from(wrapper).save();
+      this.showToast('DSR PDF saved to downloads.', 'success');
+    } catch (err) {
+      if (err?.name === 'AbortError') return;
+      this.showToast('PDF save failed. Saving HTML instead.', 'error');
+      this.saveDSRAsHTML();
+    }
+  },
+
+  saveDSRAsHTML() {
+    const content = this.buildDSRDocumentHTML();
+    const blob = new Blob([content], { type: 'text/html;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = this.getDSRFileName('html');
+    link.click();
+    URL.revokeObjectURL(url);
+    this.showToast('DSR saved as standalone HTML to downloads.', 'success');
+  },
+
+  async saveDSRHTMLToDocuments() {
+    const fileName = this.getDSRFileName('html');
+    const content = this.buildDSRDocumentHTML();
     if ('showSaveFilePicker' in window) {
       try {
         const handle = await window.showSaveFilePicker({
@@ -928,7 +1280,7 @@ ${dsrHTML}
           startIn: 'documents',
           types: [
             {
-              description: 'HTML document',
+              description: 'Standalone HTML Document',
               accept: { 'text/html': ['.html'] }
             }
           ]
@@ -943,8 +1295,7 @@ ${dsrHTML}
       }
     }
 
-    this.saveDSRToDownloads();
-    this.showToast('Your browser does not support direct Documents saving. Move the downloaded file to Documents.', 'info');
+    this.saveDSRAsHTML();
   },
 
   async closeCheck() {
@@ -975,19 +1326,16 @@ ${dsrHTML}
   refreshPermissions() {
     const isWritable = this.canWrite();
     
-    // Enable/disable key controls
-    document.getElementById('addDefectBtn').disabled = !isWritable;
-    document.getElementById('closeCheckBtn').disabled = !isWritable;
-    document.getElementById('saveHandoverBtn').disabled = !isWritable;
+    if (document.getElementById('addDefectBtn')) document.getElementById('addDefectBtn').disabled = !isWritable;
+    if (document.getElementById('closeCheckBtn')) document.getElementById('closeCheckBtn').disabled = !isWritable;
+    if (document.getElementById('saveHandoverBtn')) document.getElementById('saveHandoverBtn').disabled = !isWritable;
 
-    // Refresh dynamic lists
     if (document.getElementById('tab-dashboard').classList.contains('hidden') === false) {
       this.refreshDashboard();
     }
   },
 
   exportBackup() {
-    // Export IndexedDB data to JSON
     Promise.all([
       db.getAllChecks(),
       db.getAllTasks(),
@@ -1027,35 +1375,30 @@ ${dsrHTML}
 
         await db.clearAll();
 
-        // Restore checks
         const checkStore = db.db.transaction('checks', 'readwrite').objectStore('checks');
         for (const c of data.checks) {
           await checkStore.add(c);
         }
 
-        // Restore tasks
         const taskStore = db.db.transaction('tasks', 'readwrite').objectStore('tasks');
         for (const t of data.tasks) {
           await taskStore.add(t);
         }
 
-        // Restore personnel
         const pStore = db.db.transaction('personnel', 'readwrite').objectStore('personnel');
         for (const p of data.personnel || []) {
           try {
             await pStore.add(p);
           } catch (e) {
-            // Ignore potential unique key collisions
+            // Ignore collisions
           }
         }
 
-        // Restore audit
         const auditStore = db.db.transaction('audit_log', 'readwrite').objectStore('audit_log');
         for (const a of data.audit || []) {
           await auditStore.add(a);
         }
 
-        // Restore DSR snapshots
         const dsrStore = db.db.transaction('dsr_snapshots', 'readwrite').objectStore('dsr_snapshots');
         for (const snapshot of data.dsrSnapshots || []) {
           await dsrStore.add(snapshot);
@@ -1072,6 +1415,7 @@ ${dsrHTML}
 
   showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
@@ -1080,7 +1424,7 @@ ${dsrHTML}
     setTimeout(() => {
       toast.style.opacity = '0';
       setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, 3200);
   }
 };
 

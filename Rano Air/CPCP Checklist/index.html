@@ -3,66 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Rano Air AMO CPCP Progress Tracker Dashboard — Abuja Airport">
-  <title>Rano Air CPCP Progress Tracker</title>
+  <meta name="description" content="Rano Air AMO Check Progress Tracker Dashboard — Abuja Airport Hangar">
+  <title>Rano Air Check Progress Tracker</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="css/main.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/html2pdf.bundle.min.js"></script>
 </head>
 <body class="min-h-screen">
 
   <div class="toast-container" id="toastContainer"></div>
 
-  <div class="min-h-screen flex items-center justify-center p-6 no-print" id="authScreen">
-    <div class="glass-card w-full max-w-[420px] space-y-5">
-      <div class="text-center">
-        <p class="text-ncaa-accent text-xs uppercase tracking-[0.16em] font-semibold mb-2">Rano Air AMO</p>
-        <h1 class="text-2xl font-bold">CPCP Checklist Access</h1>
-        <p class="text-sm text-ncaa-muted mt-2">Sign in with your authorised staff credentials.</p>
+  <!-- AUTH / LOGIN SCREEN -->
+  <div class="min-h-screen flex flex-col items-center justify-center p-6 no-print" id="authScreen">
+    <div class="glass-card w-full max-w-[440px] space-y-6 text-center">
+      <div class="flex flex-col items-center space-y-3">
+        <div class="bg-slate-100 p-3 rounded-2xl border border-slate-200 shadow-inner">
+          <img src="assets/logo.png" alt="Rano Air Logo" class="h-14 w-auto object-contain drop-shadow" />
+        </div>
+        <div>
+          <p class="text-[#A50050] text-xs uppercase tracking-[0.2em] font-extrabold mb-1">Rano Air AMO · Abuja Airport</p>
+          <h1 class="text-2xl font-black text-slate-900 m-0">Check Progress Tracker</h1>
+          <p class="text-xs text-slate-600 mt-1.5">Authorised Maintenance Staff Login</p>
+        </div>
       </div>
-      <form id="loginForm" class="space-y-4">
+
+      <form id="loginForm" class="space-y-4 text-left">
         <div>
-          <label for="loginUsername" class="block text-sm text-ncaa-muted mb-2">Username</label>
-          <input id="loginUsername" class="form-input" placeholder="DCA" required />
+          <label for="loginUsername" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Username</label>
+          <input id="loginUsername" class="form-input" placeholder="e.g. DCA, LBMM, MCC" required />
         </div>
         <div>
-          <label for="loginPin" class="block text-sm text-ncaa-muted mb-2">PIN</label>
-          <input id="loginPin" type="password" class="form-input" placeholder="4821" required />
+          <label for="loginPin" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Staff PIN</label>
+          <input id="loginPin" type="password" class="form-input" placeholder="••••" required />
         </div>
-        <button class="btn-primary w-full" type="submit">Access Checklist</button>
+        <button class="btn-primary w-full shadow-lg" type="submit">Access Checklist Dashboard</button>
       </form>
-      <div class="text-xs text-ncaa-muted border-t border-white/[0.08] pt-3">
-        <p><strong>Test users:</strong> DCA / LBMM / MCC</p>
-        <p><strong>Sample PINs:</strong> 4821 / 7135 / 9064</p>
+
+      <div class="text-xs text-slate-600 border-t border-slate-200 pt-4 flex flex-col gap-1 text-center bg-slate-50 p-3 rounded-xl">
+        <p><strong class="text-slate-900">Authorised Roles:</strong> DCA / LBMM / MCC</p>
+        <p><strong class="text-slate-900">Sample Access PINs:</strong> 4821 / 7135 / 9064</p>
       </div>
     </div>
   </div>
 
-  <!-- ═══════════ MAIN SHELL ═══════════ -->
-  <div class="max-w-[1440px] mx-auto px-6 py-6 space-y-6 no-print hidden" id="appShell">
+  <!-- ═══════════ MAIN APPLICATION SHELL ═══════════ -->
+  <div class="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6 no-print hidden" id="appShell">
     
-    <!-- HEADER -->
-    <header class="glass-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      <div>
-        <p class="text-ncaa-accent text-xs uppercase tracking-[0.16em] font-semibold mb-1">
-          Rano Air AMO · Abuja Airport Hangar
-        </p>
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight m-0">
-          CPCP Check Progress Tracker
-        </h1>
-      </div>
+    <!-- HEADER BAR -->
+    <header class="glass-card flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
       <div class="flex items-center gap-4">
-        <div class="text-right flex items-center gap-3">
-          <button class="btn-secondary !py-2 !px-3 text-xs" id="newCheckBtn">Start New Check</button>
-          <button class="btn-secondary !py-2 !px-3 text-xs" id="confirmLogoutBtn">Logout</button>
-          <div class="rounded-full border border-white/[0.12] px-3 py-1 text-xs text-ncaa-muted" id="saveStatusIndicator">Saving...</div>
-          <div class="text-right">
-            <span class="block font-bold text-sm" id="userName">Line Manager</span>
-            <small class="text-ncaa-muted text-xs" id="userRole">Manager</small>
+        <div class="bg-slate-100 p-2.5 rounded-2xl border border-slate-200 shrink-0 hidden sm:block">
+          <img src="assets/logo.png" alt="Rano Air Logo" class="h-11 w-auto object-contain" />
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap mb-1">
+            <span class="text-[#A50050] text-xs uppercase tracking-[0.18em] font-extrabold">Rano Air AMO</span>
+            <span class="text-slate-300">•</span>
+            <span class="text-slate-600 text-xs font-medium">Abuja Airport Hangar</span>
+            <span id="peerSyncBadge" class="inline-flex items-center rounded-full border border-purple-200 bg-purple-100 px-2.5 py-0.5 text-[11px] font-bold text-purple-900">
+              <span class="inline-block w-2 h-2 rounded-full bg-[#A50050] mr-1.5"></span> Live Offline Broadcast
+            </span>
           </div>
-          <select id="userSwitcher" class="form-select text-xs !py-1.5 !px-2.5 bg-white/[0.05] border-white/[0.1] rounded-lg cursor-pointer text-ncaa-text" style="width: auto;">
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 leading-none m-0">
+            Check Progress Tracker
+          </h1>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 border-slate-200 pt-3 lg:pt-0">
+        <div class="flex items-center gap-2">
+          <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="newCheckBtn">+ Initialize Check</button>
+          <button class="btn-secondary !py-2 !px-3 text-xs text-rose-700 hover:text-rose-900 hover:bg-rose-50" id="confirmLogoutBtn">Logout</button>
+          <div class="rounded-full border border-emerald-300 px-3 py-1 text-xs font-semibold text-emerald-800 bg-emerald-50" id="saveStatusIndicator">✓ Saved</div>
+        </div>
+
+        <div class="flex items-center gap-3 bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-xl">
+          <div class="text-right">
+            <span class="block font-bold text-xs text-slate-900" id="userName">Line Manager</span>
+            <small class="text-slate-500 text-[10px] uppercase font-bold" id="userRole">Manager</small>
+          </div>
+          <select id="userSwitcher" class="form-select text-xs !py-1 !px-2 bg-white border-slate-300 rounded-lg cursor-pointer text-slate-900" style="width: auto;">
             <option value="manager">Line Maintenance Manager</option>
             <option value="engr1">Engr. Musa Ibrahim</option>
             <option value="engr2">Engr. Fatima Yusuf</option>
@@ -72,92 +95,99 @@
       </div>
     </header>
 
-    <!-- ACTIVE CHECK METADATA CARD -->
-    <div id="checkMetaContainer" class="glass-card hidden">
+    <!-- ACTIVE CHECK METADATA BANNER -->
+    <div id="checkMetaContainer" class="glass-card hidden !p-4 bg-gradient-to-r from-slate-900 via-[#3A0420] to-[#1D1B4C] text-white border-slate-700">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-        <div>
-          <span class="block text-xs text-ncaa-muted uppercase tracking-wider">AIRCRAFT</span>
-          <span class="font-bold text-ncaa-text" id="metaReg">-</span>
-          <span class="text-xs text-ncaa-muted" id="metaType">(-)</span>
+        <div class="border-r border-slate-700 pr-2">
+          <span class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">AIRCRAFT</span>
+          <span class="font-extrabold text-white text-base" id="metaReg">-</span>
+          <span class="text-xs text-rose-300 font-semibold" id="metaType">(-)</span>
+        </div>
+        <div class="border-r border-slate-700 pr-2">
+          <span class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">MSN NUMBER</span>
+          <span class="font-extrabold text-white text-base" id="metaMSN">-</span>
+        </div>
+        <div class="border-r border-slate-700 pr-2">
+          <span class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">CHECK COMMENCED</span>
+          <span class="font-extrabold text-white text-base" id="metaStartDate">-</span>
         </div>
         <div>
-          <span class="block text-xs text-ncaa-muted uppercase tracking-wider">MSN</span>
-          <span class="font-semibold text-ncaa-text" id="metaMSN">-</span>
-        </div>
-        <div>
-          <span class="block text-xs text-ncaa-muted uppercase tracking-wider">STARTED</span>
-          <span class="font-semibold text-ncaa-text" id="metaStartDate">-</span>
-        </div>
-        <div>
-          <span class="block text-xs text-ncaa-muted uppercase tracking-wider">EST. RTS</span>
-          <span class="font-semibold text-ncaa-text" id="metaRTS">-</span>
+          <span class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">EST. RETURN TO SERVICE</span>
+          <span class="font-extrabold text-amber-300 text-base" id="metaRTS">-</span>
         </div>
       </div>
     </div>
 
-    <!-- SUMMARY METRICS -->
+    <!-- SUMMARY METRICS CARDS -->
     <section class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="metricsRow">
       <div class="glass-card-sm">
-        <h2 class="text-ncaa-muted text-xs font-semibold m-0 mb-1 uppercase tracking-wider">Total Tasks</h2>
-        <p class="text-3xl font-extrabold m-0 text-ncaa-text" id="totalTasksCount">0</p>
+        <h2 class="text-slate-600 text-xs font-bold m-0 mb-1 uppercase tracking-wider">Total Work Cards</h2>
+        <p class="text-3xl font-black m-0 text-slate-900" id="totalTasksCount">0</p>
       </div>
       <div class="glass-card-sm">
-        <h2 class="text-ncaa-muted text-xs font-semibold m-0 mb-1 uppercase tracking-wider">Tasks Closed</h2>
-        <p class="text-3xl font-extrabold m-0 text-ncaa-success" id="closedTasksCount">0</p>
+        <h2 class="text-slate-600 text-xs font-bold m-0 mb-1 uppercase tracking-wider">Cards Signed & Closed</h2>
+        <p class="text-3xl font-black m-0 text-emerald-700" id="closedTasksCount">0</p>
       </div>
       <div class="glass-card-sm">
-        <h2 class="text-ncaa-muted text-xs font-semibold m-0 mb-1 uppercase tracking-wider">Tasks Open</h2>
-        <p class="text-3xl font-extrabold m-0 text-ncaa-warning" id="openTasksCount">0</p>
+        <h2 class="text-slate-600 text-xs font-bold m-0 mb-1 uppercase tracking-wider">Cards Open / In-Progress</h2>
+        <p class="text-3xl font-black m-0 text-amber-700" id="openTasksCount">0</p>
       </div>
-      <div class="glass-card-sm">
-        <h2 class="text-ncaa-muted text-xs font-semibold m-0 mb-1 uppercase tracking-wider">Overall Progress</h2>
-        <p class="text-3xl font-extrabold m-0 text-ncaa-accent" id="overallPercentage">0%</p>
+      <div class="glass-card-sm flex flex-col justify-between">
+        <div class="flex justify-between items-center">
+          <h2 class="text-slate-600 text-xs font-bold m-0 uppercase tracking-wider">Overall Progress</h2>
+          <button class="btn-danger !py-1 !px-2 text-[10px] font-bold" id="addDefectDockBtn">+ Defect</button>
+        </div>
+        <p class="text-3xl font-black m-0 text-[#A50050]" id="overallPercentage">0%</p>
       </div>
     </section>
 
-    <!-- TABS -->
-    <div class="glass-card border-b border-white/[0.08] !p-2">
+    <!-- TABS NAVIGATION -->
+    <div class="glass-card border-b border-slate-200 !p-2">
       <div class="flex flex-wrap gap-2">
-        <button class="tab-button active" data-tab="dashboard" id="dashboardTab">📊 Progress Dashboard</button>
-        <button class="tab-button" data-tab="engineers" id="engineersTab">👷 Engineer Allocation</button>
-        <button class="tab-button" data-tab="handover" id="handoverTab">📅 Handover Summary</button>
-        <button class="tab-button" data-tab="audit" id="auditTab">📜 Audit Log</button>
+        <button class="tab-button active" data-tab="dashboard" id="dashboardTab">Progress Dashboard</button>
+        <button class="tab-button" data-tab="engineers" id="engineersTab">Personnel & Allocations</button>
+        <button class="tab-button" data-tab="handover" id="handoverTab">Handover Summary</button>
+        <button class="tab-button" data-tab="audit" id="auditTab">Audit Log</button>
       </div>
     </div>
 
     <!-- DASHBOARD SECTION -->
     <section id="tab-dashboard" class="space-y-6">
       
-      <!-- Pie Charts & Progress Grid -->
+      <!-- Pie Charts Grid -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Master Pie Card -->
-        <div class="glass-card flex flex-col items-center justify-center min-h-[260px] text-center md:col-span-1">
-          <h3 class="text-sm font-semibold mb-4 text-ncaa-text uppercase tracking-wider">TOTAL COMPLETION STATUS</h3>
+        <div class="glass-card flex flex-col items-center justify-center min-h-[280px] text-center md:col-span-1">
+          <h3 class="text-xs font-bold mb-4 text-slate-800 uppercase tracking-wider">TOTAL TASKS COMPLETION STATUS</h3>
           <div id="masterPieContainer" class="w-full flex justify-center items-center">
             <!-- Dynamic SVG Donut Chart -->
           </div>
         </div>
-        <!-- Individual Package Pies -->
+        <!-- Individual Work Package Pies -->
         <div class="glass-card md:col-span-2">
-          <h3 class="text-sm font-semibold mb-4 text-ncaa-text uppercase tracking-wider">WORK PACKAGE PROGRESS</h3>
+          <h3 class="text-xs font-bold mb-4 text-slate-800 uppercase tracking-wider">WORK PACKAGE PROGRESS BREAKDOWN</h3>
           <div id="packagePieGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <!-- Mini Donut charts here -->
           </div>
         </div>
       </div>
 
-      <!-- Progress Adjuster Table -->
+      <!-- Live Work Package Progress Register Table -->
       <div class="glass-card overflow-x-auto">
-        <h3 class="text-sm font-semibold mb-4 text-ncaa-text uppercase tracking-wider">LIVE WORKPACKAGE PROGRESS REGISTER</h3>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+          <h3 class="text-sm font-bold text-[#A50050] uppercase tracking-wider m-0">LIVE WORK PACKAGE PROGRESS REGISTER</h3>
+          <span class="text-xs text-slate-600 font-medium">Use +/- buttons for live card status updates</span>
+        </div>
         <table class="data-table">
           <thead>
             <tr>
               <th>WORK PACKAGE / CHECK TYPE</th>
               <th class="text-center">PLANNED TASKS</th>
               <th class="text-center">CLOSED TASKS</th>
+              <th class="text-center">STATUS</th>
               <th class="text-center">PROGRESS</th>
               <th class="text-center">REMAINING</th>
-              <th class="text-center">STATUS INCREMENTS</th>
+              <th class="text-center no-print">QUICK CARD INCREMENTS</th>
             </tr>
           </thead>
           <tbody id="progressTableBody">
@@ -166,35 +196,38 @@
         </table>
       </div>
 
-      <!-- Action buttons -->
-      <div class="flex flex-wrap gap-4">
-        <button class="btn-primary" id="generateDsrBtn">📋 Preview DSR</button>
-        <button class="btn-primary flex items-center gap-2 !bg-emerald-600 hover:!bg-emerald-500" id="printDsrBtn">🖨️ Print DSR (A4)</button>
-        <button class="btn-secondary flex items-center gap-2" id="saveDsrBtn">💾 Save DSR</button>
-        <button class="btn-secondary" id="addDefectBtn">⚠ Report Non-Routine Defect</button>
-        <button class="btn-secondary" id="exportBackupBtn">💾 Export System Backup</button>
-        <button class="btn-secondary" id="importBackupBtn">📥 Restore Backup</button>
-        <label class="flex items-center gap-2 text-sm text-ncaa-muted">
-          <span>Export as</span>
-          <select id="exportFormatSelect" class="form-select !py-2 !px-3 !w-auto min-w-[120px]">
-            <option value="html">HTML</option>
-            <option value="pdf">PDF</option>
-          </select>
-        </label>
-        <button class="btn-danger ml-auto" id="closeCheckBtn">🏁 Terminate/Complete Check</button>
+      <!-- Action Buttons Bar -->
+      <div class="glass-card p-4 flex flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <button class="btn-primary flex items-center gap-2" id="generateDsrBtn">Preview DSR</button>
+          <button class="btn-primary flex items-center gap-2 !from-emerald-600 !to-emerald-800 hover:!from-emerald-500 hover:!to-emerald-700" id="printDsrBtn">Print DSR (A4)</button>
+          <button class="btn-secondary flex items-center gap-2" id="saveDsrDownloadsBtnMain">Save PDF (Downloads)</button>
+          <button class="btn-secondary flex items-center gap-2" id="saveDsrDocumentsBtnMain">Save PDF (Documents)</button>
+          <button class="btn-secondary flex items-center gap-2 text-xs" id="saveDsrHtmlBtn">Save HTML</button>
+        </div>
+
+        <div class="h-6 w-[1px] bg-slate-300 hidden sm:block mx-1"></div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button class="btn-danger flex items-center gap-1.5" id="addDefectBtn">Log Non-Routine Defect</button>
+          <button class="btn-secondary text-xs" id="exportBackupBtn">Export Backup</button>
+          <button class="btn-secondary text-xs" id="importBackupBtn">Restore Backup</button>
+        </div>
+
+        <button class="btn-danger !from-rose-700 !to-rose-900 ml-auto text-xs font-bold" id="closeCheckBtn">Complete Check</button>
         <input type="file" id="backupFileInput" accept=".json" hidden>
       </div>
 
-      <!-- DSR History -->
+      <!-- DSR Snapshot History -->
       <div class="glass-card overflow-x-auto">
-        <h3 class="text-sm font-semibold mb-4 text-ncaa-text uppercase tracking-wider">DSR Snapshot History</h3>
+        <h3 class="text-xs font-bold mb-4 text-slate-800 uppercase tracking-wider">DSR Snapshot History Log</h3>
         <table class="data-table">
           <thead>
             <tr>
-              <th>GENERATED</th>
-              <th>USER</th>
-              <th class="text-center">TOTAL TASKS</th>
-              <th class="text-center">CLOSED</th>
+              <th>GENERATED TIMESTAMP</th>
+              <th>AUTHORISED USER</th>
+              <th class="text-center">TOTAL CARDS</th>
+              <th class="text-center">CLOSED CARDS</th>
               <th class="text-center">PROGRESS</th>
               <th class="text-center">ACTION</th>
             </tr>
@@ -209,20 +242,27 @@
 
     <!-- ENGINEERS ALLOCATION SECTION -->
     <section id="tab-engineers" class="glass-card space-y-6 hidden">
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-bold text-ncaa-text m-0">Personnel Allocations</h3>
-        <button class="btn-primary !py-2 !px-4 text-xs" id="addEngineerBtn">Add Engineer/Certifier</button>
+      <div class="flex justify-between items-center border-b border-slate-200 pb-4 flex-wrap gap-2">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 m-0">Maintenance Personnel & Workload</h3>
+          <p class="text-xs text-slate-600 mt-1 m-0">Roster of engineers and certifying staff assigned to CPCP work cards.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="backToDashFromEng">← Back to Dashboard</button>
+          <button class="btn-primary !py-2 !px-4 text-xs font-bold" id="addEngineerBtn">+ Add Personnel</button>
+        </div>
       </div>
       <div class="overflow-x-auto">
         <table class="data-table">
           <thead>
             <tr>
-              <th>PERSONNEL</th>
+              <th>PERSONNEL NAME</th>
+              <th>STAFF ID</th>
               <th>ROLE</th>
               <th class="text-center">TASKS ALLOCATED</th>
-              <th class="text-center">TASKS COMPLETED (TODAY)</th>
+              <th class="text-center">COMPLETED (TODAY)</th>
               <th>SHIFT HANDOVER REMARKS</th>
-              <th>ACTIONS</th>
+              <th class="text-center">ACTIONS</th>
             </tr>
           </thead>
           <tbody id="personnelTableBody">
@@ -234,20 +274,26 @@
 
     <!-- SHIFT HANDOVER SECTION -->
     <section id="tab-handover" class="glass-card space-y-6 hidden">
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-bold text-ncaa-text m-0">Handover Highlights (Current Shift)</h3>
-        <button class="btn-primary !py-2 !px-4 text-xs" id="saveHandoverBtn">Save Handover Notes</button>
+      <div class="flex justify-between items-center border-b border-slate-200 pb-4 flex-wrap gap-2">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 m-0">Shift Handover Log (Current 12h Window)</h3>
+          <p class="text-xs text-slate-600 mt-1 m-0">Log critical maintenance findings, deferred work cards, and handover instructions.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="backToDashFromHandover">← Back to Dashboard</button>
+          <button class="btn-primary !py-2 !px-4 text-xs font-bold" id="saveHandoverBtn">Save Handover Notes</button>
+        </div>
       </div>
       <div class="space-y-4">
         <div>
-          <label class="block text-ncaa-muted text-sm mb-1.5">Shift handovers include defects reported, critical delays, parts awaiting, and visual checks carried out during the current 12-hour period.</label>
-          <textarea id="handoverRemarksInput" rows="6" class="form-input resize-y" placeholder="Write handover notes here..."></textarea>
+          <label class="block text-slate-700 text-xs font-bold mb-2 uppercase">Handover Remarks & Operational Directives</label>
+          <textarea id="handoverRemarksInput" rows="6" class="form-input resize-y font-mono text-sm" placeholder="Write detailed handover notes here... (e.g. Wing tip inspection 90% completed. Awaiting replacement seal P/N 45210)."></textarea>
         </div>
-        <div class="glass-card-sm bg-white/[0.01]">
-          <h4 class="text-sm font-semibold mb-2">Automated Shift Metrics</h4>
-          <ul class="text-sm text-ncaa-muted space-y-1 list-disc pl-5">
-            <li>Check Type Workload updates recorded: <span id="shiftTotalActions">0</span> events</li>
-            <li>New Non-Routine defects raised: <span id="shiftNewDefects">0</span></li>
+        <div class="glass-card-sm bg-slate-50 border-slate-200">
+          <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">Automated Shift Metrics</h4>
+          <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-5 m-0">
+            <li>Work package card status updates recorded: <span class="font-bold text-slate-900" id="shiftTotalActions">0</span> actions</li>
+            <li>New Non-Routine defects raised: <span class="font-bold text-amber-600" id="shiftNewDefects">0</span> items</li>
           </ul>
         </div>
       </div>
@@ -255,9 +301,15 @@
 
     <!-- AUDIT LOG SECTION -->
     <section id="tab-audit" class="glass-card space-y-4 hidden">
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-bold text-ncaa-text m-0">Safety & Completion Audit Log</h3>
-        <button class="btn-secondary !py-2 !px-4 text-xs" id="clearAuditBtn">Wipe Log</button>
+      <div class="flex justify-between items-center border-b border-slate-200 pb-4 flex-wrap gap-2">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 m-0">Airworthiness Safety & Completion Audit Log</h3>
+          <p class="text-xs text-slate-600 mt-1 m-0">Immutable record of all maintenance card status changes and user events.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="backToDashFromAudit">← Back to Dashboard</button>
+          <button class="btn-secondary !py-2 !px-4 text-xs text-rose-700 hover:text-rose-900" id="clearAuditBtn">Wipe Audit Log</button>
+        </div>
       </div>
       <div class="overflow-x-auto">
         <table class="data-table">
@@ -278,69 +330,114 @@
 
   </div>
 
-  <!-- ═══════════ CHECK SETUP WIZARD ═══════════ -->
-  <div class="max-w-[900px] mx-auto px-6 py-12 hidden no-print" id="setupWizard">
+  <!-- ═══════════ CHECK SETUP WIZARD (MULTI-STEP WITH STEP BACK) ═══════════ -->
+  <div class="max-w-[900px] mx-auto px-4 py-8 hidden no-print" id="setupWizard">
     <div class="glass-card space-y-6">
+      
+      <!-- HERO BANNER WITH CANCEL BACK BUTTON -->
       <div class="setup-hero-panel">
-        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-          <div class="space-y-2">
-            <p class="text-ncaa-accent text-xs uppercase tracking-[0.2em] font-semibold">RANO AIR AMO · MAINTENANCE CONTROL</p>
-            <h2 class="text-2xl font-bold text-ncaa-text m-0">Initialize New Aircraft Check</h2>
-            <p class="text-sm text-ncaa-muted max-w-2xl">Create a formal check record, define the active maintenance packages, and seed the dashboard with the planned workcards for the inspection window.</p>
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="bg-white p-2.5 rounded-2xl shrink-0 shadow-sm">
+              <img src="assets/logo.png" alt="Rano Air Logo" class="h-12 w-auto object-contain" />
+            </div>
+            <div class="space-y-1">
+              <p class="text-rose-200 text-xs uppercase tracking-[0.2em] font-extrabold">RANO AIR AMO · MAINTENANCE CONTROL</p>
+              <h2 class="text-2xl font-black text-white m-0">Initialize Aircraft Maintenance Check</h2>
+              <p class="text-xs text-rose-100 max-w-2xl m-0">Configure aircraft details, select active work packages, and set planned task card counts.</p>
+            </div>
           </div>
-          <div class="setup-hero-badge">Live maintenance workflow</div>
+          <button type="button" id="cancelWizardBtn" class="btn-secondary !py-2 !px-4 text-xs font-bold shrink-0 hidden">← Return to Dashboard</button>
         </div>
       </div>
 
-      <form id="setupForm" class="space-y-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label for="setupReg" class="block text-ncaa-muted text-sm mb-1.5">Aircraft Registration</label>
-            <input id="setupReg" type="text" class="form-input" required placeholder="5N-BZY">
-          </div>
-          <div>
-            <label for="setupType" class="block text-ncaa-muted text-sm mb-1.5">Aircraft Type</label>
-            <select id="setupType" class="form-select" required>
-              <option value="EMB 145LR">Embraer EMB 145LR</option>
-              <option value="Boeing 737">Boeing 737</option>
-            </select>
-          </div>
-          <div>
-            <label for="setupMSN" class="block text-ncaa-muted text-sm mb-1.5">Aircraft MSN</label>
-            <input id="setupMSN" type="text" class="form-input" required placeholder="145562">
-          </div>
-          <div>
-            <label for="setupStartDate" class="block text-ncaa-muted text-sm mb-1.5">Check Start Date</label>
-            <input id="setupStartDate" type="date" class="form-input" required>
-          </div>
+      <!-- STEP INDICATOR BAR -->
+      <div class="flex items-center justify-between border-b border-slate-200 pb-4 text-xs font-bold">
+        <div class="flex items-center gap-2 text-[#A50050]" id="stepInd1">
+          <span class="w-6 h-6 rounded-full bg-[#A50050] text-white flex items-center justify-center font-bold">1</span>
+          <span>Aircraft Details</span>
         </div>
+        <span class="text-slate-300">➔</span>
+        <div class="flex items-center gap-2 text-slate-400" id="stepInd2">
+          <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold">2</span>
+          <span>Work Scope Selection</span>
+        </div>
+        <span class="text-slate-300">➔</span>
+        <div class="flex items-center gap-2 text-slate-400" id="stepInd3">
+          <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold">3</span>
+          <span>Card Count Review</span>
+        </div>
+      </div>
 
-        <div class="setup-section-card">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <form id="setupForm" class="space-y-6" novalidate>
+        
+        <!-- STEP 1: AIRCRAFT DETAILS -->
+        <div id="wizardStep1" class="space-y-4">
+          <h3 class="text-sm font-bold text-[#A50050] uppercase tracking-wider m-0">Step 1: Aircraft & Check Information</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-ncaa-text font-semibold text-sm">Select Check Packages</label>
-              <p class="text-xs text-ncaa-muted mt-1">Choose the maintenance work scopes that will drive the live progress dashboard.</p>
+              <label for="setupReg" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Aircraft Registration</label>
+              <input id="setupReg" type="text" class="form-input" required placeholder="5N-BZY">
             </div>
-            <span class="setup-badge">Active packages</span>
+            <div>
+              <label for="setupType" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Aircraft Model / Type</label>
+              <select id="setupType" class="form-select" required>
+                <option value="EMB 145LR">Embraer EMB 145LR</option>
+                <option value="Boeing 737">Boeing 737 Classic</option>
+              </select>
+            </div>
+            <div>
+              <label for="setupMSN" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Aircraft MSN</label>
+              <input id="setupMSN" type="text" class="form-input" required placeholder="145562">
+            </div>
+            <div>
+              <label for="setupStartDate" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Check Start Date</label>
+              <input id="setupStartDate" type="date" class="form-input" required>
+            </div>
           </div>
-          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3" id="checkTypeSelectGrid">
-            <!-- Dynamic check types selection -->
+          <div class="pt-4 flex justify-end">
+            <button type="button" id="step1NextBtn" class="btn-primary px-6">Next: Select Work Packages →</button>
           </div>
         </div>
 
-        <div class="space-y-3">
-          <div class="flex items-center justify-between gap-2">
-            <h3 class="text-sm font-semibold text-ncaa-text">Planned Task Cards</h3>
-            <span class="setup-badge">Card counts</span>
+        <!-- STEP 2: WORK SCOPE SELECTION -->
+        <div id="wizardStep2" class="space-y-4 hidden">
+          <div class="setup-section-card">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <label class="block text-slate-900 font-bold text-sm">Step 2: Select Maintenance Check Packages</label>
+                <p class="text-xs text-slate-600 mt-0.5">Select the active inspection work scopes to drive the dashboard tracker.</p>
+              </div>
+              <span class="setup-badge !bg-[#A50050] !text-white">Work Scopes</span>
+            </div>
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3" id="checkTypeSelectGrid">
+              <!-- Dynamic check types selection -->
+            </div>
           </div>
-          <div id="taskCountInputsContainer" class="space-y-3">
-            <!-- Task counts input fields will spawn here -->
+          <div class="pt-4 flex justify-between gap-3">
+            <button type="button" id="step2BackBtn" class="btn-secondary">← Step Back</button>
+            <button type="button" id="step2NextBtn" class="btn-primary px-6">Next: Review Card Counts →</button>
           </div>
         </div>
 
-        <div class="pt-4 text-center">
-          <button type="submit" class="btn-primary w-full sm:w-auto">Initialize Check & Dashboard</button>
+        <!-- STEP 3: PLANNED TASK CARD COUNTS -->
+        <div id="wizardStep3" class="space-y-4 hidden">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Step 3: Review Planned Work Card Counts</h3>
+              <span class="setup-badge !bg-[#A50050] !text-white">Task Cards</span>
+            </div>
+            <div id="taskCountInputsContainer" class="space-y-3">
+              <!-- Task counts input fields will spawn here -->
+            </div>
+          </div>
+
+          <div class="pt-4 flex justify-between gap-3 flex-wrap">
+            <button type="button" id="step3BackBtn" class="btn-secondary">← Step Back to Packages</button>
+            <button type="submit" id="initCheckBtn" class="btn-primary text-base py-3.5 px-8 shadow-xl">Initialize Check & Launch Dashboard</button>
+          </div>
         </div>
+
       </form>
     </div>
   </div>
@@ -351,92 +448,96 @@
   </div>
 
   <!-- MODALS -->
-  <div class="hidden fixed inset-0 bg-[rgba(2,11,24,0.85)] z-[100] flex items-center justify-center p-4" id="defectModal">
+  <!-- Defect Modal -->
+  <div class="modal-overlay hidden fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" id="defectModal">
     <div class="glass-card w-full max-w-[500px] modal-card-inner">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-bold text-ncaa-text m-0">Add Non-Routine Defect</h3>
-        <button class="btn-icon" onclick="document.getElementById('defectModal').classList.add('hidden')">✕</button>
+        <h3 class="text-lg font-extrabold text-slate-900 m-0">Log Non-Routine Defect</h3>
+        <button class="btn-icon" id="closeDefectModalBtn">✕</button>
       </div>
       <form id="defectForm" class="space-y-4">
         <div>
-          <label for="defectTitle" class="block text-ncaa-muted text-sm mb-1.5">Defect Description</label>
-          <input id="defectTitle" type="text" class="form-input" required placeholder="e.g. Corrosion found on LH elevator hinge pin">
+          <label for="defectTitle" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Defect Description</label>
+          <input id="defectTitle" type="text" class="form-input" required placeholder="e.g. Severe corrosion found on LH elevator hinge pin">
         </div>
         <div>
-          <label for="defectAssignee" class="block text-ncaa-muted text-sm mb-1.5">Assigned Engineer</label>
+          <label for="defectAssignee" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Assigned Engineer</label>
           <select id="defectAssignee" class="form-select"></select>
         </div>
-        <div class="flex justify-end gap-3 pt-4 border-t border-white/[0.08]">
-          <button type="button" class="btn-secondary" onclick="document.getElementById('defectModal').classList.add('hidden')">Cancel</button>
-          <button type="submit" class="btn-primary">Log Defect</button>
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
+          <button type="button" class="btn-secondary" id="cancelDefectModalBtn">Cancel</button>
+          <button type="submit" class="btn-primary">Log Defect Item</button>
         </div>
       </form>
     </div>
   </div>
 
-  <div class="hidden fixed inset-0 bg-[rgba(2,11,24,0.85)] z-[100] flex items-center justify-center p-4" id="engineerModal">
+  <!-- Add Personnel Modal -->
+  <div class="modal-overlay hidden fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" id="engineerModal">
     <div class="glass-card w-full max-w-[500px] modal-card-inner">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-bold text-ncaa-text m-0">Add Personnel</h3>
-        <button class="btn-icon" onclick="document.getElementById('engineerModal').classList.add('hidden')">✕</button>
+        <h3 class="text-lg font-extrabold text-slate-900 m-0">Register Maintenance Personnel</h3>
+        <button class="btn-icon" id="closeEngineerModalBtn">✕</button>
       </div>
       <form id="engineerForm" class="space-y-4">
         <div>
-          <label for="engName" class="block text-ncaa-muted text-sm mb-1.5">Full Name</label>
+          <label for="engName" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Full Name</label>
           <input id="engName" type="text" class="form-input" required placeholder="Engr. Jatau Usman">
         </div>
         <div>
-          <label for="engStaffId" class="block text-ncaa-muted text-sm mb-1.5">Staff ID</label>
+          <label for="engStaffId" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">AMO Staff ID</label>
           <input id="engStaffId" type="text" class="form-input" required placeholder="RAN/AMO/2026">
         </div>
         <div>
-          <label for="engRole" class="block text-ncaa-muted text-sm mb-1.5">Role</label>
+          <label for="engRole" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Role & Qualification</label>
           <select id="engRole" class="form-select">
             <option value="engineer">Junior / Line Engineer</option>
             <option value="certifier">Certifier / Certifying Staff</option>
           </select>
         </div>
-        <div class="flex justify-end gap-3 pt-4 border-t border-white/[0.08]">
-          <button type="button" class="btn-secondary" onclick="document.getElementById('engineerModal').classList.add('hidden')">Cancel</button>
-          <button type="submit" class="btn-primary">Add Personnel</button>
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
+          <button type="button" class="btn-secondary" id="cancelEngineerModalBtn">Cancel</button>
+          <button type="submit" class="btn-primary">Register Staff</button>
         </div>
       </form>
     </div>
   </div>
 
-  <div class="hidden fixed inset-0 bg-[rgba(2,11,24,0.85)] z-[100] flex items-center justify-center p-4" id="dsrPreviewModal">
-    <div class="glass-card w-full max-w-[900px] max-h-[90vh] overflow-y-auto modal-card-inner">
-      <div class="flex justify-between items-center mb-4 no-print">
-        <h3 class="text-lg font-bold text-ncaa-text m-0">DSR Report Preview</h3>
-        <div class="flex flex-wrap gap-3 justify-end items-center">
-          <div class="flex items-center gap-1 border-r border-white/[0.1] pr-3 mr-1">
-            <button class="btn-primary !py-2 !px-4 flex items-center gap-2" id="printDsrTriggerBtn">
-              <span>🖨️</span> Print DSR (A4)
-            </button>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-ncaa-muted mr-1 font-medium">Save:</span>
-            <button class="btn-secondary !py-2 !px-4 flex items-center gap-2" id="saveDsrDownloadsBtn">
-              <span>📥</span> Downloads
-            </button>
-            <button class="btn-secondary !py-2 !px-4 flex items-center gap-2" id="saveDsrDocumentsBtn">
-              <span>📂</span> Documents
-            </button>
-          </div>
-          <button class="btn-secondary !py-2 !px-4" onclick="document.getElementById('dsrPreviewModal').classList.add('hidden')">Close</button>
+  <!-- DSR Preview Modal -->
+  <div class="modal-overlay hidden fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 backdrop-blur-md" id="dsrPreviewModal">
+    <div class="glass-card w-full max-w-[960px] max-h-[92vh] overflow-y-auto modal-card-inner">
+      <div class="flex justify-between items-center mb-4 no-print border-b border-slate-200 pb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-3">
+          <img src="assets/logo.png" alt="Rano Air Logo" class="h-8 w-auto object-contain" />
+          <h3 class="text-lg font-extrabold text-slate-900 m-0">Daily Status Report (DSR) Preview</h3>
+        </div>
+        <div class="flex flex-wrap gap-2 justify-end items-center">
+          <button class="btn-primary !py-2 !px-4 flex items-center gap-2 text-xs font-bold !from-emerald-600 !to-emerald-800 hover:!from-emerald-500 hover:!to-emerald-700" id="printDsrTriggerBtn">
+            Print DSR (A4)
+          </button>
+          <button class="btn-primary !py-2 !px-3 text-xs flex items-center gap-1.5 font-bold" id="saveDsrDownloadsBtn">
+            Save PDF (Downloads)
+          </button>
+          <button class="btn-secondary !py-2 !px-3 text-xs flex items-center gap-1.5 font-bold" id="saveDsrDocumentsBtn">
+            Save PDF (Documents)
+          </button>
+          <button class="btn-secondary !py-2 !px-3 text-xs flex items-center gap-1.5" id="saveDsrHtmlModalBtn">
+            Save HTML
+          </button>
+          <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="closeDsrModalBtn">✕ Close</button>
         </div>
       </div>
-      <p class="text-xs text-ncaa-muted mb-4 no-print">📄 <strong>A4 portrait</strong> is pre-configured for every print and PDF export. Choose <strong>HTML</strong> or <strong>PDF</strong> before saving, then use the report preview actions to export the document.</p>
-      <div id="dsrPreviewContainer">
+      <div id="dsrPreviewContainer" class="overflow-x-auto bg-slate-100/60 p-3 rounded-xl border border-slate-200">
         <!-- Rendered DSR here -->
       </div>
     </div>
   </div>
 
-  <footer class="text-center text-xs text-ncaa-muted py-4 no-print">
-    <span>CPCP Checklist v2.0.0 | Last Updated: 03 Aug 2026</span>
+  <footer class="text-center text-xs text-slate-300 py-6 no-print border-t border-white/10 mt-12">
+    <p class="m-0" id="versionFooterText">Rano Air AMO CPCP Checklist v2.0.0 | Last Updated: 20 Aug 2026</p>
   </footer>
 
+  <script type="module" src="js/sync.js"></script>
   <script type="module" src="js/db.js"></script>
   <script type="module" src="js/app.js"></script>
   <script>

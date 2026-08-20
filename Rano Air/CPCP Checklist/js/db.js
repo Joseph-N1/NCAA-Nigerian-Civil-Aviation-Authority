@@ -83,11 +83,10 @@ const db = {
     return new Promise((resolve, reject) => {
       const tx = this.db.transaction('checks', 'readonly');
       const store = tx.objectStore('checks');
-      const index = store.index('isActive');
-      const req = index.getAll(1); // 1 for true
+      const req = store.getAll();
       req.onsuccess = () => {
-        const results = req.result || [];
-        resolve(results.length > 0 ? results[0] : null);
+        const results = (req.result || []).filter(c => c.isActive == 1 || c.isActive === true || c.isActive === '1');
+        resolve(results.length > 0 ? results[results.length - 1] : null);
       };
       req.onerror = () => reject(req.error);
     });

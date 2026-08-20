@@ -1,0 +1,274 @@
+(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin===`use-credentials`?t.credentials=`include`:e.crossOrigin===`anonymous`?t.credentials=`omit`:t.credentials=`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})();var e=new class{constructor(){this.channelName=`rano-air-cpcp-sync-v1`,this.broadcastChannel=null,this.peerId=this.getOrCreatePeerId(),this.connectedPeers=new Set([this.peerId]),this.listeners=[],this.heartbeatTimer=null,this.ws=null,this.isOnline=!0}getOrCreatePeerId(){let e=localStorage.getItem(`rano-air-cpcp-peer-id`);return e||(e=`laptop-`+Math.random().toString(36).substring(2,7),localStorage.setItem(`rano-air-cpcp-peer-id`,e)),e}init(){`BroadcastChannel`in window&&(this.broadcastChannel=new BroadcastChannel(this.channelName),this.broadcastChannel.onmessage=e=>this.handleSyncMessage(e.data)),window.addEventListener(`storage`,e=>{if(e.key===`rano-air-cpcp-peer-event`&&e.newValue)try{let t=JSON.parse(e.newValue);t.sender!==this.peerId&&this.handleSyncMessage(t)}catch{}}),this.connectLocalWebSocket(),this.startHeartbeat(),this.broadcast({type:`PEER_JOIN`,peerId:this.peerId,timestamp:Date.now()}),console.log(`[SyncEngine] Initialized peer ${this.peerId}`)}connectLocalWebSocket(){try{let e=`${window.location.protocol===`https:`?`wss:`:`ws:`}//${window.location.host||`localhost:8081`}/ws-sync`;this.ws=new WebSocket(e),this.ws.onmessage=e=>{try{let t=JSON.parse(e.data);t.sender!==this.peerId&&this.handleSyncMessage(t)}catch{}},this.ws.onerror=()=>{}}catch{}}startHeartbeat(){this.heartbeatTimer=setInterval(()=>{this.broadcast({type:`HEARTBEAT`,peerId:this.peerId,timestamp:Date.now()}),this.updatePeerStatusUI()},1e4)}broadcast(e){let t={...e,sender:this.peerId,sentAt:new Date().toISOString()};if(this.broadcastChannel)try{this.broadcastChannel.postMessage(t)}catch{}try{localStorage.setItem(`rano-air-cpcp-peer-event`,JSON.stringify({...t,_t:Date.now()}))}catch{}if(this.ws&&this.ws.readyState===WebSocket.OPEN)try{this.ws.send(JSON.stringify(t))}catch{}}handleSyncMessage(e){if(!e||e.sender===this.peerId)return;if(e.type===`PEER_JOIN`||e.type===`HEARTBEAT`){this.connectedPeers.add(e.peerId),this.updatePeerStatusUI(),e.type===`PEER_JOIN`&&this.broadcast({type:`PEER_ACK`,peerId:this.peerId});return}if(e.type===`PEER_ACK`){this.connectedPeers.add(e.peerId),this.updatePeerStatusUI();return}let t=new CustomEvent(`peer-sync-update`,{detail:e});window.dispatchEvent(t)}getConnectedPeerCount(){return Math.max(1,this.connectedPeers.size)}updatePeerStatusUI(){let e=this.getConnectedPeerCount(),t=document.getElementById(`peerSyncBadge`);t&&(e>1?(t.innerHTML=`<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-1.5"></span> ${e} Laptops Connected`,t.className=`inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-950/60 px-2.5 py-1 text-[11px] font-bold text-emerald-300 shadow-sm`):(t.innerHTML=`<span class="inline-block w-2 h-2 rounded-full bg-fuchsia-400 mr-1.5"></span> Live Offline Broadcast`,t.className=`inline-flex items-center rounded-full border border-fuchsia-500/40 bg-fuchsia-950/60 px-2.5 py-1 text-[11px] font-bold text-fuchsia-300 shadow-sm`))}},t={db:null,init(){if(!window.indexedDB){console.error(`IndexedDB is not supported.`);return}let e=window.indexedDB.open(`RanoAirCPCPTrackerDB`,1);e.onupgradeneeded=e=>{let t=e.target.result;if(!t.objectStoreNames.contains(`checks`)){let e=t.createObjectStore(`checks`,{keyPath:`id`,autoIncrement:!0});e.createIndex(`aircraftRegistration`,`aircraftRegistration`,{unique:!1}),e.createIndex(`isActive`,`isActive`,{unique:!1})}if(!t.objectStoreNames.contains(`tasks`)){let e=t.createObjectStore(`tasks`,{keyPath:`id`,autoIncrement:!0});e.createIndex(`checkId`,`checkId`,{unique:!1}),e.createIndex(`checkType`,`checkType`,{unique:!1}),e.createIndex(`status`,`status`,{unique:!1})}if(!t.objectStoreNames.contains(`personnel`)){let e=t.createObjectStore(`personnel`,{keyPath:`id`,autoIncrement:!0});e.createIndex(`staffId`,`staffId`,{unique:!0}),e.createIndex(`role`,`role`,{unique:!1})}if(!t.objectStoreNames.contains(`audit_log`)){let e=t.createObjectStore(`audit_log`,{keyPath:`id`,autoIncrement:!0});e.createIndex(`checkId`,`checkId`,{unique:!1}),e.createIndex(`timestamp`,`timestamp`,{unique:!1})}if(!t.objectStoreNames.contains(`dsr_snapshots`)){let e=t.createObjectStore(`dsr_snapshots`,{keyPath:`id`,autoIncrement:!0});e.createIndex(`checkId`,`checkId`,{unique:!1}),e.createIndex(`generatedAt`,`generatedAt`,{unique:!1})}},e.onerror=e=>{console.error(`Failed to open IndexedDB:`,e.target.error)},e.onsuccess=e=>{this.db=e.target.result,console.log(`IndexedDB initialized.`),window.dispatchEvent(new Event(`db-ready`))}},async addCheck(e){if(this.db)return new Promise((t,n)=>{let r=this.db.transaction(`checks`,`readwrite`).objectStore(`checks`).add(e);r.onsuccess=()=>t(r.result),r.onerror=()=>n(r.error)})},async updateCheck(e){if(this.db)return new Promise((t,n)=>{let r=this.db.transaction(`checks`,`readwrite`).objectStore(`checks`).put(e);r.onsuccess=()=>t(r.result),r.onerror=()=>n(r.error)})},async getActiveCheck(){return this.db?new Promise((e,t)=>{let n=this.db.transaction(`checks`,`readonly`).objectStore(`checks`).index(`isActive`).getAll(1);n.onsuccess=()=>{let t=n.result||[];e(t.length>0?t[0]:null)},n.onerror=()=>t(n.error)}):null},async getAllChecks(){return this.db?new Promise((e,t)=>{let n=this.db.transaction(`checks`,`readonly`).objectStore(`checks`).getAll();n.onsuccess=()=>e(n.result||[]),n.onerror=()=>t(n.error)}):[]},async addTask(e){if(this.db)return new Promise((t,n)=>{let r=this.db.transaction(`tasks`,`readwrite`).objectStore(`tasks`).add(e);r.onsuccess=()=>t(r.result),r.onerror=()=>n(r.error)})},async addTasksBulk(e){if(this.db)return new Promise((t,n)=>{let r=this.db.transaction(`tasks`,`readwrite`).objectStore(`tasks`),i=0;function a(){if(i<e.length){let t=r.add(e[i]);t.onsuccess=()=>{i++,a()},t.onerror=()=>n(t.error)}else t()}a()})},async getTasksForCheck(e){return this.db?new Promise((t,n)=>{let r=this.db.transaction(`tasks`,`readonly`).objectStore(`tasks`).index(`checkId`).getAll(e);r.onsuccess=()=>t(r.result||[]),r.onerror=()=>n(r.error)}):[]},async getAllTasks(){return this.db?new Promise((e,t)=>{let n=this.db.transaction(`tasks`,`readonly`).objectStore(`tasks`).getAll();n.onsuccess=()=>e(n.result||[]),n.onerror=()=>t(n.error)}):[]},async updateTask(e){if(this.db)return new Promise((t,n)=>{let r=this.db.transaction(`tasks`,`readwrite`).objectStore(`tasks`).put(e);r.onsuccess=()=>t(r.result),r.onerror=()=>n(r.error)})},async updateTasksBulk(e){if(this.db)return new Promise((t,n)=>{let r=this.db.transaction(`tasks`,`readwrite`).objectStore(`tasks`),i=0;function a(){if(i<e.length){let t=r.put(e[i]);t.onsuccess=()=>{i++,a()},t.onerror=()=>n(t.error)}else t()}a()})},async deleteTask(e){if(this.db)return new Promise((t,n)=>{let r=this.db.transaction(`tasks`,`readwrite`).objectStore(`tasks`).delete(e);r.onsuccess=()=>t(),r.onerror=()=>n(r.error)})},async addPerson(e){if(this.db)return new Promise((t,n)=>{let r=this.db.transaction(`personnel`,`readwrite`).objectStore(`personnel`).add(e);r.onsuccess=()=>t(r.result),r.onerror=()=>n(r.error)})},async getAllPersonnel(){return this.db?new Promise((e,t)=>{let n=this.db.transaction(`personnel`,`readonly`).objectStore(`personnel`).getAll();n.onsuccess=()=>e(n.result||[]),n.onerror=()=>t(n.error)}):[]},async addAuditEntry(e){if(this.db)return new Promise((t,n)=>{let r=this.db.transaction(`audit_log`,`readwrite`).objectStore(`audit_log`).add(e);r.onsuccess=()=>t(r.result),r.onerror=()=>n(r.error)})},async getAuditEntriesForCheck(e){return this.db?new Promise((t,n)=>{let r=this.db.transaction(`audit_log`,`readonly`).objectStore(`audit_log`).index(`checkId`).getAll(e);r.onsuccess=()=>t(r.result||[]),r.onerror=()=>n(r.error)}):[]},async getAllAuditEntries(){return this.db?new Promise((e,t)=>{let n=this.db.transaction(`audit_log`,`readonly`).objectStore(`audit_log`).getAll();n.onsuccess=()=>e(n.result||[]),n.onerror=()=>t(n.error)}):[]},async clearAuditEntriesForCheck(e){if(!this.db)return;let t=await this.getAuditEntriesForCheck(e);return new Promise((e,n)=>{let r=this.db.transaction(`audit_log`,`readwrite`).objectStore(`audit_log`),i=0;function a(){if(i>=t.length){e();return}let o=r.delete(t[i].id);o.onsuccess=()=>{i++,a()},o.onerror=()=>n(o.error)}a()})},async addDSRSnapshot(e){if(this.db)return new Promise((t,n)=>{let r=this.db.transaction(`dsr_snapshots`,`readwrite`).objectStore(`dsr_snapshots`).add(e);r.onsuccess=()=>t(r.result),r.onerror=()=>n(r.error)})},async getDSRSnapshots(e){return this.db?new Promise((t,n)=>{let r=this.db.transaction(`dsr_snapshots`,`readonly`).objectStore(`dsr_snapshots`).index(`checkId`).getAll(e);r.onsuccess=()=>t(r.result||[]),r.onerror=()=>n(r.error)}):[]},async getAllDSRSnapshots(){return this.db?new Promise((e,t)=>{let n=this.db.transaction(`dsr_snapshots`,`readonly`).objectStore(`dsr_snapshots`).getAll();n.onsuccess=()=>e(n.result||[]),n.onerror=()=>t(n.error)}):[]},async clearAll(){if(!this.db)return;let e=[`checks`,`tasks`,`personnel`,`audit_log`,`dsr_snapshots`],t=this.db.transaction(e,`readwrite`);return Promise.all(e.map(e=>new Promise((n,r)=>{let i=t.objectStore(e).clear();i.onsuccess=()=>n(),i.onerror=()=>r(i.error)})))}};function n(e,t,n,r,i=120){let a=typeof e==`string`?document.getElementById(e):e;if(!a)return;let o=Math.max(0,Math.min(100,isNaN(t)?0:t)),s=2*Math.PI*45;a.innerHTML=`
+    <div class="flex flex-col items-center justify-center p-2">
+      <div class="relative" style="width: ${i}px; height: ${i}px;">
+        <svg viewBox="0 0 120 120" class="w-full h-full transform -rotate-90">
+          <!-- Background track -->
+          <circle 
+            cx="60" 
+            cy="60" 
+            r="45" 
+            stroke="rgba(255, 255, 255, 0.05)" 
+            stroke-width="12" 
+            fill="transparent"
+          />
+          <!-- Progress path -->
+          <circle 
+            cx="60" 
+            cy="60" 
+            r="45" 
+            stroke="${r}" 
+            stroke-width="12" 
+            fill="transparent" 
+            stroke-dasharray="${s}" 
+            stroke-dashoffset="${s-o/100*s}"
+            stroke-linecap="round"
+            class="chart-slice"
+          />
+        </svg>
+        <!-- Center value -->
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span class="text-lg font-bold text-ncaa-text">${Math.round(o)}%</span>
+        </div>
+      </div>
+      <span class="mt-2 text-xs font-semibold text-ncaa-muted text-center">${n}</span>
+    </div>
+  `}function r(e,t,r){let i=t+r;n(e,i>0?t/i*100:0,`TOTAL COMPLETION STATUS`,`var(--color-ncaa-success)`,180)}function i(e){let t=2*Math.PI*45;return`
+    <svg viewBox="0 0 120 120" style="width: 120px; height: 120px; transform: rotate(-90deg);">
+      <circle cx="60" cy="60" r="45" stroke="#e2e8f0" stroke-width="12" fill="none" />
+      <circle cx="60" cy="60" r="45" stroke="#22c55e" stroke-width="12" fill="none" 
+              stroke-dasharray="${t}" stroke-dashoffset="${t-e/100*t}" />
+    </svg>
+  `}function a(e,t,n,r=`html`){let a=e.checkStartDate?new Date(e.checkStartDate):new Date,o=e.completionDate?new Date(e.completionDate):new Date,s=a.toLocaleDateString(`en-GB`,{day:`numeric`,month:`long`,year:`numeric`}),c=o.toLocaleDateString(`en-GB`,{day:`numeric`,month:`long`,year:`numeric`}),l=new Date().toLocaleDateString(`en-GB`,{day:`numeric`,month:`long`,year:`numeric`}),u=e.checkTypes?e.checkTypes.map(e=>e.type).join(`+`):`CPCP`,d=t.total.total>0?Math.round(t.total.closed/t.total.total*100):0,f=``;e.checkTypes&&e.checkTypes.forEach(e=>{let n=t[e.type]||{total:e.plannedTasks,closed:0},r=n.total>0?Math.round(n.closed/n.total*100):0;f+=`
+        <tr>
+          <td style="padding: 7px 10px; border: 1px solid #cbd5e1; font-weight: 600;">${e.type}</td>
+          <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center;">${n.total}</td>
+          <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center; color: #16a34a; font-weight: bold;">${n.closed}</td>
+          <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #AF3384;">${r}%</td>
+        </tr>
+      `});let p=t[`Non-Routine`]||{total:0,closed:0},m=p.total>0?Math.round(p.closed/p.total*100):0;f+=`
+    <tr>
+      <td style="padding: 7px 10px; border: 1px solid #cbd5e1; font-style: italic; color: #d97706; font-weight: 600;">Non-Routine Tasks</td>
+      <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center;">${p.total}</td>
+      <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center;">${p.closed}</td>
+      <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold;">${m}%</td>
+    </tr>
+  `,f+=`
+    <tr style="font-weight: bold; background-color: #f1f5f9;">
+      <td style="padding: 8px 10px; border: 1px solid #94a3b8; font-size: 13px;">TOTAL WORK CARDS</td>
+      <td style="padding: 8px 10px; border: 1px solid #94a3b8; text-align: center; font-size: 13px;">${t.total.total}</td>
+      <td style="padding: 8px 10px; border: 1px solid #94a3b8; text-align: center; font-size: 13px; color: #16a34a;">${t.total.closed}</td>
+      <td style="padding: 8px 10px; border: 1px solid #94a3b8; text-align: center; font-size: 13px; color: #AF3384;">${d}%</td>
+    </tr>
+  `;let h=(n||``).split(`
+`).filter(e=>e.trim().length>0).map(e=>`<li>${e.replace(/^[•\-\*]\s*/,``)}</li>`).join(``);return`
+    <div style="font-family: Arial, sans-serif; color: #0f172a; width: 100%; max-width: 210mm; margin: 0 auto; padding: 10mm; background-color: #ffffff; border: 1px solid #cbd5e1; box-sizing: border-box; page-break-inside: avoid;">
+      
+      <!-- REPORT HEADER WITH LOGO -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #AF3384; padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <img src="assets/logo.png" alt="Rano Air Logo" style="height: 48px; width: auto; object-fit: contain;" />
+          <div>
+            <div style="font-size: 11px; font-weight: 800; letter-spacing: 2px; color: #AF3384; text-transform: uppercase;">RANO AIR AMO · LINE MAINTENANCE</div>
+            <div style="font-size: 20px; font-weight: 900; color: #1D1B4C; margin-top: 2px;">DAILY STATUS REPORT (DSR)</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Abuja International Airport Hangar · CPCP Airworthiness Tracker</div>
+          </div>
+        </div>
+        <div style="text-align: right; font-size: 11px; color: #334155; line-height: 1.5; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+          <div><strong>Document Date:</strong> ${l}</div>
+          <div><strong>Report Reg:</strong> <span style="color: #AF3384; font-weight: bold;">${e.aircraftRegistration||`N/A`}</span></div>
+          <div><strong>Status:</strong> ${e.isActive?`ACTIVE CHECK`:`FINALIZED`}</div>
+        </div>
+      </div>
+
+      <!-- METADATA TABLE -->
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 11px;">
+        <tr>
+          <td style="width: 20%; padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; background-color: #f8fafc; color: #1D1B4C;">MRO ORGANISATION:</td>
+          <td style="width: 30%; padding: 6px 8px; border: 1px solid #cbd5e1;">${e.mro||`Rano Air AMO`}</td>
+          <td style="width: 20%; padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; background-color: #f8fafc; color: #1D1B4C;">REPORT DATE:</td>
+          <td style="width: 30%; padding: 6px 8px; border: 1px solid #cbd5e1;">${c}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; background-color: #f8fafc; color: #1D1B4C;">AIRCRAFT TYPE:</td>
+          <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; color: #AF3384;">${e.aircraftType}</td>
+          <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; background-color: #f8fafc; color: #1D1B4C;">AIRCRAFT REG:</td>
+          <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold;">${e.aircraftRegistration}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; background-color: #f8fafc; color: #1D1B4C;">CHECK START DATE:</td>
+          <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${s}</td>
+          <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; background-color: #f8fafc; color: #1D1B4C;">AIRCRAFT MSN:</td>
+          <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${e.aircraftMSN}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; background-color: #f8fafc; color: #1D1B4C;">CHECK PACKAGES:</td>
+          <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold;">${u}</td>
+          <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; background-color: #f8fafc; color: #1D1B4C;">EST. RETURN TO SERVICE:</td>
+          <td style="padding: 6px 8px; border: 1px solid #cbd5e1; color: #d97706; font-weight: bold;">${e.estimatedRTS||`TBD`}</td>
+        </tr>
+      </table>
+
+      <!-- CHECK PROGRESS SECTION HEADER -->
+      <h3 style="margin: 0 0 8px 0; border-bottom: 2px solid #AF3384; padding-bottom: 4px; font-size: 13px; text-transform: uppercase; font-weight: 800; color: #AF3384;">CHECK PROGRESS STATUS REGISTER</h3>
+
+      <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px;">
+        <div style="flex: 2;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            <thead>
+              <tr style="background-color: #1D1B4C; color: #ffffff; font-weight: bold;">
+                <th style="padding: 7px; border: 1px solid #cbd5e1; text-align: left;">WORK PACKAGE</th>
+                <th style="padding: 7px; border: 1px solid #cbd5e1; width: 85px; text-align: center;">PLANNED CARDS</th>
+                <th style="padding: 7px; border: 1px solid #cbd5e1; width: 85px; text-align: center;">CLOSED CARDS</th>
+                <th style="padding: 7px; border: 1px solid #cbd5e1; width: 95px; text-align: center;">COMPLETION %</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${f}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FIXED FLEX-DIRECTION BUG HERE -->
+        <div style="flex: 1; border: 1px solid #cbd5e1; padding: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; min-height: 170px; background-color: #f8fafc; border-radius: 6px;">
+          <div>
+            <h4 style="margin: 0 0 8px 0; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #1D1B4C;">TOTAL COMPLETION STATUS</h4>
+            <div style="display: flex; justify-content: center; margin-bottom: 6px;">
+              ${i(d)}
+            </div>
+            <div style="font-size: 15px; font-weight: 900; color: #16a34a;">${d}% CLOSED</div>
+            <div style="font-size: 11px; color: #64748b; font-weight: 600;">${100-d}% REMAINING OPEN</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHIFT HIGHLIGHTS SECTION -->
+      <h3 style="margin: 0 0 8px 0; border-bottom: 2px solid #AF3384; padding-bottom: 4px; font-size: 13px; text-transform: uppercase; font-weight: 800; color: #AF3384;">SHIFT HIGHLIGHTS, DISCREPANCIES & DEFERRALS</h3>
+      <div style="border: 1px solid #cbd5e1; padding: 12px; min-height: 100px; background-color: #f8fafc; margin-bottom: 16px; border-radius: 6px;">
+        <ul style="margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.6; color: #1e293b;">
+          ${h||`<li>No specific shift remarks or deferrals recorded for this period.</li>`}
+        </ul>
+      </div>
+
+      <!-- APPROVAL / SIGN-OFF BLOCK -->
+      <div style="display: flex; justify-content: space-between; gap: 16px; font-size: 11px; color: #334155; margin-top: 12px;">
+        <div style="flex: 1; border-top: 1px solid #cbd5e1; padding-top: 6px;">
+          <div><strong>Certifying Engineer:</strong> ___________________________</div>
+          <div style="margin-top: 4px;"><strong>Licence No:</strong> ______________ <strong>Date:</strong> ___________</div>
+        </div>
+        <div style="flex: 1; border-top: 1px solid #cbd5e1; padding-top: 6px;">
+          <div><strong>Line Maintenance Manager:</strong> ___________________________</div>
+          <div style="margin-top: 4px;"><strong>Stamp / Sign:</strong> ____________ <strong>Date:</strong> ___________</div>
+        </div>
+      </div>
+    </div>
+  `}var o={companyName:`Rano Air AMO`,companyTagline:`Abuja Airport Hangar · Maintenance Control`,appVersion:`2.0.0`,lastUpdated:`14 Aug 2026`,authTimeoutMinutes:30,autoSaveDelayMs:1e3,autoSaveIntervalMs:3e4,printSettings:{paper:`A4`,orientation:`portrait`,margins:`12mm`},branding:{primary:`#AF3384`,secondary:`#BC3474`,steelBlue:`#5B7EB8`,ncaaNavy:`#1D1B4C`,accent:`#f59e0b`,silver:`#BFBFBF`,neutral:`#f8fafc`}},s={DCA:{displayName:`DCA`,role:`manager`,pin:`4821`},LBMM:{displayName:`LBMM`,role:`manager`,pin:`7135`},MCC:{displayName:`MCC`,role:`manager`,pin:`9064`}},c={AUTH:`rano-air-cpcp-auth`,DRAFT:`rano-air-cpcp-draft`,INACTIVITY:`rano-air-cpcp-inactivity`,PEER_ID:`rano-air-cpcp-peer-id`},l=[{code:`CPCP`,name:`CPCP Work Scope Tasks`,defaultCount:362,color:`var(--color-check-cpcp)`},{code:`1A`,name:`1A Check Tasks`,defaultCount:20,color:`var(--color-check-a-series)`},{code:`2A`,name:`2A Check Tasks`,defaultCount:25,color:`var(--color-check-a-series)`},{code:`3A`,name:`3A Check Tasks`,defaultCount:20,color:`var(--color-check-a-series)`},{code:`4A`,name:`4A Check Tasks`,defaultCount:15,color:`var(--color-check-a-series)`},{code:`5A`,name:`5A Check Tasks`,defaultCount:20,color:`var(--color-check-a-series)`},{code:`OOP`,name:`Out of Phase Tasks`,defaultCount:10,color:`var(--color-check-oop)`},{code:`Daily`,name:`Daily Check Tasks`,defaultCount:10,color:`var(--color-check-routine)`},{code:`Weekly`,name:`Weekly Check Tasks`,defaultCount:15,color:`var(--color-check-routine)`},{code:`Routine`,name:`Routine Tasks`,defaultCount:30,color:`var(--color-check-routine)`}],u={activeCheck:null,tasks:[],personnel:[],currentUser:{name:`Line Manager`,role:`manager`},authReady:!1,autoSaveDebounceTimer:null,autoSaveIntervalId:null,idleTimer:null,lastSavedAt:null,isSaving:!1,pendingDraft:null,exportFormat:`html`,async init(){await new Promise(e=>{window.addEventListener(`db-ready`,e,{once:!0}),t.init()}),e.init(),window.addEventListener(`peer-sync-update`,async e=>{console.log(`[App] Received peer broadcast:`,e.detail),await this.handleRemotePeerUpdate(e.detail)}),this.bindEvents(),this.setupAuth(),this.setupAutoSave(),this.setupInactivityWarning(),await this.loadInitialData()},bindEvents(){document.getElementById(`userSwitcher`).addEventListener(`change`,e=>{let t=e.target.value;if(t===`manager`)this.currentUser={name:`Line Manager`,role:`manager`};else{let e=this.personnel.find(e=>e.id===parseInt(t)||e.staffId===t);e&&(this.currentUser={name:e.name,role:e.role})}document.getElementById(`userName`).textContent=this.currentUser.name,document.getElementById(`userRole`).textContent=this.currentUser.role.toUpperCase(),this.refreshPermissions()});let e=document.querySelectorAll(`.tab-button`);e.forEach(t=>{t.addEventListener(`click`,()=>{e.forEach(e=>e.classList.remove(`active`)),t.classList.add(`active`),[`dashboard`,`engineers`,`handover`,`audit`].forEach(e=>{document.getElementById(`tab-${e}`).classList.add(`hidden`)});let n=t.dataset.tab;document.getElementById(`tab-${n}`).classList.remove(`hidden`),this.renderTabContent(n)})}),document.getElementById(`setupForm`).addEventListener(`submit`,async e=>{e.preventDefault(),await this.initializeNewCheck()}),document.getElementById(`defectForm`).addEventListener(`submit`,async e=>{e.preventDefault(),await this.logDefect()}),document.getElementById(`engineerForm`).addEventListener(`submit`,async e=>{e.preventDefault(),await this.addPersonnel()}),document.getElementById(`addDefectBtn`)?.addEventListener(`click`,()=>{this.populateDefectAssigneeSelect(),document.getElementById(`defectModal`).classList.remove(`hidden`)}),document.getElementById(`addDefectDockBtn`)?.addEventListener(`click`,()=>{this.populateDefectAssigneeSelect(),document.getElementById(`defectModal`).classList.remove(`hidden`)}),document.getElementById(`addEngineerBtn`).addEventListener(`click`,()=>{document.getElementById(`engineerModal`).classList.remove(`hidden`)}),document.getElementById(`newCheckBtn`)?.addEventListener(`click`,()=>{this.showSetupWizard()}),document.getElementById(`generateDsrBtn`).addEventListener(`click`,()=>{this.openDSRPreview()}),document.getElementById(`printDsrBtn`)?.addEventListener(`click`,async()=>{await this.openDSRPreview(),window.print()}),document.getElementById(`saveDsrBtn`)?.addEventListener(`click`,async()=>{await this.openDSRPreview(),this.exportFormat===`pdf`?window.print():this.saveDSRToDownloads()}),document.getElementById(`printDsrTriggerBtn`).addEventListener(`click`,()=>{window.print()}),document.getElementById(`saveDsrDownloadsBtn`).addEventListener(`click`,()=>{this.saveDSRToDownloads()}),document.getElementById(`saveDsrDocumentsBtn`).addEventListener(`click`,async()=>{await this.saveDSRToDocuments()}),document.getElementById(`exportFormatSelect`)?.addEventListener(`change`,e=>{this.exportFormat=e.target.value}),document.getElementById(`confirmLogoutBtn`)?.addEventListener(`click`,()=>this.logout()),document.getElementById(`loginForm`)?.addEventListener(`submit`,e=>this.handleLogin(e)),document.getElementById(`saveHandoverBtn`).addEventListener(`click`,async()=>{await this.saveHandoverNotes()}),document.getElementById(`closeCheckBtn`).addEventListener(`click`,async()=>{await this.closeCheck()}),document.getElementById(`clearAuditBtn`).addEventListener(`click`,async()=>{confirm(`Are you sure you want to clear the safety audit log for this check?`)&&(await t.clearAuditEntriesForCheck(this.activeCheck.id),await this.renderAuditTab(),this.showToast(`Audit entries cleared for this check only.`,`success`))}),document.getElementById(`exportBackupBtn`).addEventListener(`click`,()=>this.exportBackup()),document.getElementById(`importBackupBtn`).addEventListener(`click`,()=>{document.getElementById(`backupFileInput`).click()}),document.getElementById(`backupFileInput`).addEventListener(`change`,e=>this.importBackup(e))},async loadInitialData(){if(!this.authReady){this.renderAuthScreen();return}this.activeCheck=await t.getActiveCheck(),this.personnel=await t.getAllPersonnel(),this.restoreDraftState(),this.personnel.length===0&&(await t.addPerson({name:`Engr. Musa Ibrahim`,staffId:`RAN/AMO/E01`,role:`engineer`}),await t.addPerson({name:`Engr. Fatima Yusuf`,staffId:`RAN/AMO/E02`,role:`engineer`}),await t.addPerson({name:`Certifier Jatau Usman`,staffId:`RAN/AMO/C01`,role:`certifier`}),this.personnel=await t.getAllPersonnel());let e=document.getElementById(`userSwitcher`);e.innerHTML=`<option value="manager">Line Maintenance Manager</option>`,this.personnel.forEach(t=>{e.innerHTML+=`<option value="${t.id}">${t.name} (${t.role.toUpperCase()})</option>`}),this.activeCheck?(this.tasks=await t.getTasksForCheck(this.activeCheck.id),document.getElementById(`checkMetaContainer`).classList.remove(`hidden`),document.getElementById(`appShell`).classList.remove(`hidden`),document.getElementById(`setupWizard`).classList.add(`hidden`),this.populateCheckMeta(),await this.refreshDashboard()):this.showSetupWizard(),this.refreshPermissions()},setupAuth(){let e=localStorage.getItem(c.AUTH);if(e)try{let t=JSON.parse(e);this.currentUser={name:t.name,role:t.role},this.authReady=!0}catch{this.authReady=!1}this.renderAuthScreen()},renderAuthScreen(){let e=document.getElementById(`authScreen`),t=document.getElementById(`appShell`),n=document.getElementById(`setupWizard`);if(!this.authReady){e?.classList.remove(`hidden`),t?.classList.add(`hidden`),n?.classList.add(`hidden`);return}e?.classList.add(`hidden`),t?.classList.remove(`hidden`)},async handleLogin(e){e.preventDefault();let t=document.getElementById(`loginUsername`).value.trim().toUpperCase(),n=document.getElementById(`loginPin`).value.trim(),r=s[t];if(r&&r.pin===n){this.currentUser={name:r.displayName,role:r.role},this.authReady=!0,localStorage.setItem(c.AUTH,JSON.stringify({name:r.displayName,role:r.role})),this.renderAuthScreen(),this.refreshPermissions(),await this.loadInitialData(),this.showToast(`Logged in as ${r.displayName}`,`success`);return}this.showToast(`Invalid credentials. Please enter a valid user PIN.`,`error`)},logout(){localStorage.removeItem(c.AUTH),this.authReady=!1,this.currentUser={name:`Line Manager`,role:`manager`},this.renderAuthScreen(),this.showToast(`You have been logged out.`,`info`)},setupAutoSave(){let e=()=>{if(!this.activeCheck)return;let e={activeCheck:this.activeCheck,tasks:this.tasks,personnel:this.personnel,currentUser:this.currentUser,highlights:document.getElementById(`handoverRemarksInput`)?.value||``,savedAt:new Date().toISOString()};localStorage.setItem(c.DRAFT,JSON.stringify(e)),this.lastSavedAt=new Date,this.updateSaveIndicator(`✓ All saved`)},t=()=>{clearTimeout(this.autoSaveDebounceTimer),this.updateSaveIndicator(`Saving...`),this.autoSaveDebounceTimer=setTimeout(()=>{e()},o.autoSaveDelayMs)};document.addEventListener(`input`,e=>{e.target.matches(`input, textarea, select`)&&t()}),this.autoSaveIntervalId=setInterval(()=>{this.activeCheck&&e()},o.autoSaveIntervalMs),window.addEventListener(`beforeunload`,()=>e())},setupInactivityWarning(){let e=()=>{clearTimeout(this.idleTimer),this.idleTimer=setTimeout(()=>{this.showToast(`Session inactive. Logging out for airworthiness security.`,`info`),setTimeout(()=>this.logout(),3e3)},o.authTimeoutMinutes*60*1e3)};[`click`,`keydown`,`mousemove`,`scroll`].forEach(t=>{window.addEventListener(t,e,{passive:!0})}),e()},restoreDraftState(){let e=localStorage.getItem(c.DRAFT);if(e)try{let t=JSON.parse(e);if(t.highlights){let e=document.getElementById(`handoverRemarksInput`);e&&(e.value=t.highlights)}t.activeCheck&&(this.pendingDraft=t)}catch{localStorage.removeItem(c.DRAFT)}},updateSaveIndicator(e){let t=document.getElementById(`saveStatusIndicator`);t&&(t.textContent=e)},populateCheckMeta(){document.getElementById(`metaReg`).textContent=this.activeCheck.aircraftRegistration,document.getElementById(`metaType`).textContent=`(${this.activeCheck.aircraftType})`,document.getElementById(`metaMSN`).textContent=this.activeCheck.aircraftMSN,document.getElementById(`metaStartDate`).textContent=new Date(this.activeCheck.checkStartDate).toLocaleDateString(`en-GB`),document.getElementById(`metaRTS`).textContent=this.activeCheck.estimatedRTS||`TBD`},showSetupWizard(){document.getElementById(`checkMetaContainer`).classList.add(`hidden`),document.getElementById(`appShell`).classList.add(`hidden`),document.getElementById(`setupWizard`).classList.remove(`hidden`),document.getElementById(`setupWizard`).scrollIntoView({behavior:`smooth`,block:`start`}),this.renderSetupWizard()},renderSetupWizard(){let e=document.getElementById(`checkTypeSelectGrid`);e&&(e.innerHTML=l.map(e=>`
+        <label class="setup-option-card">
+          <div class="flex items-start gap-3">
+            <input type="checkbox" name="checkType" value="${e.code}" class="check-type-cb mt-1">
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-white">${e.code}</span>
+                <span class="setup-badge">Work Scope</span>
+              </div>
+              <p class="mt-1 text-xs text-ncaa-muted">${e.name}</p>
+              <div class="mt-2 h-1.5 rounded-full" style="background: ${e.color};"></div>
+            </div>
+          </div>
+        </label>
+      `).join(``),document.querySelectorAll(`.check-type-cb`).forEach(e=>{e.addEventListener(`change`,()=>this.updateSetupWizardInputs())}),document.getElementById(`setupStartDate`).value=new Date().toISOString().substring(0,10),this.updateSetupWizardInputs())},updateSetupWizardInputs(){let e=document.getElementById(`taskCountInputsContainer`);e.innerHTML=``,Array.from(document.querySelectorAll(`.check-type-cb:checked`)).map(e=>e.value).forEach(t=>{let n=l.find(e=>e.code===t);e.innerHTML+=`
+          <div class="setup-task-card">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <span class="text-sm font-bold text-white">${n.name} (${t})</span>
+                <p class="text-xs text-ncaa-muted mt-0.5">Set planned card count for this package.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-ncaa-muted">Planned Cards:</label>
+                <input type="number" id="setup-count-${t}" value="${n.defaultCount}" min="1" class="form-input !py-1 !px-2 w-24 text-center font-bold text-white">
+              </div>
+            </div>
+          </div>
+        `})},async initializeNewCheck(){let n=document.getElementById(`setupReg`).value.trim(),r=document.getElementById(`setupType`).value,i=document.getElementById(`setupMSN`).value.trim(),a=document.getElementById(`setupStartDate`).value,o=Array.from(document.querySelectorAll(`.check-type-cb:checked`)).map(e=>e.value);if(o.length===0){this.showToast(`Please select at least one check type package.`,`error`);return}let s=o.map(e=>{let t=document.getElementById(`setup-count-${e}`);return{type:e,plannedTasks:parseInt(t.value)||1}}),c={mro:`Rano Air AMO`,aircraftType:r,aircraftRegistration:n,aircraftMSN:i,checkStartDate:a,estimatedRTS:`TBD`,checkTypes:s,isActive:1,createdAt:new Date().toISOString()},l=await t.addCheck(c);c.id=l,this.activeCheck=c;let u=[];s.forEach(e=>{u.push({checkId:l,checkType:e.type,totalPlanned:e.plannedTasks,closed:0,remarks:``})}),u.push({checkId:l,checkType:`Non-Routine`,totalPlanned:0,closed:0,remarks:``}),await t.addTasksBulk(u),await t.addAuditEntry({checkId:l,timestamp:new Date().toISOString(),userId:this.currentUser.name,userName:this.currentUser.name,action:`Check Initialized`,details:`Initialized check for ${n} (${r}) with package scope: ${o.join(`+`)}`}),e.broadcast({type:`CHECK_INITIALIZED`,checkReg:n,user:this.currentUser.name}),this.showToast(`Check tracker initialized successfully.`,`success`),await this.loadInitialData()},async refreshDashboard(){if(!this.activeCheck)return;this.tasks=await t.getTasksForCheck(this.activeCheck.id);let e=0,i=0,a={};this.tasks.forEach(t=>{a[t.checkType]={total:t.totalPlanned,closed:t.closed},e+=t.totalPlanned,i+=t.closed}),a.total={total:e,closed:i},document.getElementById(`totalTasksCount`).textContent=e,document.getElementById(`closedTasksCount`).textContent=i,document.getElementById(`openTasksCount`).textContent=e-i;let o=e>0?i/e*100:0;document.getElementById(`overallPercentage`).textContent=`${Math.round(o)}%`,r(`masterPieContainer`,i,e-i);let s=document.getElementById(`packagePieGrid`);s.innerHTML=``;let c=document.getElementById(`progressTableBody`);c.innerHTML=``,this.activeCheck.checkTypes.forEach(e=>{let t=a[e.type]||{total:e.plannedTasks,closed:0},r=t.total>0?t.closed/t.total*100:0,i=l.find(t=>t.code===e.type)||{color:`var(--color-ncaa-accent)`},o=document.createElement(`div`);s.appendChild(o),n(o,r,e.type,i.color,90),c.innerHTML+=this.createProgressRowHTML(e.type,t.total,t.closed,!1)});let u=a[`Non-Routine`]||{total:0,closed:0};c.innerHTML+=this.createProgressRowHTML(`Non-Routine`,u.total,u.closed,!0),this.bindTableControls(),await this.renderDSRHistory()},createProgressRowHTML(e,t,n,r){let i=t>0?Math.round(n/t*100):0,a=t-n,o=`px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center font-bold text-xs text-white cursor-pointer transition-colors shadow-sm active:scale-95`,s=!this.canWrite(),c=``;return c=i===100?`<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">🟢 100% Closed</span>`:i>0?`<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-950/80 text-amber-300 border border-amber-500/40">🟡 In Progress</span>`:`<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-950/80 text-rose-300 border border-rose-500/40">🔴 Open</span>`,`
+        <tr>
+          <td class="font-bold text-white flex items-center gap-2">
+            <span>${e}</span>
+            ${r?`<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30">Defects</span>`:``}
+          </td>
+          <td class="text-center font-semibold text-white/90">${t}</td>
+          <td class="text-center text-emerald-400 font-extrabold text-base" id="closed-count-${e}">${n}</td>
+          <td class="text-center">${c}</td>
+          <td class="text-center font-black text-[#AF3384]">${i}%</td>
+          <td class="text-center text-ncaa-muted font-medium">${a}</td>
+          <td class="no-print">
+            <div class="flex items-center justify-center gap-1.5">
+              <button class="${o} action-btn-dec" data-type="${e}" ${s?`disabled`:``} title="Subtract 1 card">➖1</button>
+              <button class="${o} action-btn-inc" data-type="${e}" ${s?`disabled`:``} title="Add 1 card">➕1</button>
+              <button class="${o} action-btn-inc5 !bg-[#AF3384]/30 hover:!bg-[#AF3384]/50 text-fuchsia-200 border-[#AF3384]/40" data-type="${e}" ${s?`disabled`:``} title="Add 5 cards">➕5</button>
+            </div>
+          </td>
+        </tr>
+      `},bindTableControls(){let e=document.querySelectorAll(`.action-btn-dec`),t=document.querySelectorAll(`.action-btn-inc`),n=document.querySelectorAll(`.action-btn-inc5`);e.forEach(e=>{e.addEventListener(`click`,async()=>{let t=e.dataset.type;await this.adjustTaskCount(t,-1)})}),t.forEach(e=>{e.addEventListener(`click`,async()=>{let t=e.dataset.type;await this.adjustTaskCount(t,1)})}),n.forEach(e=>{e.addEventListener(`click`,async()=>{let t=e.dataset.type;await this.adjustTaskCount(t,5)})})},async adjustTaskCount(n,r){if(!this.canWrite())return;let i=this.tasks.find(e=>e.checkType===n);if(!i)return;let a=i.closed+r;if(a<0&&(a=0),a>i.totalPlanned){a=i.totalPlanned,this.showToast(`Closed count cannot exceed total planned task cards.`,`info`);return}i.closed=a,await t.updateTask(i),await t.addAuditEntry({checkId:this.activeCheck.id,timestamp:new Date().toISOString(),userId:this.currentUser.name,userName:this.currentUser.name,action:`Progress Updated`,details:`${n} closed count adjusted by ${r>0?`+`:``}${r}. Current: ${a}/${i.totalPlanned}`}),e.broadcast({type:`PROGRESS_UPDATED`,checkType:n,amount:r,newClosed:a,user:this.currentUser.name}),await this.refreshDashboard()},async handleRemotePeerUpdate(e){e.type===`PROGRESS_UPDATED`?(this.showToast(`📡 Live Sync (${e.user}): ${e.checkType} updated`,`info`),this.activeCheck&&(this.tasks=await t.getTasksForCheck(this.activeCheck.id),await this.refreshDashboard())):e.type===`DEFECT_LOGGED`?(this.showToast(`⚠️ Live Sync: New Defect "${e.defectTitle}" logged by ${e.user}`,`info`),this.activeCheck&&await this.refreshDashboard()):e.type===`HANDOVER_SAVED`&&this.showToast(`📝 Live Sync: Shift handover updated by ${e.user}`,`info`)},populateDefectAssigneeSelect(){let e=document.getElementById(`defectAssignee`);e.innerHTML=`<option value="">Unassigned</option>`,this.personnel.filter(e=>e.role===`engineer`).forEach(t=>{e.innerHTML+=`<option value="${t.name}">${t.name}</option>`})},async logDefect(){if(!this.canWrite())return;let n=document.getElementById(`defectTitle`).value.trim(),r=document.getElementById(`defectAssignee`).value,i=this.tasks.find(e=>e.checkType===`Non-Routine`);i&&(i.totalPlanned+=1,await t.updateTask(i),await t.addAuditEntry({checkId:this.activeCheck.id,timestamp:new Date().toISOString(),userId:this.currentUser.name,userName:this.currentUser.name,action:`Non-Routine Defect Logged`,details:`Raised Non-Routine item: "${n}". Allocated assignee: ${r||`None`}. Non-routine card count incremented.`}),e.broadcast({type:`DEFECT_LOGGED`,defectTitle:n,assignee:r,user:this.currentUser.name}),document.getElementById(`defectForm`).reset(),document.getElementById(`defectModal`).classList.add(`hidden`),this.showToast(`Non-routine defect logged successfully.`,`success`),await this.refreshDashboard())},async addPersonnel(){if(!this.canWrite())return;let e=document.getElementById(`engName`).value.trim(),n=document.getElementById(`engStaffId`).value.trim(),r=document.getElementById(`engRole`).value;try{await t.addPerson({name:e,staffId:n,role:r}),this.showToast(`Personnel registered successfully.`,`success`),document.getElementById(`engineerForm`).reset(),document.getElementById(`engineerModal`).classList.add(`hidden`),await this.loadInitialData();let i=document.getElementById(`userSwitcher`);i.innerHTML=`<option value="manager">Line Maintenance Manager</option>`,this.personnel.forEach(e=>{i.innerHTML+=`<option value="${e.id}">${e.name} (${e.role.toUpperCase()})</option>`})}catch{this.showToast(`Staff ID already registered.`,`error`)}},async removePersonnel(e,n){this.canWrite()&&confirm(`Remove personnel record for "${n}"?`)&&(t.db&&t.db.transaction(`personnel`,`readwrite`).objectStore(`personnel`).delete(e),this.showToast(`Personnel record for ${n} removed.`,`info`),await this.loadInitialData(),document.getElementById(`tab-engineers`).classList.contains(`hidden`)===!1&&this.renderPersonnelTab())},async renderTabContent(e){e===`engineers`?this.renderPersonnelTab():e===`handover`?await this.renderHandoverTab():e===`audit`&&await this.renderAuditTab()},renderPersonnelTab(){this.renderPersonnelTabAsync()},async renderPersonnelTabAsync(){let e=document.getElementById(`personnelTableBody`);e.innerHTML=``;let n=this.activeCheck?await t.getAuditEntriesForCheck(this.activeCheck.id):[],r=new Date().toISOString().substring(0,10);this.personnel.forEach(t=>{let i=n.filter(e=>e.action===`Non-Routine Defect Logged`&&e.details.includes(`Allocated assignee: ${t.name}`)).length,a=n.filter(e=>e.userName===t.name&&e.action===`Progress Updated`&&e.timestamp.substring(0,10)===r).length,o=n.filter(e=>e.userName===t.name&&e.action===`Handover Remarks Saved`).sort((e,t)=>new Date(t.timestamp)-new Date(e.timestamp))[0];e.innerHTML+=`
+        <tr>
+          <td class="font-bold text-white">${t.name}</td>
+          <td class="text-xs font-mono font-bold text-fuchsia-300">${t.staffId}</td>
+          <td class="text-xs uppercase font-bold tracking-wider text-ncaa-muted">${t.role}</td>
+          <td class="text-center font-bold">${i}</td>
+          <td class="text-center font-black text-emerald-400">${a}</td>
+          <td><span class="text-xs text-ncaa-muted">${o?o.details:`No specific remarks.`}</span></td>
+          <td class="text-center">
+            <button class="btn-danger !py-1 !px-2.5 text-xs remove-personnel-btn" data-id="${t.id}" data-name="${t.name}" ${this.canWrite()?``:`disabled`}>Remove</button>
+          </td>
+        </tr>
+      `}),document.querySelectorAll(`.remove-personnel-btn`).forEach(e=>{e.addEventListener(`click`,async()=>{let t=parseInt(e.dataset.id),n=e.dataset.name;await this.removePersonnel(t,n)})})},async renderHandoverTab(){if(!this.activeCheck)return;let e=await t.getAuditEntriesForCheck(this.activeCheck.id),n=new Date(Date.now()-720*60*1e3).toISOString(),r=e.filter(e=>e.timestamp>=n),i=r.filter(e=>e.action===`Progress Updated`).length,a=r.filter(e=>e.action===`Non-Routine Defect Logged`).length;document.getElementById(`shiftTotalActions`).textContent=i,document.getElementById(`shiftNewDefects`).textContent=a},async saveHandoverNotes(){let n=document.getElementById(`handoverRemarksInput`).value.trim();n&&(await t.addAuditEntry({checkId:this.activeCheck.id,timestamp:new Date().toISOString(),userId:this.currentUser.name,userName:this.currentUser.name,action:`Handover Remarks Saved`,details:n}),e.broadcast({type:`HANDOVER_SAVED`,notes:n,user:this.currentUser.name}),this.showToast(`Handover remarks saved to audit log.`,`success`))},async renderAuditTab(){let e=document.getElementById(`auditTableBody`);if(e.innerHTML=``,!this.activeCheck)return;let n=await t.getAuditEntriesForCheck(this.activeCheck.id);n.reverse(),n.forEach(t=>{let n=new Date(t.timestamp).toLocaleString(`en-GB`);e.innerHTML+=`
+        <tr>
+          <td class="text-xs text-ncaa-muted font-mono">${n}</td>
+          <td class="font-bold text-white">${t.userName}</td>
+          <td class="text-xs uppercase font-extrabold text-[#AF3384]">${t.action}</td>
+          <td class="text-sm text-white/90">${t.details}</td>
+        </tr>
+      `})},buildDSRStats(){let e=0,t=0,n={};return this.tasks.forEach(r=>{n[r.checkType]={total:r.totalPlanned,closed:r.closed},e+=r.totalPlanned,t+=r.closed}),n.total={total:e,closed:t},n},async openDSRPreview(){let e=this.buildDSRStats(),n=document.getElementById(`handoverRemarksInput`)?.value||``,r=a(this.activeCheck,e,n,this.exportFormat),i=new Date().toISOString();document.getElementById(`dsrPreviewContainer`).innerHTML=r,document.getElementById(`dsrPrintSection`).innerHTML=r,await t.addDSRSnapshot({checkId:this.activeCheck.id,generatedAt:i,generatedBy:this.currentUser.name,headerData:{...this.activeCheck},progressData:e,highlights:n,totalCompletion:e.total.total>0?Math.round(e.total.closed/e.total.total*100):0,html:r}),await t.addAuditEntry({checkId:this.activeCheck.id,timestamp:i,userId:this.currentUser.name,userName:this.currentUser.name,action:`DSR Snapshot Generated`,details:`Daily Status Report saved at ${new Date(i).toLocaleString(`en-GB`)}.`}),await this.renderDSRHistory(),document.getElementById(`dsrPreviewModal`).classList.remove(`hidden`)},async renderDSRHistory(){let e=document.getElementById(`dsrHistoryTableBody`);if(!e||!this.activeCheck)return;let n=await t.getDSRSnapshots(this.activeCheck.id);if(n.sort((e,t)=>new Date(t.generatedAt)-new Date(e.generatedAt)),n.length===0){e.innerHTML=`
+        <tr>
+          <td colspan="6" class="text-center text-ncaa-muted py-4">No DSR snapshots generated yet.</td>
+        </tr>
+      `;return}e.innerHTML=``,n.forEach(t=>{e.innerHTML+=`
+        <tr>
+          <td class="text-xs text-ncaa-muted font-mono">${new Date(t.generatedAt).toLocaleString(`en-GB`)}</td>
+          <td class="font-bold text-white">${t.generatedBy||`Line Manager`}</td>
+          <td class="text-center font-semibold">${t.progressData?.total?.total||0}</td>
+          <td class="text-center text-emerald-400 font-extrabold">${t.progressData?.total?.closed||0}</td>
+          <td class="text-center font-black text-[#AF3384]">${t.totalCompletion||0}%</td>
+          <td class="text-center">
+            <button class="btn-secondary !py-1 !px-3 text-xs font-bold view-dsr-snapshot-btn" data-id="${t.id}">View DSR</button>
+          </td>
+        </tr>
+      `}),document.querySelectorAll(`.view-dsr-snapshot-btn`).forEach(e=>{e.addEventListener(`click`,()=>{let t=n.find(t=>t.id===parseInt(e.dataset.id));t&&(document.getElementById(`dsrPreviewContainer`).innerHTML=t.html,document.getElementById(`dsrPrintSection`).innerHTML=t.html,document.getElementById(`dsrPreviewModal`).classList.remove(`hidden`))})})},getDSRFileName(e=`html`){return`rano-air-dsr-${this.activeCheck?.aircraftRegistration||`aircraft`}-${new Date().toISOString().substring(0,10)}.${e}`.replace(/[^a-z0-9._-]/gi,`-`)},buildDSRDocumentHTML(){return`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rano Air DSR Report</title>
+  <style>
+    @page { size: A4 portrait; margin: 12mm; }
+    html, body { margin: 0; padding: 0; background: #ffffff; color: #111827; }
+    body { width: 210mm; min-height: 297mm; box-sizing: border-box; }
+    .dsr-a4-sheet {
+      width: 100%;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 10mm;
+      box-sizing: border-box;
+      background: #ffffff;
+    }
+    table { border-collapse: collapse; width: 100%; }
+    @media print {
+      body { width: 210mm; min-height: 297mm; margin: 0; }
+      .dsr-a4-sheet { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="dsr-a4-sheet">
+${document.getElementById(`dsrPrintSection`).innerHTML||document.getElementById(`dsrPreviewContainer`).innerHTML}
+</div>
+</body>
+</html>`},saveDSRToDownloads(){let e=this.buildDSRDocumentHTML(),t=new Blob([e],{type:`text/html`}),n=URL.createObjectURL(t),r=document.createElement(`a`);r.href=n,r.download=this.getDSRFileName(this.exportFormat===`pdf`?`pdf`:`html`),r.click(),URL.revokeObjectURL(n),this.showToast(`DSR saved as ${this.exportFormat.toUpperCase()} to downloads.`,`success`)},async saveDSRToDocuments(){let e=this.getDSRFileName(this.exportFormat===`pdf`?`pdf`:`html`),t=this.buildDSRDocumentHTML();if(`showSaveFilePicker`in window)try{let n=await(await window.showSaveFilePicker({suggestedName:e,startIn:`documents`,types:[{description:`HTML document`,accept:{"text/html":[`.html`]}}]})).createWritable();await n.write(t),await n.close(),this.showToast(`DSR saved to your selected Documents folder.`,`success`);return}catch(e){if(e.name===`AbortError`)return}this.saveDSRToDownloads(),this.showToast(`Browser saved DSR to your Downloads folder.`,`info`)},async closeCheck(){this.canWrite()&&confirm(`Are you sure you want to CLOSE/COMPLETE this maintenance check? All data will be finalized and archived.`)&&(this.activeCheck.isActive=0,await t.updateCheck(this.activeCheck),await t.addAuditEntry({checkId:this.activeCheck.id,timestamp:new Date().toISOString(),userId:this.currentUser.name,userName:this.currentUser.name,action:`Check Completed`,details:`Finalized check status for ${this.activeCheck.aircraftRegistration}.`}),this.showToast(`Check completed and archived.`,`success`),this.activeCheck=null,await this.loadInitialData())},canWrite(){return this.authReady&&(this.currentUser.role===`manager`||this.currentUser.role===`certifier`)},refreshPermissions(){let e=this.canWrite();document.getElementById(`addDefectBtn`)&&(document.getElementById(`addDefectBtn`).disabled=!e),document.getElementById(`closeCheckBtn`)&&(document.getElementById(`closeCheckBtn`).disabled=!e),document.getElementById(`saveHandoverBtn`)&&(document.getElementById(`saveHandoverBtn`).disabled=!e),document.getElementById(`tab-dashboard`).classList.contains(`hidden`)===!1&&this.refreshDashboard()},exportBackup(){Promise.all([t.getAllChecks(),t.getAllTasks(),t.getAllPersonnel(),t.getAllAuditEntries(),t.getAllDSRSnapshots()]).then(([e,t,n,r,i])=>{let a={checks:e,tasks:t,personnel:n,audit:r,dsrSnapshots:i,exportedAt:new Date().toISOString()},o=new Blob([JSON.stringify(a,null,2)],{type:`application/json`}),s=URL.createObjectURL(o),c=document.createElement(`a`);c.href=s,c.download=`rano-air-cpcp-backup-${new Date().toISOString().substring(0,10)}.json`,c.click()})},async importBackup(e){if(!this.canWrite())return;let n=e.target.files[0];if(!n)return;let r=new FileReader;r.onload=async e=>{try{let n=JSON.parse(e.target.result);if(!n.checks||!n.tasks)throw Error(`Invalid backup file structure.`);await t.clearAll();let r=t.db.transaction(`checks`,`readwrite`).objectStore(`checks`);for(let e of n.checks)await r.add(e);let i=t.db.transaction(`tasks`,`readwrite`).objectStore(`tasks`);for(let e of n.tasks)await i.add(e);let a=t.db.transaction(`personnel`,`readwrite`).objectStore(`personnel`);for(let e of n.personnel||[])try{await a.add(e)}catch{}let o=t.db.transaction(`audit_log`,`readwrite`).objectStore(`audit_log`);for(let e of n.audit||[])await o.add(e);let s=t.db.transaction(`dsr_snapshots`,`readwrite`).objectStore(`dsr_snapshots`);for(let e of n.dsrSnapshots||[])await s.add(e);this.showToast(`Backup restored successfully!`,`success`),window.location.reload()}catch(e){this.showToast(`Failed to import backup: `+e.message,`error`)}},r.readAsText(n)},showToast(e,t=`info`){let n=document.getElementById(`toastContainer`);if(!n)return;let r=document.createElement(`div`);r.className=`toast ${t}`,r.textContent=e,n.appendChild(r),setTimeout(()=>{r.style.opacity=`0`,setTimeout(()=>r.remove(),300)},3200)}};window.App=u,document.addEventListener(`DOMContentLoaded`,()=>u.init());
