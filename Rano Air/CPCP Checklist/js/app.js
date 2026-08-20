@@ -1,4 +1,5 @@
-import html2pdf from 'html2pdf.js';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import db from './db.js';
 import { renderDonutChart, renderMasterDonutChart } from './charts.js';
 import { generateDSR } from './dsr.js';
@@ -1200,41 +1201,69 @@ ${dsrHTML}
   },
 
   async saveDSRAsPDF(options = {}) {
-    const source = document.getElementById('dsrPrintSection') || document.getElementById('dsrPreviewContainer');
+    let sourceContent = document.getElementById('dsrPrintSection')?.innerHTML || document.getElementById('dsrPreviewContainer')?.innerHTML;
     const pdfName = this.getDSRFileName('pdf');
 
-    if (!source?.innerHTML?.trim()) {
+    if (!sourceContent?.trim()) {
       await this.openDSRPreview();
+      sourceContent = document.getElementById('dsrPrintSection')?.innerHTML || document.getElementById('dsrPreviewContainer')?.innerHTML;
     }
 
-    if (!html2pdf) {
-      this.showToast('PDF engine unavailable. Saving HTML instead.', 'error');
-      this.saveDSRAsHTML();
-      return;
-    }
-
-    const wrapper = document.createElement('div');
-    wrapper.style.background = '#ffffff';
-    wrapper.style.width = '210mm';
-    wrapper.style.minHeight = '297mm';
-    wrapper.style.padding = '6mm';
-    wrapper.style.boxSizing = 'border-box';
-    wrapper.innerHTML = document.getElementById('dsrPrintSection').innerHTML || document.getElementById('dsrPreviewContainer').innerHTML;
-
-    const pdfOptions = {
-      margin: [6, 6, 6, 6],
-      filename: pdfName,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    };
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '0';
+    container.style.top = '0';
+    container.style.width = '794px'; // Standard A4 96 DPI width
+    container.style.minHeight = '1123px';
+    container.style.padding = '0';
+    container.style.margin = '0';
+    container.style.background = '#ffffff';
+    container.style.color = '#0f172a';
+    container.style.zIndex = '-99999';
+    container.style.opacity = '1';
+    container.style.boxSizing = 'border-box';
+    container.innerHTML = sourceContent;
+    document.body.appendChild(container);
 
     try {
       this.showToast('Generating PDF...', 'info');
 
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: 794
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+
       if (options.preferFilePicker && 'showSaveFilePicker' in window) {
-        const blob = await html2pdf().set(pdfOptions).from(wrapper).outputPdf('blob');
+        const blob = pdf.output('blob');
         const handle = await window.showSaveFilePicker({
           suggestedName: pdfName,
           startIn: 'documents',
@@ -1252,12 +1281,17 @@ ${dsrHTML}
         return;
       }
 
-      await html2pdf().set(pdfOptions).from(wrapper).save();
-      this.showToast('DSR PDF saved to downloads.', 'success');
+      pdf.save(pdfName);
+      this.showToast('DSR PDF downloaded successfully.', 'success');
     } catch (err) {
+      console.error('PDF Generation Error:', err);
       if (err?.name === 'AbortError') return;
-      this.showToast('PDF save failed. Saving HTML instead.', 'error');
+      this.showToast('PDF save failed. Generating HTML backup.', 'error');
       this.saveDSRAsHTML();
+    } finally {
+      if (container && container.parentNode) {
+        container.parentNode.removeChild(container);
+      }
     }
   },
 

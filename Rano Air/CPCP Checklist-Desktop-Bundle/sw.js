@@ -3,7 +3,7 @@
 // Service Worker - Offline-First Production Cache
 // ============================================
 
-const CACHE_NAME = 'rano-air-cpcp-desktop-v10';
+const CACHE_NAME = 'rano-air-cpcp-desktop-v11';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -11,13 +11,12 @@ self.addEventListener('install', (event) => {
       const urlsToCache = [
         './',
         './index.html',
-        './manifest.json',
-        './assets/logo.png',
         './assets/logo-DJAEnbEi.png',
-        './assets/manifest-BeMrs-rJ.json',
-        './assets/index-B8-HjZK9.css',
-        './assets/index-C-HHFuzx.js',
-        './js/html2pdf.bundle.min.js'
+        './assets/manifest-BdvM-eSP.json',
+        './assets/index-DmZQCaR8.css',
+        './assets/index-DiCJXKQq.js',
+        './assets/index.es-Y7T0oLQV.js',
+        './assets/purify.es-ChwZkWde.js'
       ];
       for (const url of urlsToCache) {
         try {
