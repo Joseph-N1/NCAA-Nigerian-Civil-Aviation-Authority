@@ -1,3 +1,4 @@
+import html2pdf from 'html2pdf.js';
 import db from './db.js';
 import { renderDonutChart, renderMasterDonutChart } from './charts.js';
 import { generateDSR } from './dsr.js';
@@ -1206,7 +1207,7 @@ ${dsrHTML}
       await this.openDSRPreview();
     }
 
-    if (!window.html2pdf) {
+    if (!html2pdf) {
       this.showToast('PDF engine unavailable. Saving HTML instead.', 'error');
       this.saveDSRAsHTML();
       return;
@@ -1233,7 +1234,7 @@ ${dsrHTML}
       this.showToast('Generating PDF...', 'info');
 
       if (options.preferFilePicker && 'showSaveFilePicker' in window) {
-        const blob = await window.html2pdf().set(pdfOptions).from(wrapper).outputPdf('blob');
+        const blob = await html2pdf().set(pdfOptions).from(wrapper).outputPdf('blob');
         const handle = await window.showSaveFilePicker({
           suggestedName: pdfName,
           startIn: 'documents',
@@ -1251,7 +1252,7 @@ ${dsrHTML}
         return;
       }
 
-      await window.html2pdf().set(pdfOptions).from(wrapper).save();
+      await html2pdf().set(pdfOptions).from(wrapper).save();
       this.showToast('DSR PDF saved to downloads.', 'success');
     } catch (err) {
       if (err?.name === 'AbortError') return;
