@@ -99,14 +99,6 @@ const App = {
       });
     });
 
-    // Back to Dashboard Buttons
-    const backBtns = ['backToDashFromEng', 'backToDashFromHandover', 'backToDashFromAudit'];
-    backBtns.forEach(btnId => {
-      document.getElementById(btnId)?.addEventListener('click', () => {
-        this.switchToTab('dashboard');
-      });
-    });
-
     // Multi-Step Wizard Step Buttons
     document.getElementById('step1NextBtn')?.addEventListener('click', () => {
       const reg = document.getElementById('setupReg').value.trim();
@@ -171,11 +163,6 @@ const App = {
 
     // Action button bindings
     document.getElementById('addDefectBtn')?.addEventListener('click', () => {
-      this.populateDefectAssigneeSelect();
-      document.getElementById('defectModal').classList.remove('hidden');
-    });
-
-    document.getElementById('addDefectDockBtn')?.addEventListener('click', () => {
       this.populateDefectAssigneeSelect();
       document.getElementById('defectModal').classList.remove('hidden');
     });

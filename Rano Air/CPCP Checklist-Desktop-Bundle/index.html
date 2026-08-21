@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Rano Air AMO Check Progress Tracker Dashboard - Nnamdi Azikiwe International Airport (NAIA)">
   <title>Rano Air Check Progress Tracker</title>
-  <link rel="manifest" href="./assets/manifest-BdvM-eSP.json">
+  <link rel="manifest" href="./assets/manifest-BdvM-eSP.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -135,10 +135,7 @@
         <p class="text-3xl font-black m-0 text-amber-700" id="openTasksCount">0</p>
       </div>
       <div class="glass-card-sm flex flex-col justify-between">
-        <div class="flex justify-between items-center">
-          <h2 class="text-slate-600 text-xs font-bold m-0 uppercase tracking-wider">Overall Progress</h2>
-          <button class="btn-danger !py-1 !px-2 text-[10px] font-bold" id="addDefectDockBtn">+ Defect</button>
-        </div>
+        <h2 class="text-slate-600 text-xs font-bold m-0 mb-1 uppercase tracking-wider">Overall Progress</h2>
         <p class="text-3xl font-black m-0 text-[#A50050]" id="overallPercentage">0%</p>
       </div>
     </section>
@@ -250,7 +247,6 @@
           <p class="text-xs text-slate-600 mt-1 m-0">Roster of engineers and certifying staff assigned to maintenance work cards.</p>
         </div>
         <div class="flex items-center gap-2">
-          <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="backToDashFromEng">← Back to Dashboard</button>
           <button class="btn-primary !py-2 !px-4 text-xs font-bold" id="addEngineerBtn">+ Add Personnel</button>
         </div>
       </div>
@@ -282,7 +278,6 @@
           <p class="text-xs text-slate-600 mt-1 m-0">Log critical maintenance findings, deferred work cards, and handover instructions.</p>
         </div>
         <div class="flex items-center gap-2">
-          <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="backToDashFromHandover">← Back to Dashboard</button>
           <button class="btn-primary !py-2 !px-4 text-xs font-bold" id="saveHandoverBtn">Save Handover Notes</button>
         </div>
       </div>
@@ -309,7 +304,6 @@
           <p class="text-xs text-slate-600 mt-1 m-0">Immutable record of all maintenance card status changes and user events.</p>
         </div>
         <div class="flex items-center gap-2">
-          <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="backToDashFromAudit">← Back to Dashboard</button>
           <button class="btn-secondary !py-2 !px-4 text-xs text-rose-700 hover:text-rose-900" id="clearAuditBtn">Wipe Audit Log</button>
         </div>
       </div>
@@ -540,7 +534,7 @@
   <footer class="text-center text-xs text-slate-300 py-6 no-print border-t border-white/10 mt-12">
     <p class="m-0" id="versionFooterText">Rano Air AMO Check Progress Tracker v2.0.0 | Last Updated: 20 Aug 2026</p>
   </footer>
-
+
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
