@@ -283,6 +283,25 @@ const App = {
       });
     }
 
+    // Modal Save Dropdown Toggle
+    const modalSaveBtn = document.getElementById('modalSaveDropdownBtn');
+    const modalSaveMenu = document.getElementById('modalSaveDropdownMenu');
+
+    if (modalSaveBtn && modalSaveMenu) {
+      modalSaveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = modalSaveMenu.classList.toggle('hidden');
+        modalSaveBtn.setAttribute('aria-expanded', String(!isHidden));
+      });
+
+      modalSaveMenu.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          modalSaveMenu.classList.add('hidden');
+          modalSaveBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }
+
     // Close menus and modals on click outside
     document.addEventListener('click', (e) => {
       if (reportsMenu && !reportsMenu.classList.contains('hidden')) {
@@ -298,6 +317,12 @@ const App = {
           moreBtn?.setAttribute('aria-expanded', 'false');
         }
       }
+      if (modalSaveMenu && !modalSaveMenu.classList.contains('hidden')) {
+        if (!document.getElementById('modalSaveDropdownContainer')?.contains(e.target)) {
+          modalSaveMenu.classList.add('hidden');
+          modalSaveBtn?.setAttribute('aria-expanded', 'false');
+        }
+      }
     });
 
     // Close modals on backdrop click
@@ -305,6 +330,10 @@ const App = {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
           modal.classList.add('hidden');
+          if (modalSaveMenu) {
+            modalSaveMenu.classList.add('hidden');
+            modalSaveBtn?.setAttribute('aria-expanded', 'false');
+          }
         }
       });
     });
@@ -321,6 +350,10 @@ const App = {
         if (moreMenu && !moreMenu.classList.contains('hidden')) {
           moreMenu.classList.add('hidden');
           moreBtn?.setAttribute('aria-expanded', 'false');
+        }
+        if (modalSaveMenu && !modalSaveMenu.classList.contains('hidden')) {
+          modalSaveMenu.classList.add('hidden');
+          modalSaveBtn?.setAttribute('aria-expanded', 'false');
         }
       }
     });

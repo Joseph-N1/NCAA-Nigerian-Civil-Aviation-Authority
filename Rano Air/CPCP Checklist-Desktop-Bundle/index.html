@@ -559,17 +559,32 @@
         </div>
         <div class="flex flex-wrap gap-2 justify-end items-center">
           <button class="btn-primary !py-2 !px-4 flex items-center gap-2 text-xs font-bold !from-emerald-600 !to-emerald-800 hover:!from-emerald-500 hover:!to-emerald-700" id="printDsrTriggerBtn">
-            Print DSR (A4)
+            🖨️ Print DSR (A4)
           </button>
-          <button class="btn-primary !py-2 !px-3 text-xs flex items-center gap-1.5 font-bold" id="saveDsrDownloadsBtn">
-            Save PDF (Downloads)
-          </button>
-          <button class="btn-secondary !py-2 !px-3 text-xs flex items-center gap-1.5 font-bold" id="saveDsrDocumentsBtn">
-            Save PDF (Documents)
-          </button>
-          <button class="btn-secondary !py-2 !px-3 text-xs flex items-center gap-1.5" id="saveDsrHtmlModalBtn">
-            Save HTML
-          </button>
+
+          <!-- Modal Save Dropdown -->
+          <div class="relative inline-block text-left" id="modalSaveDropdownContainer">
+            <button type="button" class="btn-secondary !py-2 !px-3 text-xs font-bold flex items-center gap-1.5" id="modalSaveDropdownBtn" aria-haspopup="true" aria-expanded="false">
+              <span>💾 Save As ▾</span>
+            </button>
+            <div id="modalSaveDropdownMenu" class="dropdown-menu dropdown-menu-right hidden" role="menu" aria-orientation="vertical" aria-labelledby="modalSaveDropdownBtn">
+              <div class="py-1" role="none">
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="saveDsrDownloadsBtn" role="menuitem">
+                  <span class="text-base">📥</span>
+                  <span>PDF (Downloads)</span>
+                </button>
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="saveDsrDocumentsBtn" role="menuitem">
+                  <span class="text-base">📁</span>
+                  <span>PDF (Documents)</span>
+                </button>
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="saveDsrHtmlModalBtn" role="menuitem">
+                  <span class="text-base">🌐</span>
+                  <span>Standalone HTML</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="closeDsrModalBtn">✕ Close</button>
         </div>
       </div>
