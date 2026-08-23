@@ -241,6 +241,10 @@ const App = {
     if (reportsBtn && reportsMenu) {
       reportsBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+        // Close other dropdowns if open
+        document.getElementById('moreMenuDropdown')?.classList.add('hidden');
+        document.getElementById('moreMenuBtn')?.setAttribute('aria-expanded', 'false');
+
         const isHidden = reportsMenu.classList.toggle('hidden');
         reportsBtn.setAttribute('aria-expanded', String(!isHidden));
         reportsChevron?.classList.toggle('rotate-180', !isHidden);
@@ -255,6 +259,30 @@ const App = {
       });
     }
 
+    // More Options Overflow Menu Toggle
+    const moreBtn = document.getElementById('moreMenuBtn');
+    const moreMenu = document.getElementById('moreMenuDropdown');
+
+    if (moreBtn && moreMenu) {
+      moreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Close reports dropdown if open
+        reportsMenu?.classList.add('hidden');
+        reportsBtn?.setAttribute('aria-expanded', 'false');
+        reportsChevron?.classList.remove('rotate-180');
+
+        const isHidden = moreMenu.classList.toggle('hidden');
+        moreBtn.setAttribute('aria-expanded', String(!isHidden));
+      });
+
+      moreMenu.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          moreMenu.classList.add('hidden');
+          moreBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }
+
     // Close menus and modals on click outside
     document.addEventListener('click', (e) => {
       if (reportsMenu && !reportsMenu.classList.contains('hidden')) {
@@ -262,6 +290,12 @@ const App = {
           reportsMenu.classList.add('hidden');
           reportsBtn?.setAttribute('aria-expanded', 'false');
           reportsChevron?.classList.remove('rotate-180');
+        }
+      }
+      if (moreMenu && !moreMenu.classList.contains('hidden')) {
+        if (!document.getElementById('moreMenuContainer')?.contains(e.target)) {
+          moreMenu.classList.add('hidden');
+          moreBtn?.setAttribute('aria-expanded', 'false');
         }
       }
     });
@@ -284,6 +318,10 @@ const App = {
           reportsBtn?.setAttribute('aria-expanded', 'false');
           reportsChevron?.classList.remove('rotate-180');
         }
+        if (moreMenu && !moreMenu.classList.contains('hidden')) {
+          moreMenu.classList.add('hidden');
+          moreBtn?.setAttribute('aria-expanded', 'false');
+        }
       }
     });
 
@@ -299,7 +337,7 @@ const App = {
     });
 
     document.getElementById('clearAuditBtn').addEventListener('click', async () => {
-      if (confirm('Are you sure you want to clear the safety audit log for this check?')) {
+      if (confirm('Clear the audit log for the current check? This action cannot be undone.')) {
         await db.clearAuditEntriesForCheck(this.activeCheck.id);
         await this.renderAuditTab();
         this.showToast('Audit entries cleared for this check only.', 'success');
@@ -307,11 +345,11 @@ const App = {
     });
 
     // Backup & Restore
-    document.getElementById('exportBackupBtn').addEventListener('click', () => this.exportBackup());
-    document.getElementById('importBackupBtn').addEventListener('click', () => {
+    document.getElementById('exportBackupBtn')?.addEventListener('click', () => this.exportBackup());
+    document.getElementById('importBackupBtn')?.addEventListener('click', () => {
       document.getElementById('backupFileInput').click();
     });
-    document.getElementById('backupFileInput').addEventListener('change', (e) => this.importBackup(e));
+    document.getElementById('backupFileInput')?.addEventListener('change', (e) => this.importBackup(e));
   },
 
   switchToTab(tabName) {
@@ -1391,6 +1429,7 @@ ${dsrHTML}
     if (document.getElementById('addDefectBtn')) document.getElementById('addDefectBtn').disabled = !isWritable;
     if (document.getElementById('closeCheckBtn')) document.getElementById('closeCheckBtn').disabled = !isWritable;
     if (document.getElementById('saveHandoverBtn')) document.getElementById('saveHandoverBtn').disabled = !isWritable;
+    if (document.getElementById('importBackupBtn')) document.getElementById('importBackupBtn').disabled = !isWritable;
 
     if (document.getElementById('tab-dashboard').classList.contains('hidden') === false) {
       this.refreshDashboard();
