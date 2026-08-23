@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Rano Air AMO Check Progress Tracker Dashboard - Nnamdi Azikiwe International Airport (NAIA)">
   <title>Rano Air Check Progress Tracker</title>
-  <link rel="manifest" href="./assets/manifest-BdvM-eSP.json">
+  <link rel="manifest" href="./assets/manifest-BdvM-eSP.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -54,7 +54,7 @@
   <div class="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6 no-print hidden" id="appShell">
     
     <!-- HEADER BAR -->
-    <header class="glass-card flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+    <header class="glass-card flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative z-40">
       <div class="flex items-center gap-4">
         <div class="flex items-center gap-2 shrink-0 hidden sm:flex">
           <img src="./assets/rano-bird-Cjd3-DHK.png" alt="Rano Air Logo" class="h-12 w-auto object-contain" />
@@ -78,8 +78,31 @@
       <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 border-slate-200 pt-3 lg:pt-0">
         <div class="flex items-center gap-2">
           <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="newCheckBtn">+ Initialize Check</button>
-          <button class="btn-secondary !py-2 !px-3 text-xs text-rose-700 hover:text-rose-900 hover:bg-rose-50" id="confirmLogoutBtn">Logout</button>
           <div class="rounded-full border border-emerald-300 px-3 py-1 text-xs font-semibold text-emerald-800 bg-emerald-50" id="saveStatusIndicator">✓ Saved</div>
+
+          <!-- More Options Dropdown -->
+          <div class="relative inline-block text-left" id="moreMenuContainer">
+            <button type="button" class="btn-secondary !py-2 !px-3 text-xs font-bold flex items-center gap-1.5" id="moreMenuBtn" aria-haspopup="true" aria-expanded="false" title="More Options">
+              <span>⋮ More</span>
+            </button>
+            <div id="moreMenuDropdown" class="dropdown-menu dropdown-menu-right hidden" role="menu" aria-orientation="vertical" aria-labelledby="moreMenuBtn">
+              <div class="py-1" role="none">
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="exportBackupBtn" role="menuitem">
+                  <span class="text-base">💾</span>
+                  <span>Export Backup (JSON)</span>
+                </button>
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="importBackupBtn" role="menuitem">
+                  <span class="text-base">📤</span>
+                  <span>Restore Backup</span>
+                </button>
+                <div class="dropdown-divider"></div>
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left text-rose-700 hover:text-rose-900 hover:bg-rose-50 font-bold" id="confirmLogoutBtn" role="menuitem">
+                  <span class="text-base">🔐</span>
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="flex items-center gap-3 bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-xl">
@@ -89,9 +112,9 @@
           </div>
           <select id="userSwitcher" class="form-select text-xs !py-1 !px-2 bg-white border-slate-300 rounded-lg cursor-pointer text-slate-900" style="width: auto;">
             <option value="manager">Line Maintenance Manager</option>
-            <option value="engr1">Engr. Musa Ibrahim</option>
-            <option value="engr2">Engr. Fatima Yusuf</option>
-            <option value="cert1">Certifier Jatau Usman</option>
+            <option value="LBMM">LBMM (Manager)</option>
+            <option value="MCC">MCC (Manager)</option>
+            <option value="DCA">DCA (Manager)</option>
           </select>
         </div>
       </div>
@@ -135,10 +158,7 @@
         <p class="text-3xl font-black m-0 text-amber-700" id="openTasksCount">0</p>
       </div>
       <div class="glass-card-sm flex flex-col justify-between">
-        <div class="flex justify-between items-center">
-          <h2 class="text-slate-600 text-xs font-bold m-0 uppercase tracking-wider">Overall Progress</h2>
-          <button class="btn-danger !py-1 !px-2 text-[10px] font-bold" id="addDefectDockBtn">+ Defect</button>
-        </div>
+        <h2 class="text-slate-600 text-xs font-bold m-0 mb-1 uppercase tracking-wider">Overall Progress</h2>
         <p class="text-3xl font-black m-0 text-[#A50050]" id="overallPercentage">0%</p>
       </div>
     </section>
@@ -199,21 +219,46 @@
       </div>
 
       <!-- Action Buttons Bar -->
-      <div class="glass-card p-4 flex flex-wrap items-center gap-3">
-        <div class="flex flex-wrap items-center gap-2">
-          <button class="btn-primary flex items-center gap-2" id="generateDsrBtn">Preview DSR</button>
-          <button class="btn-primary flex items-center gap-2 !from-emerald-600 !to-emerald-800 hover:!from-emerald-500 hover:!to-emerald-700" id="printDsrBtn">Print DSR (A4)</button>
-          <button class="btn-secondary flex items-center gap-2" id="saveDsrDownloadsBtnMain">Save PDF (Downloads)</button>
-          <button class="btn-secondary flex items-center gap-2" id="saveDsrDocumentsBtnMain">Save PDF (Documents)</button>
-          <button class="btn-secondary flex items-center gap-2 text-xs" id="saveDsrHtmlBtn">Save HTML</button>
+      <div class="glass-card p-4 flex flex-wrap items-center gap-3 relative z-30 overflow-visible">
+        <!-- Reports Dropdown -->
+        <div class="relative inline-block text-left" id="reportsDropdownContainer">
+          <button type="button" class="btn-primary flex items-center gap-2" id="reportsDropdownBtn" aria-haspopup="true" aria-expanded="false">
+            <span>📊 Reports</span>
+            <svg class="w-4 h-4 ml-1 transition-transform duration-200" id="reportsDropdownChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="reportsDropdownMenu" class="dropdown-menu hidden" role="menu" aria-orientation="vertical" aria-labelledby="reportsDropdownBtn">
+            <div class="py-1" role="none">
+              <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="generateDsrBtn" role="menuitem">
+                <span class="text-base">👁️</span>
+                <span class="font-medium">Preview DSR</span>
+              </button>
+              <div class="dropdown-divider"></div>
+              <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="printDsrBtn" role="menuitem">
+                <span class="text-base">🖨️</span>
+                <span>Print DSR (A4)</span>
+              </button>
+              <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="saveDsrDownloadsBtnMain" role="menuitem">
+                <span class="text-base">📥</span>
+                <span>Save PDF (Downloads)</span>
+              </button>
+              <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="saveDsrDocumentsBtnMain" role="menuitem">
+                <span class="text-base">📁</span>
+                <span>Save PDF (Documents)</span>
+              </button>
+              <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="saveDsrHtmlBtn" role="menuitem">
+                <span class="text-base">🌐</span>
+                <span>Save HTML</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="h-6 w-[1px] bg-slate-300 hidden sm:block mx-1"></div>
 
         <div class="flex flex-wrap items-center gap-2">
           <button class="btn-danger flex items-center gap-1.5" id="addDefectBtn">Log Non-Routine Defect</button>
-          <button class="btn-secondary text-xs" id="exportBackupBtn">Export Backup</button>
-          <button class="btn-secondary text-xs" id="importBackupBtn">Restore Backup</button>
         </div>
 
         <button class="btn-danger !from-rose-700 !to-rose-900 ml-auto text-xs font-bold" id="closeCheckBtn">Complete Check</button>
@@ -250,7 +295,6 @@
           <p class="text-xs text-slate-600 mt-1 m-0">Roster of engineers and certifying staff assigned to maintenance work cards.</p>
         </div>
         <div class="flex items-center gap-2">
-          <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="backToDashFromEng">← Back to Dashboard</button>
           <button class="btn-primary !py-2 !px-4 text-xs font-bold" id="addEngineerBtn">+ Add Personnel</button>
         </div>
       </div>
@@ -282,7 +326,6 @@
           <p class="text-xs text-slate-600 mt-1 m-0">Log critical maintenance findings, deferred work cards, and handover instructions.</p>
         </div>
         <div class="flex items-center gap-2">
-          <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="backToDashFromHandover">← Back to Dashboard</button>
           <button class="btn-primary !py-2 !px-4 text-xs font-bold" id="saveHandoverBtn">Save Handover Notes</button>
         </div>
       </div>
@@ -309,8 +352,7 @@
           <p class="text-xs text-slate-600 mt-1 m-0">Immutable record of all maintenance card status changes and user events.</p>
         </div>
         <div class="flex items-center gap-2">
-          <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="backToDashFromAudit">← Back to Dashboard</button>
-          <button class="btn-secondary !py-2 !px-4 text-xs text-rose-700 hover:text-rose-900" id="clearAuditBtn">Wipe Audit Log</button>
+          <button class="text-xs text-slate-400 hover:text-rose-700 hover:underline px-2 py-1 transition-colors font-medium" id="clearAuditBtn" title="Clear safety audit log for current check">Wipe Audit Log</button>
         </div>
       </div>
       <div class="overflow-x-auto">
@@ -517,17 +559,32 @@
         </div>
         <div class="flex flex-wrap gap-2 justify-end items-center">
           <button class="btn-primary !py-2 !px-4 flex items-center gap-2 text-xs font-bold !from-emerald-600 !to-emerald-800 hover:!from-emerald-500 hover:!to-emerald-700" id="printDsrTriggerBtn">
-            Print DSR (A4)
+            🖨️ Print DSR (A4)
           </button>
-          <button class="btn-primary !py-2 !px-3 text-xs flex items-center gap-1.5 font-bold" id="saveDsrDownloadsBtn">
-            Save PDF (Downloads)
-          </button>
-          <button class="btn-secondary !py-2 !px-3 text-xs flex items-center gap-1.5 font-bold" id="saveDsrDocumentsBtn">
-            Save PDF (Documents)
-          </button>
-          <button class="btn-secondary !py-2 !px-3 text-xs flex items-center gap-1.5" id="saveDsrHtmlModalBtn">
-            Save HTML
-          </button>
+
+          <!-- Modal Save Dropdown -->
+          <div class="relative inline-block text-left" id="modalSaveDropdownContainer">
+            <button type="button" class="btn-secondary !py-2 !px-3 text-xs font-bold flex items-center gap-1.5" id="modalSaveDropdownBtn" aria-haspopup="true" aria-expanded="false">
+              <span>💾 Save As ▾</span>
+            </button>
+            <div id="modalSaveDropdownMenu" class="dropdown-menu dropdown-menu-right hidden" role="menu" aria-orientation="vertical" aria-labelledby="modalSaveDropdownBtn">
+              <div class="py-1" role="none">
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="saveDsrDownloadsBtn" role="menuitem">
+                  <span class="text-base">📥</span>
+                  <span>PDF (Downloads)</span>
+                </button>
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="saveDsrDocumentsBtn" role="menuitem">
+                  <span class="text-base">📁</span>
+                  <span>PDF (Documents)</span>
+                </button>
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="saveDsrHtmlModalBtn" role="menuitem">
+                  <span class="text-base">🌐</span>
+                  <span>Standalone HTML</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <button class="btn-secondary !py-2 !px-3 text-xs font-bold" id="closeDsrModalBtn">✕ Close</button>
         </div>
       </div>
@@ -540,7 +597,7 @@
   <footer class="text-center text-xs text-slate-300 py-6 no-print border-t border-white/10 mt-12">
     <p class="m-0" id="versionFooterText">Rano Air AMO Check Progress Tracker v2.0.0 | Last Updated: 20 Aug 2026</p>
   </footer>
-
+
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {

@@ -63,12 +63,14 @@ const App = {
 
   bindEvents() {
     // User Switcher
-    document.getElementById('userSwitcher').addEventListener('change', (e) => {
+    document.getElementById('userSwitcher')?.addEventListener('change', (e) => {
       const val = e.target.value;
       if (val === 'manager') {
         this.currentUser = { name: 'Line Manager', role: 'manager' };
+      } else if (AUTH_USERS[val]) {
+        this.currentUser = { name: AUTH_USERS[val].displayName, role: AUTH_USERS[val].role };
       } else {
-        const p = this.personnel.find(x => x.id === parseInt(val) || x.staffId === val);
+        const p = this.personnel.find(x => x.id === parseInt(val) || x.staffId === val || x.name === val);
         if (p) {
           this.currentUser = { name: p.name, role: p.role };
         }
@@ -96,14 +98,6 @@ const App = {
         document.getElementById(`tab-${activeSection}`).classList.remove('hidden');
         
         this.renderTabContent(activeSection);
-      });
-    });
-
-    // Back to Dashboard Buttons
-    const backBtns = ['backToDashFromEng', 'backToDashFromHandover', 'backToDashFromAudit'];
-    backBtns.forEach(btnId => {
-      document.getElementById(btnId)?.addEventListener('click', () => {
-        this.switchToTab('dashboard');
       });
     });
 
@@ -175,11 +169,6 @@ const App = {
       document.getElementById('defectModal').classList.remove('hidden');
     });
 
-    document.getElementById('addDefectDockBtn')?.addEventListener('click', () => {
-      this.populateDefectAssigneeSelect();
-      document.getElementById('defectModal').classList.remove('hidden');
-    });
-
     document.getElementById('closeDefectModalBtn')?.addEventListener('click', () => {
       document.getElementById('defectModal').classList.add('hidden');
     });
@@ -246,19 +235,128 @@ const App = {
       document.getElementById('dsrPreviewModal').classList.add('hidden');
     });
 
+    // Reports Dropdown Toggle
+    const reportsBtn = document.getElementById('reportsDropdownBtn');
+    const reportsMenu = document.getElementById('reportsDropdownMenu');
+    const reportsChevron = document.getElementById('reportsDropdownChevron');
+
+    if (reportsBtn && reportsMenu) {
+      reportsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Close other dropdowns if open
+        document.getElementById('moreMenuDropdown')?.classList.add('hidden');
+        document.getElementById('moreMenuBtn')?.setAttribute('aria-expanded', 'false');
+
+        const isHidden = reportsMenu.classList.toggle('hidden');
+        reportsBtn.setAttribute('aria-expanded', String(!isHidden));
+        reportsChevron?.classList.toggle('rotate-180', !isHidden);
+      });
+
+      reportsMenu.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          reportsMenu.classList.add('hidden');
+          reportsBtn.setAttribute('aria-expanded', 'false');
+          reportsChevron?.classList.remove('rotate-180');
+        });
+      });
+    }
+
+    // More Options Overflow Menu Toggle
+    const moreBtn = document.getElementById('moreMenuBtn');
+    const moreMenu = document.getElementById('moreMenuDropdown');
+
+    if (moreBtn && moreMenu) {
+      moreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Close reports dropdown if open
+        reportsMenu?.classList.add('hidden');
+        reportsBtn?.setAttribute('aria-expanded', 'false');
+        reportsChevron?.classList.remove('rotate-180');
+
+        const isHidden = moreMenu.classList.toggle('hidden');
+        moreBtn.setAttribute('aria-expanded', String(!isHidden));
+      });
+
+      moreMenu.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          moreMenu.classList.add('hidden');
+          moreBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }
+
+    // Modal Save Dropdown Toggle
+    const modalSaveBtn = document.getElementById('modalSaveDropdownBtn');
+    const modalSaveMenu = document.getElementById('modalSaveDropdownMenu');
+
+    if (modalSaveBtn && modalSaveMenu) {
+      modalSaveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = modalSaveMenu.classList.toggle('hidden');
+        modalSaveBtn.setAttribute('aria-expanded', String(!isHidden));
+      });
+
+      modalSaveMenu.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          modalSaveMenu.classList.add('hidden');
+          modalSaveBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }
+
+    // Close menus and modals on click outside
+    document.addEventListener('click', (e) => {
+      if (reportsMenu && !reportsMenu.classList.contains('hidden')) {
+        if (!document.getElementById('reportsDropdownContainer')?.contains(e.target)) {
+          reportsMenu.classList.add('hidden');
+          reportsBtn?.setAttribute('aria-expanded', 'false');
+          reportsChevron?.classList.remove('rotate-180');
+        }
+      }
+      if (moreMenu && !moreMenu.classList.contains('hidden')) {
+        if (!document.getElementById('moreMenuContainer')?.contains(e.target)) {
+          moreMenu.classList.add('hidden');
+          moreBtn?.setAttribute('aria-expanded', 'false');
+        }
+      }
+      if (modalSaveMenu && !modalSaveMenu.classList.contains('hidden')) {
+        if (!document.getElementById('modalSaveDropdownContainer')?.contains(e.target)) {
+          modalSaveMenu.classList.add('hidden');
+          modalSaveBtn?.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
+
     // Close modals on backdrop click
     document.querySelectorAll('.modal-overlay').forEach(modal => {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
           modal.classList.add('hidden');
+          if (modalSaveMenu) {
+            modalSaveMenu.classList.add('hidden');
+            modalSaveBtn?.setAttribute('aria-expanded', 'false');
+          }
         }
       });
     });
 
-    // Close modals on Escape key press
+    // Close modals and dropdowns on Escape key press
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+        if (reportsMenu && !reportsMenu.classList.contains('hidden')) {
+          reportsMenu.classList.add('hidden');
+          reportsBtn?.setAttribute('aria-expanded', 'false');
+          reportsChevron?.classList.remove('rotate-180');
+        }
+        if (moreMenu && !moreMenu.classList.contains('hidden')) {
+          moreMenu.classList.add('hidden');
+          moreBtn?.setAttribute('aria-expanded', 'false');
+        }
+        if (modalSaveMenu && !modalSaveMenu.classList.contains('hidden')) {
+          modalSaveMenu.classList.add('hidden');
+          modalSaveBtn?.setAttribute('aria-expanded', 'false');
+        }
       }
     });
 
@@ -274,7 +372,7 @@ const App = {
     });
 
     document.getElementById('clearAuditBtn').addEventListener('click', async () => {
-      if (confirm('Are you sure you want to clear the safety audit log for this check?')) {
+      if (confirm('Clear the audit log for the current check? This action cannot be undone.')) {
         await db.clearAuditEntriesForCheck(this.activeCheck.id);
         await this.renderAuditTab();
         this.showToast('Audit entries cleared for this check only.', 'success');
@@ -282,11 +380,11 @@ const App = {
     });
 
     // Backup & Restore
-    document.getElementById('exportBackupBtn').addEventListener('click', () => this.exportBackup());
-    document.getElementById('importBackupBtn').addEventListener('click', () => {
+    document.getElementById('exportBackupBtn')?.addEventListener('click', () => this.exportBackup());
+    document.getElementById('importBackupBtn')?.addEventListener('click', () => {
       document.getElementById('backupFileInput').click();
     });
-    document.getElementById('backupFileInput').addEventListener('change', (e) => this.importBackup(e));
+    document.getElementById('backupFileInput')?.addEventListener('change', (e) => this.importBackup(e));
   },
 
   switchToTab(tabName) {
@@ -315,20 +413,43 @@ const App = {
     this.personnel = await db.getAllPersonnel();
     this.restoreDraftState();
 
-    // Default personnel seeding if empty
-    if (this.personnel.length === 0) {
-      await db.addPerson({ name: 'Engr. Musa Ibrahim', staffId: 'RAN/AMO/E01', role: 'engineer' });
-      await db.addPerson({ name: 'Engr. Fatima Yusuf', staffId: 'RAN/AMO/E02', role: 'engineer' });
-      await db.addPerson({ name: 'Certifier Jatau Usman', staffId: 'RAN/AMO/C01', role: 'certifier' });
+    // Default personnel seeding / cleanup of legacy names
+    const legacyNames = ['Engr. Musa Ibrahim', 'Engr. Fatima Yusuf', 'Certifier Jatau Usman'];
+    const hasLegacy = this.personnel.some(p => legacyNames.includes(p.name));
+
+    if (this.personnel.length === 0 || hasLegacy) {
+      if (hasLegacy && db.db) {
+        for (const p of this.personnel) {
+          if (legacyNames.includes(p.name)) {
+            const tx = db.db.transaction('personnel', 'readwrite');
+            tx.objectStore('personnel').delete(p.id);
+          }
+        }
+      }
+      const existing = await db.getAllPersonnel();
+      if (existing.length === 0) {
+        await db.addPerson({ name: 'LBMM', staffId: 'RAN/AMO/LBMM', role: 'manager' });
+        await db.addPerson({ name: 'MCC', staffId: 'RAN/AMO/MCC', role: 'manager' });
+        await db.addPerson({ name: 'DCA', staffId: 'RAN/AMO/DCA', role: 'manager' });
+      }
       this.personnel = await db.getAllPersonnel();
     }
 
     // Populate switcher select
     const switcher = document.getElementById('userSwitcher');
-    switcher.innerHTML = `<option value="manager">Line Maintenance Manager</option>`;
-    this.personnel.forEach(p => {
-      switcher.innerHTML += `<option value="${p.id}">${p.name} (${p.role.toUpperCase()})</option>`;
-    });
+    if (switcher) {
+      switcher.innerHTML = `
+        <option value="manager">Line Maintenance Manager</option>
+        <option value="LBMM">LBMM (Manager)</option>
+        <option value="MCC">MCC (Manager)</option>
+        <option value="DCA">DCA (Manager)</option>
+      `;
+      this.personnel.forEach(p => {
+        if (!['LBMM', 'MCC', 'DCA', 'Line Manager'].includes(p.name)) {
+          switcher.innerHTML += `<option value="${p.id}">${p.name} (${p.role.toUpperCase()})</option>`;
+        }
+      });
+    }
 
     if (this.activeCheck) {
       this.tasks = await db.getTasksForCheck(this.activeCheck.id);
@@ -864,8 +985,8 @@ const App = {
     const select = document.getElementById('defectAssignee');
     if (!select) return;
     select.innerHTML = '<option value="">Unassigned</option>';
-    this.personnel.filter(p => p.role === 'engineer').forEach(eng => {
-      select.innerHTML += `<option value="${eng.name}">${eng.name}</option>`;
+    this.personnel.forEach(p => {
+      select.innerHTML += `<option value="${p.name}">${p.name} (${p.role.toUpperCase()})</option>`;
     });
   },
 
@@ -918,10 +1039,19 @@ const App = {
       
       // Update Personnel switcher list
       const switcher = document.getElementById('userSwitcher');
-      switcher.innerHTML = `<option value="manager">Line Maintenance Manager</option>`;
-      this.personnel.forEach(p => {
-        switcher.innerHTML += `<option value="${p.id}">${p.name} (${p.role.toUpperCase()})</option>`;
-      });
+      if (switcher) {
+        switcher.innerHTML = `
+          <option value="manager">Line Maintenance Manager</option>
+          <option value="LBMM">LBMM (Manager)</option>
+          <option value="MCC">MCC (Manager)</option>
+          <option value="DCA">DCA (Manager)</option>
+        `;
+        this.personnel.forEach(p => {
+          if (!['LBMM', 'MCC', 'DCA', 'Line Manager'].includes(p.name)) {
+            switcher.innerHTML += `<option value="${p.id}">${p.name} (${p.role.toUpperCase()})</option>`;
+          }
+        });
+      }
     } catch (err) {
       this.showToast('Staff ID already registered.', 'error');
     }
@@ -1366,6 +1496,7 @@ ${dsrHTML}
     if (document.getElementById('addDefectBtn')) document.getElementById('addDefectBtn').disabled = !isWritable;
     if (document.getElementById('closeCheckBtn')) document.getElementById('closeCheckBtn').disabled = !isWritable;
     if (document.getElementById('saveHandoverBtn')) document.getElementById('saveHandoverBtn').disabled = !isWritable;
+    if (document.getElementById('importBackupBtn')) document.getElementById('importBackupBtn').disabled = !isWritable;
 
     if (document.getElementById('tab-dashboard').classList.contains('hidden') === false) {
       this.refreshDashboard();
