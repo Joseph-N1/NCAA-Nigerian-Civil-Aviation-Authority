@@ -270,6 +270,28 @@ div[id$="Modal"]:not(.hidden) .modal-card-inner {
     @apply text-[#9B0056] border-[#9B0056] bg-white font-extrabold shadow-sm;
     border-bottom-width: 3px;
   }
+
+  /* ── Dropdown and Overflow Menus ── */
+  .dropdown-menu {
+    @apply absolute left-0 mt-2 w-64 rounded-xl bg-white border border-slate-200 shadow-2xl z-50 py-1.5 focus:outline-none;
+    animation: fadeIn 0.15s ease-out;
+  }
+
+  .dropdown-menu-right {
+    @apply right-0 left-auto;
+  }
+
+  .dropdown-item {
+    @apply px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors duration-150 cursor-pointer font-medium;
+  }
+
+  .dropdown-item:hover {
+    color: #9B0056;
+  }
+
+  .dropdown-divider {
+    @apply my-1 border-t border-slate-100;
+  }
 }
 
 /* ── SVG Charts styling ── */

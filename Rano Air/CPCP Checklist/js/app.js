@@ -233,6 +233,39 @@ const App = {
       document.getElementById('dsrPreviewModal').classList.add('hidden');
     });
 
+    // Reports Dropdown Toggle
+    const reportsBtn = document.getElementById('reportsDropdownBtn');
+    const reportsMenu = document.getElementById('reportsDropdownMenu');
+    const reportsChevron = document.getElementById('reportsDropdownChevron');
+
+    if (reportsBtn && reportsMenu) {
+      reportsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = reportsMenu.classList.toggle('hidden');
+        reportsBtn.setAttribute('aria-expanded', String(!isHidden));
+        reportsChevron?.classList.toggle('rotate-180', !isHidden);
+      });
+
+      reportsMenu.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          reportsMenu.classList.add('hidden');
+          reportsBtn.setAttribute('aria-expanded', 'false');
+          reportsChevron?.classList.remove('rotate-180');
+        });
+      });
+    }
+
+    // Close menus and modals on click outside
+    document.addEventListener('click', (e) => {
+      if (reportsMenu && !reportsMenu.classList.contains('hidden')) {
+        if (!document.getElementById('reportsDropdownContainer')?.contains(e.target)) {
+          reportsMenu.classList.add('hidden');
+          reportsBtn?.setAttribute('aria-expanded', 'false');
+          reportsChevron?.classList.remove('rotate-180');
+        }
+      }
+    });
+
     // Close modals on backdrop click
     document.querySelectorAll('.modal-overlay').forEach(modal => {
       modal.addEventListener('click', (e) => {
@@ -242,10 +275,15 @@ const App = {
       });
     });
 
-    // Close modals on Escape key press
+    // Close modals and dropdowns on Escape key press
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+        if (reportsMenu && !reportsMenu.classList.contains('hidden')) {
+          reportsMenu.classList.add('hidden');
+          reportsBtn?.setAttribute('aria-expanded', 'false');
+          reportsChevron?.classList.remove('rotate-180');
+        }
       }
     });
 

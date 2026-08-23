@@ -196,12 +196,39 @@
 
       <!-- Action Buttons Bar -->
       <div class="glass-card p-4 flex flex-wrap items-center gap-3">
-        <div class="flex flex-wrap items-center gap-2">
-          <button class="btn-primary flex items-center gap-2" id="generateDsrBtn">Preview DSR</button>
-          <button class="btn-primary flex items-center gap-2 !from-emerald-600 !to-emerald-800 hover:!from-emerald-500 hover:!to-emerald-700" id="printDsrBtn">Print DSR (A4)</button>
-          <button class="btn-secondary flex items-center gap-2" id="saveDsrDownloadsBtnMain">Save PDF (Downloads)</button>
-          <button class="btn-secondary flex items-center gap-2" id="saveDsrDocumentsBtnMain">Save PDF (Documents)</button>
-          <button class="btn-secondary flex items-center gap-2 text-xs" id="saveDsrHtmlBtn">Save HTML</button>
+        <!-- Reports Dropdown -->
+        <div class="relative inline-block text-left" id="reportsDropdownContainer">
+          <button type="button" class="btn-primary flex items-center gap-2" id="reportsDropdownBtn" aria-haspopup="true" aria-expanded="false">
+            <span>📊 Reports</span>
+            <svg class="w-4 h-4 ml-1 transition-transform duration-200" id="reportsDropdownChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="reportsDropdownMenu" class="dropdown-menu hidden" role="menu" aria-orientation="vertical" aria-labelledby="reportsDropdownBtn">
+            <div class="py-1" role="none">
+              <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="generateDsrBtn" role="menuitem">
+                <span class="text-base">👁️</span>
+                <span class="font-medium">Preview DSR</span>
+              </button>
+              <div class="dropdown-divider"></div>
+              <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="printDsrBtn" role="menuitem">
+                <span class="text-base">🖨️</span>
+                <span>Print DSR (A4)</span>
+              </button>
+              <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="saveDsrDownloadsBtnMain" role="menuitem">
+                <span class="text-base">📥</span>
+                <span>Save PDF (Downloads)</span>
+              </button>
+              <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="saveDsrDocumentsBtnMain" role="menuitem">
+                <span class="text-base">📁</span>
+                <span>Save PDF (Documents)</span>
+              </button>
+              <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="saveDsrHtmlBtn" role="menuitem">
+                <span class="text-base">🌐</span>
+                <span>Save HTML</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="h-6 w-[1px] bg-slate-300 hidden sm:block mx-1"></div>
