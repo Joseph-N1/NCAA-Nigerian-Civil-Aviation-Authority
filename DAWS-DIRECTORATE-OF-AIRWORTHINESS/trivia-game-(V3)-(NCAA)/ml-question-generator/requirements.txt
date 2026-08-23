@@ -1,0 +1,14 @@
+# Requirements for ML PDF Question Generator
+# ==========================================
+
+# Core dependencies (required)
+PyMuPDF
+Flask
+flask-cors
+
+# ML dependencies for future semantic search (optional)
+# Install with: pip install -r requirements-ml.txt
+# numpy
+# scikit-learn
+# sentence-transformers
+# faiss-cpu

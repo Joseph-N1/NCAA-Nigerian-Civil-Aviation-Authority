@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia Questions</title>
+    <link rel="stylesheet" href="styles/questions.css">
+</head>
+<body>
+    <div class="container">
+        <header class="quiz-header">
+            <div class="header-links">
+                <a href="/quiz" class="back-btn">&larr; Select Different PDF</a>
+                <a href="/" class="home-btn">Home</a>
+            </div>
+            <h1 id="quiz-title">Loading Questions...</h1>
+            <div id="quiz-stats" class="quiz-stats"></div>
+        </header>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Generating questions from your PDF...</p>
+            <p class="loading-tip">This may take a moment for larger documents</p>
+        </div>
+        
+        <div id="error-message" class="error-message" style="display: none;"></div>
+        
+        <div id="questions-container" class="questions-container"></div>
+        
+        <div id="results-section" class="results-section" style="display: none;">
+            <h2>Quiz Complete!</h2>
+            <div id="score-display" class="score-display"></div>
+            <button id="retry-btn" class="retry-btn">Retry Quiz</button>
+            <a href="/quiz" class="new-quiz-btn">Start New Quiz</a>
+            <a href="/" class="new-quiz-btn home-cta">Go Home</a>
+        </div>
+    </div>
+    <script src="js/questions.js"></script>
+</body>
+</html>

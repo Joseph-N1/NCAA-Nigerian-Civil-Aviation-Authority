@@ -1,0 +1,15 @@
+# ML Dependencies for Future Semantic Search Enhancements
+# Install with: pip install -r requirements-ml.txt
+# ========================================================
+
+# Numerical computing
+numpy>=1.21.0
+
+# Machine learning utilities
+scikit-learn>=1.0.0
+
+# Sentence embeddings for semantic search
+sentence-transformers>=2.2.0
+
+# Fast similarity search
+faiss-cpu>=1.7.0

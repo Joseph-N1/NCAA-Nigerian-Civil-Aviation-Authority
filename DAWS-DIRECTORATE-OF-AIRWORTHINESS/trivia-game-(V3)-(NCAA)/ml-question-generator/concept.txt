@@ -1,0 +1,31 @@
+PROJECT CONCEPT
+NCAA Regulatory Intelligence and Training Platform
+
+This project has two major features built on top of a database created from NCAA regulatory documents and databooks.
+
+FEATURE 1: FROM TRIVIA GAME TO A PROPER RAG-BASED REGULATORY QUESTION-ANSWERING SYSTEM
+
+The project originally started as a trivia-style idea: generate questions from aviation regulatory PDFs and let users test what they know. As development went deeper, it became clear that the real value was bigger than quiz generation alone. The NCAA documents contain dense, highly structured regulatory knowledge that engineers, inspectors, trainees, and compliance teams need to access accurately.
+
+Because of that, the project evolved into a Retrieval-Augmented Generation (RAG) system. Instead of answering questions from guesswork or generic model knowledge, the system first searches a database built from NCAA source materials. That database was created by extracting text from the documents, breaking the content into meaningful chunks, storing structured regulatory information, generating embeddings, and indexing the content for semantic search.
+
+When a user asks a question, the system retrieves the most relevant sections from the NCAA database, identifies the likely regulatory domain, checks for subcontext where necessary, and then produces an answer grounded in the retrieved material. This makes the output more accurate, more traceable, and more useful for real regulatory work. The goal is not just to "answer a question," but to answer it with context, confidence, and a clear connection to the original NCAA material.
+
+In short, the first major feature is a regulatory intelligence engine: a system that turns NCAA databooks into a searchable knowledge base that can provide accurate, context-aware answers to user questions.
+
+FEATURE 2: QUIZ AND TRAINING GENERATION FROM THE NCAA REGULATORY DATABASE
+
+The second major feature is the automated quiz-generation system. Using the same NCAA regulatory database, the platform can generate structured multiple-choice quizzes directly from the source materials. These quizzes are not random entertainment questions. They are built from real regulatory definitions, requirements, responsibilities, procedures, and operational scenarios found in the NCAA documents.
+
+This feature makes the platform useful as a training and assessment tool. NCAA can use it to support onboarding for new staff, reinforce regulatory understanding during training programs, and help experienced engineers stay sharp through regular review and self-testing. Because the questions come from the actual regulatory database, the training stays aligned with official material rather than depending on manually written question banks alone.
+
+This creates long-term value in two ways. First, it reduces the effort required to produce fresh training content from a very large body of regulations. Second, it helps build a culture of continuous regulatory learning by making it easier for personnel to practice, review, and retain critical knowledge.
+
+OVERALL VISION
+
+Together, these two features make the project more than a trivia app. It becomes a regulatory knowledge platform with two connected strengths:
+
+1. A RAG-based question-answering system that helps users get accurate answers from NCAA regulatory documents.
+2. A quiz-generation and training system that helps NCAA train new people and keep current engineers knowledgeable, prepared, and compliant.
+
+The broader vision is to turn NCAA regulatory content into an intelligent, searchable, and reusable system for learning, compliance support, and operational readiness.

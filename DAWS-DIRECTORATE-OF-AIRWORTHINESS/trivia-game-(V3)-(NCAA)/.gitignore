@@ -1,0 +1,28 @@
+# Local corpora and generated indexes
+/database/
+/ml-question-generator/content_index/
+/ml-question-generator/vector_index/
+
+# Local Python environments
+/ml-question-generator/.venv/
+/ml-question-generator/.venv-runtime/
+
+# Runtime logs, progress files, and scratch output
+/ml-question-generator/progress.txt
+/ml-question-generator/startup-out.log
+/ml-question-generator/startup-err.log
+/tmp-*.txt
+/-w
+
+# Python cache
+**/__pycache__/
+*.py[cod]
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Hugging Face model cache
+/DESKTOP/NCAA-Regulatory-Desktop/hf_cache/

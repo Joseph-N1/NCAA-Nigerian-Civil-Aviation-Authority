@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NCAA Regulatory Intelligence Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body class="app-shell">
+    <header class="site-header">
+        <a class="brand-mark" href="{{ url_for('frontend_home') }}">NCAA Intelligence</a>
+        <nav class="site-nav">
+            <a href="{{ url_for('quiz_home') }}">Quiz Builder</a>
+            <a href="{{ url_for('ask_page') }}">Ask a Question</a>
+        </nav>
+    </header>
+
+    <main class="page-content">
+        <section class="hero-panel">
+            <p class="eyebrow">Regulatory Intelligence and Training Platform</p>
+            <h1>One home page for NCAA quiz generation and databook-grounded answers.</h1>
+            <p class="hero-copy">
+                This project started as a trivia concept and grew into a practical platform
+                for training, regulatory lookup, and faster access to NCAA knowledge.
+            </p>
+        </section>
+
+        <section class="feature-grid">
+            <article class="feature-card">
+                <div class="feature-tag">Feature 1</div>
+                <h2>Quiz Generation from the NCAA Database</h2>
+                <p class="feature-summary">
+                    Build databook-based quizzes for onboarding, refresher training, and
+                    keeping engineers sharp with real regulatory content.
+                </p>
+                <ul class="feature-list">
+                    <li>Generate quizzes directly from the NCAA database you assembled.</li>
+                    <li>Support training use cases for new staff and current engineers.</li>
+                    <li>Coming next: larger uploads and stronger question tuning.</li>
+                </ul>
+                <a class="primary-link" href="{{ url_for('quiz_home') }}">Open Quiz Builder</a>
+            </article>
+
+            <article class="feature-card accent-card">
+                <div class="feature-tag">Feature 2</div>
+                <h2>Ask Questions and Get Grounded Answers</h2>
+                <p class="feature-summary">
+                    Ask a regulatory question and get an answer grounded in retrieved NCAA
+                    material, with visible context and traceability.
+                </p>
+                <ul class="feature-list">
+                    <li>Use the databook-backed retrieval flow instead of generic guessing.</li>
+                    <li>See detected domain, subcontext, confidence, and supporting sources.</li>
+                    <li>Designed to surface accurate context for real regulatory lookup.</li>
+                </ul>
+                <a class="primary-link" href="{{ url_for('ask_page') }}">Open Ask Interface</a>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

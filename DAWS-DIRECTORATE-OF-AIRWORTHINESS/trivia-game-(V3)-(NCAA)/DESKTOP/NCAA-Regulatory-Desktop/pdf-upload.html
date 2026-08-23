@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select PDF - Trivia Generator</title>
+    <link rel="stylesheet" href="styles/pdf-upload.css">
+</head>
+<body>
+    <div class="container">
+        <div class="page-links">
+            <a href="/" class="page-link">Home</a>
+            <a href="/ask" class="page-link page-link-alt">Ask Questions</a>
+        </div>
+        <h1>Select a PDF to Generate Questions</h1>
+        <p class="subtitle">Choose a PDF from the database or upload your own</p>
+        
+        <div class="source-toggle">
+            <button type="button" id="btn-database" class="source-btn active">From Database</button>
+            <button type="button" id="btn-upload" class="source-btn">Upload PDF</button>
+        </div>
+        
+        <div id="database-section" class="source-section active">
+            <label for="db-pdf">Select a PDF:</label>
+            <select id="db-pdf">
+                <option value="">Loading PDFs...</option>
+            </select>
+        </div>
+        
+        <div id="upload-section" class="source-section">
+            <label for="pdf-file">Choose a PDF file:</label>
+            <input type="file" id="pdf-file" accept="application/pdf" />
+            <div id="file-name"></div>
+        </div>
+        
+        <button type="button" id="generate-btn" class="generate-btn">Generate Questions</button>
+        <div id="status-message"></div>
+    </div>
+    <script src="js/pdf-select.js"></script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+STEP-BY-STEP INSTALLATION GUIDE
+================================
+
+If you prefer manual setup instead of clicking RUN_APP.bat:
+
+STEP 1: Check Python Installation
+==================================
+1. Open Command Prompt (Windows Key + R, type "cmd", press Enter)
+2. Type: python --version
+3. You should see: Python 3.11.x (or higher)
+   If you see "not found" or "not recognized", install Python first
+
+STEP 2: Navigate to Project Folder
+===================================
+1. Open Command Prompt
+2. Navigate to where you extracted this folder
+   Example: cd Desktop\trivia-game-(V3)-(NCAA)
+3. You should be in the folder with RUN_APP.bat
+
+STEP 3: Enter ml-question-generator Folder
+=============================================
+cd ml-question-generator
+
+STEP 4: Create Virtual Environment
+===================================
+python -m venv .venv
+
+(This creates a .venv folder - wait for it to finish)
+
+STEP 5: Activate Virtual Environment
+=====================================
+On Windows:
+.venv\Scripts\activate
+
+You should see (.venv) before your command prompt
+
+STEP 6: Install Dependencies
+=============================
+pip install -r requirements.txt
+
+(This takes 2-5 minutes. You'll see lots of text. That's normal.)
+
+STEP 7: Start the App
+=====================
+python api.py
+
+You should see:
+ * Serving Flask app 'app'
+ * Running on http://127.0.0.1:5000
+
+STEP 8: Open Browser
+====================
+Open your web browser (Chrome, Firefox, Edge, Safari)
+Go to: http://127.0.0.1:5000
+
+You're done! The app is running.
+
+TO STOP THE APP:
+================
+In the Command Prompt where the app is running:
+Press: Ctrl+C
+Type: y (if prompted)
+Press: Enter
+
+RUNNING IT AGAIN LATER:
+=======================
+1. Open Command Prompt
+2. cd Desktop\trivia-game-(V3)-(NCAA)\ml-question-generator
+3. .venv\Scripts\activate
+4. python api.py
+5. Open browser to http://127.0.0.1:5000
+
+That's it! Much faster on subsequent runs (no dependency install needed).

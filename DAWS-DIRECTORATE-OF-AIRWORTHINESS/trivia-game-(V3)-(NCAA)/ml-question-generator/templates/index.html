@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ask NCAA Regulatory Questions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body class="app-shell">
+    <header class="site-header">
+        <a class="brand-mark" href="{{ url_for('frontend_home') }}">NCAA Intelligence</a>
+        <nav class="site-nav">
+            <a href="{{ url_for('frontend_home') }}">Home</a>
+            <a href="{{ url_for('quiz_home') }}">Quiz Builder</a>
+        </nav>
+    </header>
+
+    <main class="page-content ask-layout">
+        <section class="ask-shell">
+            <p class="eyebrow">Regulatory Q&amp;A</p>
+            <h1>Ask a question against your NCAA regulatory database.</h1>
+            <p class="page-intro">
+                This interface uses your retrieval pipeline to ground answers in databook-backed
+                context instead of generic model recall.
+            </p>
+
+            <div class="ask-actions">
+                <a class="ghost-link" href="{{ url_for('frontend_home') }}">Back to Home</a>
+                <a class="ghost-link" href="{{ url_for('quiz_home') }}">Go to Quiz Builder</a>
+            </div>
+
+            <div class="prompt-grid">
+                <article class="prompt-card">
+                    <p class="meta-label">Best Results</p>
+                    <p class="prompt-copy">
+                        Be specific about the requirement, release, approval, duty, record,
+                        document, or operating condition you want explained.
+                    </p>
+                </article>
+                <article class="prompt-card">
+                    <p class="meta-label">Try Asking</p>
+                    <ul class="prompt-list">
+                        <li>What conditions must be satisfied before an aircraft is returned to service?</li>
+                        <li>Who is responsible for certifying maintenance release actions?</li>
+                        <li>Which records must be completed after maintenance?</li>
+                    </ul>
+                </article>
+            </div>
+
+            <form class="ask-form" method="POST">
+                <label class="ask-label" for="question">Enter a regulatory question</label>
+                <textarea
+                    class="ask-input"
+                    id="question"
+                    name="question"
+                    placeholder="Example: What conditions must be satisfied before an aircraft can be returned to service after maintenance?"
+                    required
+                >{{ question or '' }}</textarea>
+                <button class="submit-button" type="submit">Analyze Question</button>
+            </form>
+
+            {% if error %}
+            <div class="feedback-banner">{{ error }}</div>
+            {% endif %}
+        </section>
+
+        {% if result %}
+        {% set result_tone = 'warning' if result.subcontext == 'Ambiguous' else ('caution' if result.confidence is not none and result.confidence < 0.55 else 'success') %}
+        {% set result_label = 'Ambiguity Detected' if result.subcontext == 'Ambiguous' else ('Needs Verification' if result.confidence is not none and result.confidence < 0.55 else 'Grounded Response') %}
+        <section class="result-shell result-shell-{{ result_tone }}">
+            <div class="result-header">
+                <div>
+                    <p class="meta-label">Question Reviewed</p>
+                    <h2 class="result-title">{{ question }}</h2>
+                </div>
+                <span class="status-pill status-{{ result_tone }}">{{ result_label }}</span>
+            </div>
+
+            <div class="answer-panel">
+                <p class="meta-label">Answer</p>
+                {% if result.answer_blocks %}
+                    {% for block in result.answer_blocks if block.kind == 'summary' %}
+                    <p class="answer-summary">
+                        {% for segment in block.segments %}
+                            {% if segment.type == 'reference' %}
+                            {% set ref_id = 'answer-ref-' ~ loop.index0 ~ '-' ~ block.kind ~ '-' ~ loop.index %}
+                            <span class="answer-reference answer-reference-{{ segment.kind }}" data-answer-reference>
+                                <a
+                                    class="answer-reference-link"
+                                    href="{{ segment.href }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-describedby="{{ ref_id }}"
+                                    aria-haspopup="dialog"
+                                >{{ segment.label }}</a>
+                                <span class="answer-popup" id="{{ ref_id }}" role="tooltip">
+                                    <span class="answer-popup-title">{{ segment.popup.title }}</span>
+                                    {% if segment.popup.summary %}
+                                    <span class="answer-popup-summary">{{ segment.popup.summary }}</span>
+                                    {% endif %}
+                                    {% if segment.popup.excerpt %}
+                                    <span class="answer-popup-excerpt">{{ segment.popup.excerpt }}</span>
+                                    {% endif %}
+                                    {% if segment.popup.citation %}
+                                    <span class="answer-popup-citation">{{ segment.popup.citation }}</span>
+                                    {% endif %}
+                                </span>
+                            </span>
+                            {% else %}
+                            {{ segment.text }}
+                            {% endif %}
+                        {% endfor %}
+                    </p>
+                    {% endfor %}
+
+                    {% set bullet_blocks = result.answer_blocks | selectattr('kind', 'equalto', 'bullet') | list %}
+                    {% if bullet_blocks %}
+                    <ul class="answer-points">
+                        {% for block in bullet_blocks %}
+                        <li>
+                            {% for segment in block.segments %}
+                                {% if segment.type == 'reference' %}
+                                {% set ref_id = 'answer-ref-bullet-' ~ loop.index0 ~ '-' ~ loop.index %}
+                                <span class="answer-reference answer-reference-{{ segment.kind }}" data-answer-reference>
+                                    <a
+                                        class="answer-reference-link"
+                                        href="{{ segment.href }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-describedby="{{ ref_id }}"
+                                        aria-haspopup="dialog"
+                                    >{{ segment.label }}</a>
+                                    <span class="answer-popup" id="{{ ref_id }}" role="tooltip">
+                                        <span class="answer-popup-title">{{ segment.popup.title }}</span>
+                                        {% if segment.popup.summary %}
+                                        <span class="answer-popup-summary">{{ segment.popup.summary }}</span>
+                                        {% endif %}
+                                        {% if segment.popup.excerpt %}
+                                        <span class="answer-popup-excerpt">{{ segment.popup.excerpt }}</span>
+                                        {% endif %}
+                                        {% if segment.popup.citation %}
+                                        <span class="answer-popup-citation">{{ segment.popup.citation }}</span>
+                                        {% endif %}
+                                    </span>
+                                </span>
+                                {% else %}
+                                {{ segment.text }}
+                                {% endif %}
+                            {% endfor %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                {% else %}
+                    {% if result.answer_summary %}
+                    <p class="answer-summary">{{ result.answer_summary }}</p>
+                    {% endif %}
+
+                    {% if result.answer_points %}
+                    <ul class="answer-points">
+                        {% for point in result.answer_points %}
+                        <li>{{ point }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% elif result.answer_text %}
+                    <p class="answer-copy">{{ result.answer_text }}</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="meta-grid">
+                <article class="meta-card">
+                    <p class="meta-label">Detected Domain</p>
+                    <p class="meta-value">{{ result.detected_domain or 'Unknown' }}</p>
+                </article>
+
+                {% if result.retrieved_domain %}
+                <article class="meta-card">
+                    <p class="meta-label">Retrieved Domain</p>
+                    <p class="meta-value">{{ result.retrieved_domain }}</p>
+                </article>
+                {% endif %}
+
+                {% if result.subcontext %}
+                <article class="meta-card">
+                    <p class="meta-label">Subcontext</p>
+                    <p class="meta-value">{{ result.subcontext }}</p>
+                </article>
+                {% endif %}
+
+                {% if result.confidence is not none %}
+                <article class="meta-card">
+                    <p class="meta-label">Confidence</p>
+                    <p class="meta-value">
+                        {{ '%.2f'|format(result.confidence) }}
+                        {% if result.confidence_label %}
+                        <span class="pill">{{ result.confidence_label }}</span>
+                        {% endif %}
+                    </p>
+                </article>
+                {% endif %}
+
+                {% if result.cross_refs %}
+                <article class="meta-card meta-card-wide">
+                    <p class="meta-label">Cross References</p>
+                    <ul class="meta-list">
+                        {% for ref in result.cross_refs %}
+                        <li>{{ ref }}</li>
+                        {% endfor %}
+                    </ul>
+                </article>
+                {% endif %}
+
+                {% if result.sources %}
+                <article class="meta-card meta-card-wide">
+                    <p class="meta-label">Sources</p>
+                    <ul class="source-list">
+                        {% for source in result.sources %}
+                        <li>{{ source }}</li>
+                        {% endfor %}
+                    </ul>
+                </article>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+    </main>
+    <script src="{{ url_for('static', filename='ask-annotations.js') }}"></script>
+</body>
+</html>
