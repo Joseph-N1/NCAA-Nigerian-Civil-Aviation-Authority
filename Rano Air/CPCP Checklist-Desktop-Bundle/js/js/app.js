@@ -63,12 +63,14 @@ const App = {
 
   bindEvents() {
     // User Switcher
-    document.getElementById('userSwitcher').addEventListener('change', (e) => {
+    document.getElementById('userSwitcher')?.addEventListener('change', (e) => {
       const val = e.target.value;
       if (val === 'manager') {
         this.currentUser = { name: 'Line Manager', role: 'manager' };
+      } else if (AUTH_USERS[val]) {
+        this.currentUser = { name: AUTH_USERS[val].displayName, role: AUTH_USERS[val].role };
       } else {
-        const p = this.personnel.find(x => x.id === parseInt(val) || x.staffId === val);
+        const p = this.personnel.find(x => x.id === parseInt(val) || x.staffId === val || x.name === val);
         if (p) {
           this.currentUser = { name: p.name, role: p.role };
         }
@@ -411,20 +413,43 @@ const App = {
     this.personnel = await db.getAllPersonnel();
     this.restoreDraftState();
 
-    // Default personnel seeding if empty
-    if (this.personnel.length === 0) {
-      await db.addPerson({ name: 'Engr. Musa Ibrahim', staffId: 'RAN/AMO/E01', role: 'engineer' });
-      await db.addPerson({ name: 'Engr. Fatima Yusuf', staffId: 'RAN/AMO/E02', role: 'engineer' });
-      await db.addPerson({ name: 'Certifier Jatau Usman', staffId: 'RAN/AMO/C01', role: 'certifier' });
+    // Default personnel seeding / cleanup of legacy names
+    const legacyNames = ['Engr. Musa Ibrahim', 'Engr. Fatima Yusuf', 'Certifier Jatau Usman'];
+    const hasLegacy = this.personnel.some(p => legacyNames.includes(p.name));
+
+    if (this.personnel.length === 0 || hasLegacy) {
+      if (hasLegacy && db.db) {
+        for (const p of this.personnel) {
+          if (legacyNames.includes(p.name)) {
+            const tx = db.db.transaction('personnel', 'readwrite');
+            tx.objectStore('personnel').delete(p.id);
+          }
+        }
+      }
+      const existing = await db.getAllPersonnel();
+      if (existing.length === 0) {
+        await db.addPerson({ name: 'LBMM', staffId: 'RAN/AMO/LBMM', role: 'manager' });
+        await db.addPerson({ name: 'MCC', staffId: 'RAN/AMO/MCC', role: 'manager' });
+        await db.addPerson({ name: 'DCA', staffId: 'RAN/AMO/DCA', role: 'manager' });
+      }
       this.personnel = await db.getAllPersonnel();
     }
 
     // Populate switcher select
     const switcher = document.getElementById('userSwitcher');
-    switcher.innerHTML = `<option value="manager">Line Maintenance Manager</option>`;
-    this.personnel.forEach(p => {
-      switcher.innerHTML += `<option value="${p.id}">${p.name} (${p.role.toUpperCase()})</option>`;
-    });
+    if (switcher) {
+      switcher.innerHTML = `
+        <option value="manager">Line Maintenance Manager</option>
+        <option value="LBMM">LBMM (Manager)</option>
+        <option value="MCC">MCC (Manager)</option>
+        <option value="DCA">DCA (Manager)</option>
+      `;
+      this.personnel.forEach(p => {
+        if (!['LBMM', 'MCC', 'DCA', 'Line Manager'].includes(p.name)) {
+          switcher.innerHTML += `<option value="${p.id}">${p.name} (${p.role.toUpperCase()})</option>`;
+        }
+      });
+    }
 
     if (this.activeCheck) {
       this.tasks = await db.getTasksForCheck(this.activeCheck.id);
@@ -960,8 +985,8 @@ const App = {
     const select = document.getElementById('defectAssignee');
     if (!select) return;
     select.innerHTML = '<option value="">Unassigned</option>';
-    this.personnel.filter(p => p.role === 'engineer').forEach(eng => {
-      select.innerHTML += `<option value="${eng.name}">${eng.name}</option>`;
+    this.personnel.forEach(p => {
+      select.innerHTML += `<option value="${p.name}">${p.name} (${p.role.toUpperCase()})</option>`;
     });
   },
 
@@ -1014,10 +1039,19 @@ const App = {
       
       // Update Personnel switcher list
       const switcher = document.getElementById('userSwitcher');
-      switcher.innerHTML = `<option value="manager">Line Maintenance Manager</option>`;
-      this.personnel.forEach(p => {
-        switcher.innerHTML += `<option value="${p.id}">${p.name} (${p.role.toUpperCase()})</option>`;
-      });
+      if (switcher) {
+        switcher.innerHTML = `
+          <option value="manager">Line Maintenance Manager</option>
+          <option value="LBMM">LBMM (Manager)</option>
+          <option value="MCC">MCC (Manager)</option>
+          <option value="DCA">DCA (Manager)</option>
+        `;
+        this.personnel.forEach(p => {
+          if (!['LBMM', 'MCC', 'DCA', 'Line Manager'].includes(p.name)) {
+            switcher.innerHTML += `<option value="${p.id}">${p.name} (${p.role.toUpperCase()})</option>`;
+          }
+        });
+      }
     } catch (err) {
       this.showToast('Staff ID already registered.', 'error');
     }

@@ -54,7 +54,7 @@
   <div class="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6 no-print hidden" id="appShell">
     
     <!-- HEADER BAR -->
-    <header class="glass-card flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+    <header class="glass-card flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative z-40">
       <div class="flex items-center gap-4">
         <div class="flex items-center gap-2 shrink-0 hidden sm:flex">
           <img src="./assets/rano-bird-Cjd3-DHK.png" alt="Rano Air Logo" class="h-12 w-auto object-contain" />
@@ -112,9 +112,9 @@
           </div>
           <select id="userSwitcher" class="form-select text-xs !py-1 !px-2 bg-white border-slate-300 rounded-lg cursor-pointer text-slate-900" style="width: auto;">
             <option value="manager">Line Maintenance Manager</option>
-            <option value="engr1">Engr. Musa Ibrahim</option>
-            <option value="engr2">Engr. Fatima Yusuf</option>
-            <option value="cert1">Certifier Jatau Usman</option>
+            <option value="LBMM">LBMM (Manager)</option>
+            <option value="MCC">MCC (Manager)</option>
+            <option value="DCA">DCA (Manager)</option>
           </select>
         </div>
       </div>
@@ -219,7 +219,7 @@
       </div>
 
       <!-- Action Buttons Bar -->
-      <div class="glass-card p-4 flex flex-wrap items-center gap-3">
+      <div class="glass-card p-4 flex flex-wrap items-center gap-3 relative z-30 overflow-visible">
         <!-- Reports Dropdown -->
         <div class="relative inline-block text-left" id="reportsDropdownContainer">
           <button type="button" class="btn-primary flex items-center gap-2" id="reportsDropdownBtn" aria-haspopup="true" aria-expanded="false">

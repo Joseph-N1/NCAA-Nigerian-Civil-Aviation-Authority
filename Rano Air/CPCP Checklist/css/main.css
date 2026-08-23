@@ -267,7 +267,8 @@ div[id$="Modal"]:not(.hidden) .modal-card-inner {
 
   /* ── Dropdown and Overflow Menus ── */
   .dropdown-menu {
-    @apply absolute left-0 mt-2 w-64 rounded-xl bg-white border border-slate-200 shadow-2xl z-50 py-1.5 focus:outline-none;
+    @apply absolute left-0 mt-2 w-64 rounded-xl bg-white border border-slate-200 shadow-2xl py-1.5 focus:outline-none;
+    z-index: 9999;
     animation: fadeIn 0.15s ease-out;
   }
 
