@@ -1,0 +1,41 @@
+# Python environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python caches and build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Streamlit/local config
+.streamlit/
+streamlit-debug-*.log
+
+# Local data and generated files
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+*.log
+*.tmp
+*.temp
+
+# Secrets and machine-local settings
+.env
+.env.*
+!.env.example
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/

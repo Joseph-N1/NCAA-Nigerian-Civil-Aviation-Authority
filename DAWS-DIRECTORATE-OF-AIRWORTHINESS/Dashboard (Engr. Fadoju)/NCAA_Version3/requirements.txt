@@ -1,0 +1,15 @@
+# Core demo app
+streamlit
+pandas
+
+# Selectable-text PDF extraction
+pypdf
+
+# Scanned PDF/image preprocessing and OCR support
+pymupdf
+pillow
+opencv-python-headless
+pytesseract
+
+# Note: pytesseract also requires the Tesseract OCR desktop application
+# installed separately on Windows and available on PATH.
