@@ -17,9 +17,8 @@ const PREDEFINED_CHECKS = [
   { code: '1C', name: '1C Check Tasks', defaultCount: 20, color: '#8F0145' },
   { code: '2C', name: '2C Check Tasks', defaultCount: 20, color: '#8F0145' },
   { code: '3C', name: '3C Check Tasks', defaultCount: 20, color: '#8F0145' },
+  { code: '4C', name: '4C Check Tasks', defaultCount: 20, color: '#8F0145' },
   { code: 'OOP', name: 'Out of Phase Tasks', defaultCount: 10, color: '#ea580c' },
-  { code: 'Daily', name: 'Daily Check Tasks', defaultCount: 10, color: '#7c3aed' },
-  { code: 'Weekly', name: 'Weekly Check Tasks', defaultCount: 15, color: '#7c3aed' },
   { code: 'Routine', name: 'Routine Tasks', defaultCount: 30, color: '#7c3aed' }
 ];
 

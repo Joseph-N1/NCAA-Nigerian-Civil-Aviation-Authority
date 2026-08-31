@@ -8,7 +8,7 @@ import syncEngine from './sync.js';
 
 // Predefined check options with official Rano Air palette variables
 const PREDEFINED_CHECKS = [
-  { code: 'CPCP', name: 'CPCP Work Scope Tasks', defaultCount: 362, color: '#A50050' },
+  { code: 'CPCP', name: 'Maintenance Work Scope Tasks', defaultCount: 362, color: '#A50050' },
   { code: '1A', name: '1A Check Tasks', defaultCount: 20, color: '#4A6FA5' },
   { code: '2A', name: '2A Check Tasks', defaultCount: 25, color: '#4A6FA5' },
   { code: '3A', name: '3A Check Tasks', defaultCount: 20, color: '#4A6FA5' },
@@ -17,9 +17,8 @@ const PREDEFINED_CHECKS = [
   { code: '1C', name: '1C Check Tasks', defaultCount: 20, color: '#8F0145' },
   { code: '2C', name: '2C Check Tasks', defaultCount: 20, color: '#8F0145' },
   { code: '3C', name: '3C Check Tasks', defaultCount: 20, color: '#8F0145' },
+  { code: '4C', name: '4C Check Tasks', defaultCount: 20, color: '#8F0145' },
   { code: 'OOP', name: 'Out of Phase Tasks', defaultCount: 10, color: '#ea580c' },
-  { code: 'Daily', name: 'Daily Check Tasks', defaultCount: 10, color: '#7c3aed' },
-  { code: 'Weekly', name: 'Weekly Check Tasks', defaultCount: 15, color: '#7c3aed' },
   { code: 'Routine', name: 'Routine Tasks', defaultCount: 30, color: '#7c3aed' }
 ];
 
