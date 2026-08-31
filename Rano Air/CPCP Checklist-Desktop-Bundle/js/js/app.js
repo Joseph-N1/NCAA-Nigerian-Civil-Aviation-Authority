@@ -426,7 +426,10 @@ const App = {
     });
 
     // Backup & Restore
-    document.getElementById('exportBackupBtn')?.addEventListener('click', () => this.exportBackup());
+    document.getElementById('exportBackupJsonBtn')?.addEventListener('click', () => this.exportBackup('json'));
+    document.getElementById('exportBackupPdfBtn')?.addEventListener('click', () => this.exportBackup('pdf'));
+    document.getElementById('exportBackupHtmlBtn')?.addEventListener('click', () => this.exportBackup('html'));
+    document.getElementById('exportBackupBtn')?.addEventListener('click', () => this.exportBackup('json'));
     document.getElementById('importBackupBtn')?.addEventListener('click', () => {
       document.getElementById('backupFileInput').click();
     });
@@ -1600,14 +1603,18 @@ ${dsrHTML}
     }
   },
 
-  exportBackup() {
-    Promise.all([
+  async exportBackup(format = 'json') {
+    const [checks, tasks, personnel, audit, dsrSnapshots] = await Promise.all([
       db.getAllChecks(),
       db.getAllTasks(),
       db.getAllPersonnel(),
       db.getAllAuditEntries(),
       db.getAllDSRSnapshots()
-    ]).then(([checks, tasks, personnel, audit, dsrSnapshots]) => {
+    ]);
+
+    const dateStr = new Date().toISOString().substring(0, 10);
+
+    if (format === 'json') {
       const backupData = {
         checks,
         tasks,
@@ -1620,9 +1627,182 @@ ${dsrHTML}
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `rano-air-cpcp-backup-${new Date().toISOString().substring(0, 10)}.json`;
+      a.download = `rano-air-cpcp-backup-${dateStr}.json`;
       a.click();
+      URL.revokeObjectURL(url);
+      this.showToast('Full JSON backup exported successfully.', 'success');
+    } else if (format === 'html') {
+      const htmlContent = this.buildBackupSummaryHTML(checks, tasks, personnel, audit);
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rano-air-backup-report-${dateStr}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+      this.showToast('HTML backup report exported successfully.', 'success');
+    } else if (format === 'pdf') {
+      const htmlContent = this.buildBackupSummaryHTML(checks, tasks, personnel, audit);
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.left = '0';
+      container.style.top = '0';
+      container.style.width = '794px';
+      container.style.minHeight = '1123px';
+      container.style.padding = '0';
+      container.style.margin = '0';
+      container.style.background = '#ffffff';
+      container.style.color = '#0f172a';
+      container.style.zIndex = '-99999';
+      container.style.boxSizing = 'border-box';
+      container.innerHTML = htmlContent;
+      document.body.appendChild(container);
+
+      try {
+        this.showToast('Generating PDF backup report...', 'info');
+        const canvas = await html2canvas(container, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          windowWidth: 794
+        });
+
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pdfWidth;
+        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pdfHeight;
+        }
+
+        pdf.save(`rano-air-backup-report-${dateStr}.pdf`);
+        this.showToast('PDF backup report exported successfully.', 'success');
+      } catch (err) {
+        console.error('PDF export error:', err);
+        this.showToast('PDF export fallback: saving HTML report.', 'warning');
+        this.exportBackup('html');
+      } finally {
+        if (container.parentNode) {
+          document.body.removeChild(container);
+        }
+      }
+    }
+  },
+
+  buildBackupSummaryHTML(checks, tasks, personnel, audit) {
+    const activeCheck = checks.find(c => c.isActive) || checks[checks.length - 1];
+    const todayStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    
+    let taskRows = '';
+    if (activeCheck) {
+      const checkTasks = tasks.filter(t => t.checkId === activeCheck.id);
+      checkTasks.forEach(t => {
+        const pct = t.totalPlanned > 0 ? Math.round((t.closed / t.totalPlanned) * 100) : 0;
+        taskRows += `
+          <tr>
+            <td style="padding:6px 10px;border:1px solid #cbd5e1;font-weight:600;">${t.checkType}</td>
+            <td style="padding:6px 10px;border:1px solid #cbd5e1;text-align:center;">${t.totalPlanned}</td>
+            <td style="padding:6px 10px;border:1px solid #cbd5e1;text-align:center;color:#16a34a;font-weight:bold;">${t.closed}</td>
+            <td style="padding:6px 10px;border:1px solid #cbd5e1;text-align:center;font-weight:bold;color:#A50050;">${pct}%</td>
+          </tr>`;
+      });
+    }
+    
+    let personnelRows = '';
+    personnel.forEach(p => {
+      personnelRows += `
+        <tr>
+          <td style="padding:6px 10px;border:1px solid #cbd5e1;font-weight:600;">${p.name}</td>
+          <td style="padding:6px 10px;border:1px solid #cbd5e1;">${p.staffId}</td>
+          <td style="padding:6px 10px;border:1px solid #cbd5e1;">${p.role.toUpperCase()}</td>
+        </tr>`;
     });
+    
+    let auditRows = '';
+    const recentAudit = (audit || []).slice(-40).reverse();
+    recentAudit.forEach(a => {
+      auditRows += `
+        <tr>
+          <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:10px;">${new Date(a.timestamp).toLocaleString('en-GB')}</td>
+          <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:10px;font-weight:bold;">${a.userName}</td>
+          <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:10px;">${a.action}</td>
+          <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:10px;">${a.details}</td>
+        </tr>`;
+    });
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rano Air AMO - Backup Summary Report</title>
+  <style>
+    @page { size: A4 portrait; margin: 8mm; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif; color: #0f172a; max-width: 194mm; margin: 0 auto; padding: 6mm 8mm; background: #ffffff; }
+    h2 { color: #A50050; font-size: 12px; border-bottom: 1.5px solid #A50050; padding-bottom: 3px; margin: 14px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    table { width: 100%; border-collapse: collapse; font-size: 10.5px; margin-bottom: 12px; }
+    th { background: #1D1B4C; color: white; padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2.5px solid #A50050;padding-bottom:10px;margin-bottom:14px;">
+    <div>
+      <div style="font-size:10.5px;font-weight:800;letter-spacing:1.8px;color:#A50050;text-transform:uppercase;">RANO AIR AMO · LINE MAINTENANCE</div>
+      <div style="font-size:16px;font-weight:900;color:#1D1B4C;margin-top:2px;">DATA BACKUP SUMMARY REPORT</div>
+      <div style="font-size:10.5px;color:#64748b;margin-top:1px;">Nnamdi Azikiwe International Airport (NAIA)</div>
+    </div>
+    <div style="text-align:right;font-size:10.5px;color:#334155;">
+      <div><strong>Export Date:</strong> ${todayStr}</div>
+      <div><strong>Total Records:</strong> ${(checks.length + tasks.length + personnel.length + audit.length)} items</div>
+    </div>
+  </div>
+  ${activeCheck ? `
+    <h2>Active Check Details</h2>
+    <table>
+      <tr><td style="padding:5px 8px;border:1px solid #cbd5e1;font-weight:700;background:#f8fafc;width:25%;">Aircraft Reg:</td><td style="padding:5px 8px;border:1px solid #cbd5e1;font-weight:bold;color:#A50050;">${activeCheck.aircraftRegistration}</td><td style="padding:5px 8px;border:1px solid #cbd5e1;font-weight:700;background:#f8fafc;width:25%;">Aircraft Type:</td><td style="padding:5px 8px;border:1px solid #cbd5e1;">${activeCheck.aircraftType}</td></tr>
+      <tr><td style="padding:5px 8px;border:1px solid #cbd5e1;font-weight:700;background:#f8fafc;">MSN:</td><td style="padding:5px 8px;border:1px solid #cbd5e1;">${activeCheck.aircraftMSN}</td><td style="padding:5px 8px;border:1px solid #cbd5e1;font-weight:700;background:#f8fafc;">Commenced:</td><td style="padding:5px 8px;border:1px solid #cbd5e1;">${new Date(activeCheck.checkStartDate).toLocaleDateString('en-GB')}</td></tr>
+      <tr><td style="padding:5px 8px;border:1px solid #cbd5e1;font-weight:700;background:#f8fafc;">Est. RTS:</td><td style="padding:5px 8px;border:1px solid #cbd5e1;color:#d97706;font-weight:bold;">${activeCheck.estimatedRTS || 'TBD'}</td><td style="padding:5px 8px;border:1px solid #cbd5e1;font-weight:700;background:#f8fafc;">Status:</td><td style="padding:5px 8px;border:1px solid #cbd5e1;color:#16a34a;font-weight:bold;">${activeCheck.isActive ? 'ACTIVE' : 'CLOSED'}</td></tr>
+    </table>
+    <h2>Work Package Progress</h2>
+    <table>
+      <thead><tr><th>WORK PACKAGE</th><th style="text-align:center">PLANNED</th><th style="text-align:center">CLOSED</th><th style="text-align:center">COMPLETION</th></tr></thead>
+      <tbody>${taskRows}</tbody>
+    </table>
+  ` : '<p style="color:#64748b;font-size:11px;">No active check record found.</p>'}
+  <h2>Personnel Roster (${personnel.length} Registered)</h2>
+  <table>
+    <thead><tr><th>STAFF NAME</th><th>STAFF ID</th><th>ROLE</th></tr></thead>
+    <tbody>${personnelRows || '<tr><td colspan="3" style="padding:8px;border:1px solid #cbd5e1;color:#94a3b8;">No personnel records.</td></tr>'}</tbody>
+  </table>
+  <h2>Safety Audit Log (Last 40 Entries)</h2>
+  <table>
+    <thead><tr><th style="width:130px;">TIMESTAMP</th><th style="width:90px;">USER</th><th style="width:140px;">ACTION</th><th>DETAILS</th></tr></thead>
+    <tbody>${auditRows || '<tr><td colspan="4" style="padding:8px;border:1px solid #cbd5e1;color:#94a3b8;">No audit entries.</td></tr>'}</tbody>
+  </table>
+  <div style="margin-top:16px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;text-align:center;">
+    Rano Air AMO Check Progress Tracker · Automated Backup Export · NAIA
+  </div>
+</body>
+</html>`;
   },
 
   async importBackup(e) {

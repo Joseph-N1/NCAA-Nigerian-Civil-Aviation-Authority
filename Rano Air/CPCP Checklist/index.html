@@ -124,13 +124,22 @@
             </button>
             <div id="moreMenuDropdown" class="dropdown-menu dropdown-menu-right hidden" role="menu" aria-orientation="vertical" aria-labelledby="moreMenuBtn">
               <div class="py-1" role="none">
-                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="exportBackupBtn" role="menuitem">
-                  <span class="text-base">💾</span>
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="exportBackupJsonBtn" role="menuitem">
+                  <span class="text-base">📋</span>
                   <span>Export Backup (JSON)</span>
                 </button>
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="exportBackupPdfBtn" role="menuitem">
+                  <span class="text-base">📄</span>
+                  <span>Export Backup (PDF)</span>
+                </button>
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="exportBackupHtmlBtn" role="menuitem">
+                  <span class="text-base">🌐</span>
+                  <span>Export Backup (HTML)</span>
+                </button>
+                <div class="dropdown-divider"></div>
                 <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="importBackupBtn" role="menuitem">
                   <span class="text-base">📤</span>
-                  <span>Restore Backup</span>
+                  <span>Restore Backup (JSON)</span>
                 </button>
                 <div class="dropdown-divider"></div>
                 <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left text-rose-700 hover:text-rose-900 hover:bg-rose-50 font-bold" id="confirmLogoutBtn" role="menuitem">
