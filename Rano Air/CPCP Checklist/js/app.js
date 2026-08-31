@@ -1563,7 +1563,12 @@ ${dsrHTML}
   },
 
   canWrite() {
-    return this.authReady && (this.currentUser.role === 'manager' || this.currentUser.role === 'certifier');
+    if (!this.authReady) return false;
+    const name = this.currentUser?.name?.toUpperCase();
+    if (name === 'DCA' || this.currentUser?.isReadOnly) {
+      return false;
+    }
+    return this.currentUser.role === 'manager' || this.currentUser.role === 'certifier';
   },
 
   refreshPermissions() {
@@ -1573,6 +1578,22 @@ ${dsrHTML}
     if (document.getElementById('closeCheckBtn')) document.getElementById('closeCheckBtn').disabled = !isWritable;
     if (document.getElementById('saveHandoverBtn')) document.getElementById('saveHandoverBtn').disabled = !isWritable;
     if (document.getElementById('importBackupBtn')) document.getElementById('importBackupBtn').disabled = !isWritable;
+    if (document.getElementById('newCheckBtn')) document.getElementById('newCheckBtn').disabled = !isWritable;
+    if (document.getElementById('addEngineerBtn')) document.getElementById('addEngineerBtn').disabled = !isWritable;
+    if (document.getElementById('clearAuditBtn')) document.getElementById('clearAuditBtn').disabled = !isWritable;
+
+    const handoverRemarks = document.getElementById('handoverRemarksInput');
+    if (handoverRemarks) {
+      handoverRemarks.disabled = !isWritable;
+      if (!isWritable) {
+        handoverRemarks.placeholder = 'Read-Only Mode: Handover remarks can only be updated by LBMM / MCC.';
+      } else {
+        handoverRemarks.placeholder = 'Write detailed handover notes here... (e.g. Wing tip inspection 90% completed. Awaiting replacement seal P/N 45210).';
+      }
+    }
+
+    const editRtsBtn = document.getElementById('editRTSBtn');
+    if (editRtsBtn) editRtsBtn.style.display = isWritable ? 'inline-flex' : 'none';
 
     if (document.getElementById('tab-dashboard').classList.contains('hidden') === false) {
       this.refreshDashboard();

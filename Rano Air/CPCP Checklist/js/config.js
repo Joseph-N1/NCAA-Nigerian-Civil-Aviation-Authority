@@ -24,7 +24,7 @@ export const APP_CONFIG = {
 };
 
 export const AUTH_USERS = {
-  DCA: { displayName: 'DCA', role: 'manager', pin: '4821' },
+  DCA: { displayName: 'DCA', role: 'manager', pin: '4821', isReadOnly: true },
   LBMM: { displayName: 'LBMM', role: 'manager', pin: '7135' },
   MCC: { displayName: 'MCC', role: 'manager', pin: '9064' }
 };
