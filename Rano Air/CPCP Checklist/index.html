@@ -16,36 +16,74 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- AUTH / LOGIN SCREEN -->
-  <div class="min-h-screen flex flex-col items-center justify-center p-6 no-print" id="authScreen">
-    <div class="glass-card w-full max-w-[440px] space-y-6 text-center">
-      <div class="flex flex-col items-center space-y-3">
-        <div class="flex items-center gap-3">
-          <img src="assets/rano-bird.png" alt="Rano Air Logo" class="h-16 w-auto object-contain drop-shadow" />
-          <span class="text-white font-extrabold text-3xl tracking-tight leading-none">Rano Air</span>
+  <div class="min-h-screen flex items-center justify-center p-4 sm:p-6 no-print" id="authScreen">
+    <div class="w-full max-w-[880px] grid grid-cols-1 md:grid-cols-2 rounded-2xl overflow-hidden shadow-2xl border border-white/20">
+      
+      <!-- LEFT: Aviation Brand Hero Panel -->
+      <div class="bg-gradient-to-br from-[#1D1B4C] via-[#3A0420] to-[#9B0056] p-8 sm:p-10 flex flex-col justify-between text-white relative overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-48 h-48 bg-white/5 rounded-full blur-sm pointer-events-none"></div>
+        <div class="absolute -bottom-16 -left-16 w-56 h-56 bg-rose-500/10 rounded-full blur-md pointer-events-none"></div>
+        
+        <div class="relative z-10">
+          <div class="flex items-center gap-3 mb-6">
+            <img src="assets/rano-bird.png" alt="Rano Air Logo" class="h-14 w-auto object-contain drop-shadow-md" />
+            <div>
+              <span class="text-white font-black text-2xl tracking-tight leading-none block">Rano Air</span>
+              <span class="text-rose-200 text-[10px] uppercase tracking-[0.2em] font-bold">Approved Maintenance Org.</span>
+            </div>
+          </div>
+          <div class="space-y-2 mt-4">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-white/10 text-rose-200 border border-white/20">
+              ✈️ Line Maintenance Ops
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-black text-white leading-tight">
+              Check Progress<br/>Tracker System
+            </h2>
+            <p class="text-rose-100/80 text-xs leading-relaxed max-w-xs pt-1">
+              Real-time work package monitoring, DSR daily status reporting, and shift handover control for airworthiness compliance.
+            </p>
+          </div>
         </div>
-        <div>
-          <p class="text-[#9B0056] text-xs uppercase tracking-[0.2em] font-extrabold mb-1">Rano Air AMO · NAIA</p>
-          <h1 class="text-2xl font-black text-slate-900 m-0">Check Progress Tracker</h1>
-          <p class="text-xs text-slate-600 mt-1.5">Authorised Maintenance Staff Login</p>
+
+        <div class="relative z-10 mt-8 pt-4 border-t border-white/15">
+          <div class="flex items-center justify-between text-[11px] text-rose-200/80 font-medium">
+            <span>NAIA · Abuja, Nigeria</span>
+            <span class="text-emerald-300 font-bold flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span> Offline Ready
+            </span>
+          </div>
         </div>
       </div>
 
-      <form id="loginForm" class="space-y-4 text-left">
-        <div>
-          <label for="loginUsername" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Username</label>
-          <input id="loginUsername" class="form-input" placeholder="e.g. DCA, LBMM, MCC" required />
+      <!-- RIGHT: Secure Staff Login Panel -->
+      <div class="bg-white p-8 sm:p-10 flex flex-col justify-center">
+        <div class="mb-6">
+          <p class="text-[#9B0056] text-[11px] uppercase tracking-[0.2em] font-extrabold mb-1">Authorised Access</p>
+          <h1 class="text-2xl font-black text-slate-900 m-0">Staff Authentication</h1>
+          <p class="text-xs text-slate-500 mt-1.5">Enter your maintenance credentials to access the checklist dashboard.</p>
         </div>
-        <div>
-          <label for="loginPin" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Staff PIN</label>
-          <input id="loginPin" type="password" class="form-input" placeholder="••••" required />
-        </div>
-        <button class="btn-primary w-full shadow-lg" type="submit">Access Checklist Dashboard</button>
-      </form>
 
-      <div class="text-xs text-slate-600 border-t border-slate-200 pt-4 flex flex-col gap-1 text-center bg-slate-50 p-3 rounded-xl">
-        <p><strong class="text-slate-900">Authorised Roles:</strong> DCA / LBMM / MCC</p>
-        <p><strong class="text-slate-900">Sample Access PINs:</strong> 4821 / 7135 / 9064</p>
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label for="loginUsername" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Staff Identifier / Role</label>
+            <input id="loginUsername" class="form-input !bg-slate-50 focus:!bg-white" placeholder="e.g. DCA, LBMM, MCC" required />
+          </div>
+          <div>
+            <label for="loginPin" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Security PIN</label>
+            <input id="loginPin" type="password" class="form-input !bg-slate-50 focus:!bg-white" placeholder="••••" required />
+          </div>
+          <button class="btn-primary w-full shadow-lg !py-3.5 !text-sm flex items-center justify-center gap-2 mt-2" type="submit">
+            <span>Access Checklist Dashboard</span>
+            <span class="text-base">➔</span>
+          </button>
+        </form>
+
+        <div class="mt-6 text-xs text-slate-600 border-t border-slate-100 pt-4 flex flex-col gap-1 text-center bg-slate-50/80 p-3 rounded-xl">
+          <p><strong class="text-slate-900">Authorised Roles:</strong> DCA / LBMM / MCC</p>
+          <p class="text-[11px] text-slate-500"><strong class="text-slate-800">Sample PINs:</strong> 4821 / 7135 / 9064</p>
+        </div>
       </div>
+
     </div>
   </div>
 
