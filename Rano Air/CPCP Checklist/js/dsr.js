@@ -82,7 +82,7 @@ export function generateDSR(check, stats, highlights, exportFormat = 'html') {
           <div>
             <div style="font-size: 10.5px; font-weight: 800; letter-spacing: 1.8px; color: #A50050; text-transform: uppercase;">RANO AIR AMO · LINE MAINTENANCE</div>
             <div style="font-size: 18px; font-weight: 900; color: #1D1B4C; margin-top: 1px; letter-spacing: 0.2px;">DAILY STATUS REPORT (DSR)</div>
-            <div style="font-size: 10.5px; color: #64748b; margin-top: 1px;">Nnamdi Azikiwe International Airport (NAIA) · Airworthiness Progress</div>
+            <div style="font-size: 10.5px; color: #64748b; margin-top: 1px;">Nnamdi Azikiwe International Airport (NAIA)</div>
           </div>
         </div>
         <div style="text-align: right; font-size: 10.5px; color: #334155; line-height: 1.45; background: #f8fafc; padding: 7px 12px; border-radius: 6px; border: 1px solid #e2e8f0; min-width: 170px;">
