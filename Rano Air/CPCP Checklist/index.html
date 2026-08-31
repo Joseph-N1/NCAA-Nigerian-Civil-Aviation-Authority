@@ -137,7 +137,11 @@
         </div>
         <div>
           <span class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">EST. RETURN TO SERVICE</span>
-          <span class="font-extrabold text-amber-300 text-base" id="metaRTS">-</span>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="font-extrabold text-amber-300 text-base cursor-pointer hover:text-amber-100 transition-colors" id="metaRTS" title="Click to adjust RTS date">-</span>
+            <button type="button" id="editRTSBtn" class="text-amber-300 hover:text-amber-100 transition-colors p-0.5 text-xs inline-flex items-center cursor-pointer" title="Edit RTS Date">✏️</button>
+            <input type="date" id="metaRTSDatePicker" class="hidden form-input !py-0.5 !px-1.5 text-xs text-slate-900 mt-1 max-w-[140px] rounded-lg" />
+          </div>
         </div>
       </div>
     </div>
@@ -437,6 +441,11 @@
             <div>
               <label for="setupStartDate" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Check Start Date</label>
               <input id="setupStartDate" type="date" class="form-input" required>
+            </div>
+            <div class="sm:col-span-2">
+              <label for="setupRTSDate" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Est. Return to Service (RTS) Date</label>
+              <input id="setupRTSDate" type="date" class="form-input" required>
+              <p class="text-[10px] text-slate-500 mt-1">Default: next day after commencement. Can be adjusted anytime by LBMM / MCC.</p>
             </div>
           </div>
           <div class="pt-4 flex justify-end">

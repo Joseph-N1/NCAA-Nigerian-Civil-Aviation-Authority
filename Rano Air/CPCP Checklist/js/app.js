@@ -106,11 +106,58 @@ const App = {
       const reg = document.getElementById('setupReg').value.trim();
       const msn = document.getElementById('setupMSN').value.trim();
       const startDate = document.getElementById('setupStartDate').value;
-      if (!reg || !msn || !startDate) {
-        this.showToast('Please fill in all aircraft details before proceeding.', 'error');
+      const rtsDate = document.getElementById('setupRTSDate')?.value;
+      if (!reg || !msn || !startDate || !rtsDate) {
+        this.showToast('Please fill in all aircraft details and RTS date before proceeding.', 'error');
         return;
       }
       this.goToWizardStep(2);
+    });
+
+    // Inline Edit RTS Date in Metadata Banner (LBMM / MCC only, NOT DCA)
+    const triggerEditRTS = () => {
+      const user = this.currentUser?.name?.toUpperCase();
+      if (!this.authReady || user === 'DCA' || this.currentUser?.role === 'auditor') {
+        this.showToast('Only LBMM or MCC can change the Return to Service date.', 'error');
+        return;
+      }
+      const picker = document.getElementById('metaRTSDatePicker');
+      if (picker) {
+        picker.classList.toggle('hidden');
+        if (!picker.classList.contains('hidden')) {
+          picker.focus();
+          picker.showPicker?.();
+        }
+      }
+    };
+
+    document.getElementById('metaRTS')?.addEventListener('click', triggerEditRTS);
+    document.getElementById('editRTSBtn')?.addEventListener('click', triggerEditRTS);
+
+    document.getElementById('metaRTSDatePicker')?.addEventListener('change', async (e) => {
+      const val = e.target.value;
+      if (!val || !this.activeCheck) return;
+      const newDate = new Date(val);
+      if (isNaN(newDate.getTime())) return;
+      const formatted = newDate.toLocaleDateString('en-GB');
+      this.activeCheck.estimatedRTS = formatted;
+      await db.updateCheck(this.activeCheck);
+      document.getElementById('metaRTS').textContent = formatted;
+      e.target.classList.add('hidden');
+      await db.addAuditEntry({
+        checkId: this.activeCheck.id,
+        timestamp: new Date().toISOString(),
+        userId: this.currentUser.name,
+        userName: this.currentUser.name,
+        action: 'RTS Date Updated',
+        details: `Return to Service date updated to ${formatted} by ${this.currentUser.name}.`
+      });
+      syncEngine.broadcast({
+        type: 'RTS_UPDATED',
+        rts: formatted,
+        user: this.currentUser.name
+      });
+      this.showToast(`Return to Service date updated to ${formatted}.`, 'success');
     });
 
     document.getElementById('step2BackBtn')?.addEventListener('click', () => {
@@ -690,7 +737,28 @@ const App = {
       cb.addEventListener('change', () => this.updateSetupWizardInputs());
     });
 
-    document.getElementById('setupStartDate').value = new Date().toISOString().substring(0, 10);
+    const startInput = document.getElementById('setupStartDate');
+    const rtsInput = document.getElementById('setupRTSDate');
+    const today = new Date();
+    if (startInput) {
+      startInput.value = today.toISOString().substring(0, 10);
+    }
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (rtsInput) {
+      rtsInput.value = tomorrow.toISOString().substring(0, 10);
+    }
+    
+    startInput?.addEventListener('change', () => {
+      const sDate = new Date(startInput.value);
+      if (!isNaN(sDate.getTime()) && rtsInput) {
+        const nextDay = new Date(sDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        rtsInput.value = nextDay.toISOString().substring(0, 10);
+      }
+    });
+
     this.updateSetupWizardInputs();
   },
 
@@ -724,6 +792,8 @@ const App = {
     const type = document.getElementById('setupType').value;
     const msn = document.getElementById('setupMSN').value.trim();
     const startDate = document.getElementById('setupStartDate').value;
+    const rtsVal = document.getElementById('setupRTSDate')?.value;
+    const estimatedRTS = rtsVal ? new Date(rtsVal).toLocaleDateString('en-GB') : 'TBD';
 
     const selectedCbs = Array.from(document.querySelectorAll('.check-type-cb:checked')).map(cb => cb.value);
     if (selectedCbs.length === 0) {
@@ -752,7 +822,7 @@ const App = {
       aircraftRegistration: reg,
       aircraftMSN: msn,
       checkStartDate: startDate,
-      estimatedRTS: 'TBD',
+      estimatedRTS: estimatedRTS,
       checkTypes: checkTypes,
       isActive: 1,
       createdAt: new Date().toISOString()
@@ -978,6 +1048,13 @@ const App = {
       }
     } else if (data.type === 'HANDOVER_SAVED') {
       this.showToast(`Live Sync: Shift handover updated by ${data.user}`, 'info');
+    } else if (data.type === 'RTS_UPDATED') {
+      if (this.activeCheck) {
+        this.activeCheck.estimatedRTS = data.rts;
+        const metaEl = document.getElementById('metaRTS');
+        if (metaEl) metaEl.textContent = data.rts;
+      }
+      this.showToast(`Live Sync: Return to Service date updated to ${data.rts} by ${data.user}`, 'info');
     }
   },
 
