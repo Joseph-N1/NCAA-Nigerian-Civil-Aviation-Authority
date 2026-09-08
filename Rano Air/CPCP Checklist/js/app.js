@@ -18,6 +18,7 @@ const PREDEFINED_CHECKS = [
   { code: '2C', name: '2C Check Tasks', defaultCount: 20, color: '#8F0145' },
   { code: '3C', name: '3C Check Tasks', defaultCount: 20, color: '#8F0145' },
   { code: '4C', name: '4C Check Tasks', defaultCount: 20, color: '#8F0145' },
+  { code: '24 Months', name: '24 Months Check Tasks', defaultCount: 25, color: '#0e7490' },
   { code: 'OOP', name: 'Out of Phase Tasks', defaultCount: 10, color: '#ea580c' },
   { code: 'Routine', name: 'Routine Tasks', defaultCount: 30, color: '#7c3aed' }
 ];
