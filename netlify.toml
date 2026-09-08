@@ -1,7 +1,6 @@
 [build]
-  base = "Rano Air/CPCP Checklist"
-  publish = "dist"
-  command = "npm run build"
+  command = "npm --prefix \"Rano Air/CPCP Checklist\" run build"
+  publish = "Rano Air/CPCP Checklist/dist"
 
 [[redirects]]
   from = "/*"
