@@ -80,7 +80,7 @@ export function generateDSR(check, stats, highlights, exportFormat = 'html') {
         <div style="display: flex; align-items: center; gap: 14px;">
           <img src="${RANO_LOGO_BASE64}" alt="Rano Air Logo" style="height: 46px; width: auto; max-width: 130px; object-fit: contain; display: block;" />
           <div>
-            <div style="font-size: 10.5px; font-weight: 800; letter-spacing: 1.8px; color: #A50050; text-transform: uppercase;">RANO AIR AMO · LINE MAINTENANCE</div>
+            <div style="font-size: 10.5px; font-weight: 800; letter-spacing: 1.8px; color: #A50050; text-transform: uppercase;">RANO AIR · LINE MAINTENANCE</div>
             <div style="font-size: 18px; font-weight: 900; color: #1D1B4C; margin-top: 1px; letter-spacing: 0.2px;">DAILY STATUS REPORT (DSR)</div>
             <div style="font-size: 10.5px; color: #64748b; margin-top: 1px;">Nnamdi Azikiwe International Airport (NAIA)</div>
           </div>
@@ -96,7 +96,7 @@ export function generateDSR(check, stats, highlights, exportFormat = 'html') {
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10.5px;">
         <tr>
           <td style="width: 18%; padding: 5px 8px; border: 1px solid #cbd5e1; font-weight: 700; background-color: #f8fafc; color: #1D1B4C;">MRO ORGANISATION:</td>
-          <td style="width: 32%; padding: 5px 8px; border: 1px solid #cbd5e1; color: #0f172a;">${check.mro || 'Rano Air AMO'}</td>
+          <td style="width: 32%; padding: 5px 8px; border: 1px solid #cbd5e1; color: #0f172a;">${check.mro || 'Rano Air'}</td>
           <td style="width: 18%; padding: 5px 8px; border: 1px solid #cbd5e1; font-weight: 700; background-color: #f8fafc; color: #1D1B4C;">REPORT DATE:</td>
           <td style="width: 32%; padding: 5px 8px; border: 1px solid #cbd5e1; color: #0f172a;">${completionDateStr}</td>
         </tr>

@@ -820,7 +820,7 @@ const App = {
     }
 
     const newCheck = {
-      mro: 'Rano Air AMO',
+      mro: 'Rano Air',
       aircraftType: type,
       aircraftRegistration: reg,
       aircraftMSN: msn,
@@ -1368,7 +1368,7 @@ const App = {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rano Air AMO - Daily Status Report (DSR)</title>
+  <title>Rano Air - Daily Status Report (DSR)</title>
   <style>
     @page { size: A4 portrait; margin: 6mm; }
     * { box-sizing: border-box; }
@@ -1754,7 +1754,7 @@ ${dsrHTML}
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Rano Air AMO - Backup Summary Report</title>
+  <title>Rano Air - Backup Summary Report</title>
   <style>
     @page { size: A4 portrait; margin: 8mm; }
     * { box-sizing: border-box; }
@@ -1767,7 +1767,7 @@ ${dsrHTML}
 <body>
   <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2.5px solid #A50050;padding-bottom:10px;margin-bottom:14px;">
     <div>
-      <div style="font-size:10.5px;font-weight:800;letter-spacing:1.8px;color:#A50050;text-transform:uppercase;">RANO AIR AMO · LINE MAINTENANCE</div>
+      <div style="font-size:10.5px;font-weight:800;letter-spacing:1.8px;color:#A50050;text-transform:uppercase;">RANO AIR · LINE MAINTENANCE</div>
       <div style="font-size:16px;font-weight:900;color:#1D1B4C;margin-top:2px;">DATA BACKUP SUMMARY REPORT</div>
       <div style="font-size:10.5px;color:#64748b;margin-top:1px;">Nnamdi Azikiwe International Airport (NAIA)</div>
     </div>
@@ -1800,7 +1800,7 @@ ${dsrHTML}
     <tbody>${auditRows || '<tr><td colspan="4" style="padding:8px;border:1px solid #cbd5e1;color:#94a3b8;">No audit entries.</td></tr>'}</tbody>
   </table>
   <div style="margin-top:16px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;text-align:center;">
-    Rano Air AMO Check Progress Tracker · Automated Backup Export · NAIA
+    Rano Air Check Progress Tracker · Automated Backup Export · NAIA
   </div>
 </body>
 </html>`;
