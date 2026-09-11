@@ -96,7 +96,7 @@ export function generateDSR(check, stats, highlights, exportFormat = 'html') {
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10.5px;">
         <tr>
           <td style="width: 18%; padding: 5px 8px; border: 1px solid #cbd5e1; font-weight: 700; background-color: #f8fafc; color: #1D1B4C;">MRO ORGANISATION:</td>
-          <td style="width: 32%; padding: 5px 8px; border: 1px solid #cbd5e1; color: #0f172a;">${check.mro || 'Rano Air'}</td>
+          <td style="width: 32%; padding: 5px 8px; border: 1px solid #cbd5e1; color: #0f172a;">${(check.mro && check.mro.trim() !== 'Rano Air AMO') ? check.mro : 'Rano Air'}</td>
           <td style="width: 18%; padding: 5px 8px; border: 1px solid #cbd5e1; font-weight: 700; background-color: #f8fafc; color: #1D1B4C;">REPORT DATE:</td>
           <td style="width: 32%; padding: 5px 8px; border: 1px solid #cbd5e1; color: #0f172a;">${completionDateStr}</td>
         </tr>

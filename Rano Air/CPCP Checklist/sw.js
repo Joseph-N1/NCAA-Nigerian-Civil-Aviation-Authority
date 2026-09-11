@@ -3,7 +3,7 @@
 // Service Worker - Offline-First Production Cache
 // ============================================
 
-const CACHE_NAME = 'rano-air-cpcp-v10';
+const CACHE_NAME = 'rano-air-cpcp-v11';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

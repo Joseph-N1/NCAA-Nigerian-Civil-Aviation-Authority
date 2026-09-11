@@ -460,6 +460,17 @@ const App = {
     }
 
     this.activeCheck = await db.getActiveCheck();
+    if (this.activeCheck && (this.activeCheck.mro === 'Rano Air AMO' || !this.activeCheck.mro)) {
+      this.activeCheck.mro = 'Rano Air';
+      await db.updateCheck(this.activeCheck);
+    }
+    const allExistingChecks = await db.getAllChecks();
+    for (const c of allExistingChecks) {
+      if (c.mro === 'Rano Air AMO') {
+        c.mro = 'Rano Air';
+        await db.updateCheck(c);
+      }
+    }
     this.personnel = await db.getAllPersonnel();
     this.restoreDraftState();
 

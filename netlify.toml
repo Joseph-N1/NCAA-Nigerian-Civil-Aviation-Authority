@@ -7,4 +7,25 @@
   to = "/index.html"
   status = 200
 
-# Deploy version: v2.0.1 (Branding update to Rano Air & MSN label)
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+# Deploy version: v2.0.2 (Cache-busting headers + auto-reload on SW update + IndexedDB migration)
