@@ -6,3 +6,5 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Deploy version: v2.0.1 (Branding update to Rano Air & MSN label)
