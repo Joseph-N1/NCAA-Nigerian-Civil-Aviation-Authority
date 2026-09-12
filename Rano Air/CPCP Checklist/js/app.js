@@ -500,7 +500,7 @@ const App = {
     const switcher = document.getElementById('userSwitcher');
     if (switcher) {
       switcher.innerHTML = `
-        <option value="manager">Line Maintenance Manager</option>
+        <option value="manager">DEV (DEVELOPER)</option>
         <option value="LBMM">LBMM (Manager)</option>
         <option value="MCC">MCC (Manager)</option>
         <option value="DCA">DCA (Manager)</option>
@@ -1132,7 +1132,7 @@ const App = {
       const switcher = document.getElementById('userSwitcher');
       if (switcher) {
         switcher.innerHTML = `
-          <option value="manager">Line Maintenance Manager</option>
+          <option value="manager">DEV (DEVELOPER)</option>
           <option value="LBMM">LBMM (Manager)</option>
           <option value="MCC">MCC (Manager)</option>
           <option value="DCA">DCA (Manager)</option>
@@ -1778,7 +1778,7 @@ ${dsrHTML}
 <body>
   <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2.5px solid #A50050;padding-bottom:10px;margin-bottom:14px;">
     <div>
-      <div style="font-size:10.5px;font-weight:800;letter-spacing:1.8px;color:#A50050;text-transform:uppercase;">RANO AIR · LINE MAINTENANCE</div>
+      <div style="font-size:10.5px;font-weight:800;letter-spacing:1.8px;color:#A50050;text-transform:uppercase;">RANO AIR · BASE MAINTENANCE</div>
       <div style="font-size:16px;font-weight:900;color:#1D1B4C;margin-top:2px;">DATA BACKUP SUMMARY REPORT</div>
       <div style="font-size:10.5px;color:#64748b;margin-top:1px;">Nnamdi Azikiwe International Airport (NAIA)</div>
     </div>

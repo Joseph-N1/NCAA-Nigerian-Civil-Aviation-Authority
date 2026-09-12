@@ -28,4 +28,4 @@
     Pragma = "no-cache"
     Expires = "0"
 
-# Deploy version: v2.0.2 (Cache-busting headers + auto-reload on SW update + IndexedDB migration)
+# Deploy version: v2.0.3 (DSR BASE MAINTENANCE, MRO label, DEV option)
