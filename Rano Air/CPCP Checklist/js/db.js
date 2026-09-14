@@ -290,6 +290,17 @@ const db = {
     });
   },
 
+  async deleteAuditEntry(id) {
+    if (!this.db) return;
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction('audit_log', 'readwrite');
+      const store = tx.objectStore('audit_log');
+      const req = store.delete(id);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  },
+
   // DSR snapshots operations
   async addDSRSnapshot(snapshot) {
     if (!this.db) return;

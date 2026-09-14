@@ -5,6 +5,7 @@ import { renderDonutChart, renderMasterDonutChart } from './charts.js';
 import { generateDSR } from './dsr.js';
 import { APP_CONFIG, AUTH_USERS, STORAGE_KEYS } from './config.js';
 import syncEngine from './sync.js';
+import { cloudSync } from './cloudSync.js';
 
 // Predefined check options with official Rano Air palette variables
 const PREDEFINED_CHECKS = [
@@ -28,6 +29,9 @@ const App = {
   tasks: [],
   personnel: [],
   currentUser: { name: 'Line Manager', role: 'manager' },
+  isDevSession: false,
+  authenticatedUser: null,
+  db: db,
   authReady: false,
   autoSaveDebounceTimer: null,
   autoSaveIntervalId: null,
@@ -39,6 +43,8 @@ const App = {
   wizardStep: 1,
 
   async init() {
+    window.App = this;
+
     // 1. Wait for DB ready
     await new Promise((resolve) => {
       window.addEventListener('db-ready', resolve, { once: true });
@@ -48,12 +54,22 @@ const App = {
     // 2. Initialize 3-laptop peer sync network
     syncEngine.init();
 
-    // 3. Listen for live peer sync broadcasts from other laptops
+    // 3. Initialize Cloud Multi-Device Sync Engine
+    cloudSync.init();
+
+    // 4. Listen for live peer sync broadcasts from other laptops
     window.addEventListener('peer-sync-update', async (e) => {
       await this.handleRemotePeerUpdate(e.detail);
     });
 
+    // 5. Listen for Cloud sync updates from remote laptops
+    window.addEventListener('cloud-data-applied', async () => {
+      await this.loadInitialData();
+      if (this.activeCheck) await this.refreshDashboard();
+    });
+
     this.bindEvents();
+    this.setupCloudSyncUI();
     this.setupAuth();
     this.setupAutoSave();
     this.setupInactivityWarning();
@@ -65,10 +81,12 @@ const App = {
     // User Switcher
     document.getElementById('userSwitcher')?.addEventListener('change', (e) => {
       const val = e.target.value;
-      if (val === 'manager') {
+      if (val === 'DEV' && this.isDevSession) {
+        this.currentUser = { name: 'DEV', role: 'manager', isDeveloper: true };
+      } else if (val === 'manager') {
         this.currentUser = { name: 'Line Manager', role: 'manager' };
       } else if (AUTH_USERS[val]) {
-        this.currentUser = { name: AUTH_USERS[val].displayName, role: AUTH_USERS[val].role };
+        this.currentUser = { name: AUTH_USERS[val].displayName, role: AUTH_USERS[val].role, isReadOnly: AUTH_USERS[val].isReadOnly };
       } else {
         const p = this.personnel.find(x => x.id === parseInt(val) || x.staffId === val || x.name === val);
         if (p) {
@@ -76,8 +94,11 @@ const App = {
         }
       }
       document.getElementById('userName').textContent = this.currentUser.name;
-      document.getElementById('userRole').textContent = this.currentUser.role.toUpperCase();
+      document.getElementById('userRole').textContent = (this.currentUser.name === 'DEV' ? 'DEVELOPER' : this.currentUser.role.toUpperCase());
       this.refreshPermissions();
+      if (this.activeCheck) {
+        this.refreshDashboard();
+      }
     });
 
     // Navigation Tabs
@@ -221,6 +242,50 @@ const App = {
     });
     document.getElementById('cancelDefectModalBtn')?.addEventListener('click', () => {
       document.getElementById('defectModal').classList.add('hidden');
+    });
+
+    // Add Work Package Modal bindings
+    document.getElementById('openAddPackageBtn')?.addEventListener('click', () => {
+      this.openAddPackageModal();
+    });
+    document.getElementById('closeAddPackageModalBtn')?.addEventListener('click', () => {
+      document.getElementById('addPackageModal').classList.add('hidden');
+    });
+    document.getElementById('cancelAddPackageModalBtn')?.addEventListener('click', () => {
+      document.getElementById('addPackageModal').classList.add('hidden');
+    });
+    document.getElementById('addPackageForm')?.addEventListener('submit', async (e) => {
+      await this.handleAddPackage(e);
+    });
+    document.getElementById('packageTypeSelect')?.addEventListener('change', (e) => {
+      const val = e.target.value;
+      const customGroup = document.getElementById('customPackageNameGroup');
+      const plannedInput = document.getElementById('packagePlannedCountInput');
+      if (val === 'CUSTOM') {
+        customGroup.classList.remove('hidden');
+        plannedInput.value = '25';
+      } else {
+        customGroup.classList.add('hidden');
+        const selectedOpt = e.target.options[e.target.selectedIndex];
+        const defaultCount = selectedOpt?.dataset?.count;
+        if (defaultCount) plannedInput.value = defaultCount;
+      }
+    });
+
+    // Manage Defects Modal bindings
+    document.getElementById('openManageDefectsBtn')?.addEventListener('click', () => {
+      this.openManageDefectsModal();
+    });
+    document.getElementById('addNewDefectFromManageBtn')?.addEventListener('click', () => {
+      document.getElementById('manageDefectsModal').classList.add('hidden');
+      this.populateDefectAssigneeSelect();
+      document.getElementById('defectModal').classList.remove('hidden');
+    });
+    document.getElementById('closeManageDefectsModalBtn')?.addEventListener('click', () => {
+      document.getElementById('manageDefectsModal').classList.add('hidden');
+    });
+    document.getElementById('cancelManageDefectsModalBtn')?.addEventListener('click', () => {
+      document.getElementById('manageDefectsModal').classList.add('hidden');
     });
 
     document.getElementById('addEngineerBtn').addEventListener('click', () => {
@@ -497,20 +562,7 @@ const App = {
     }
 
     // Populate switcher select
-    const switcher = document.getElementById('userSwitcher');
-    if (switcher) {
-      switcher.innerHTML = `
-        <option value="manager">DEV (DEVELOPER)</option>
-        <option value="LBMM">LBMM (Manager)</option>
-        <option value="MCC">MCC (Manager)</option>
-        <option value="DCA">DCA (Manager)</option>
-      `;
-      this.personnel.forEach(p => {
-        if (!['LBMM', 'MCC', 'DCA', 'Line Manager'].includes(p.name)) {
-          switcher.innerHTML += `<option value="${p.id}">${p.name} (${p.role.toUpperCase()})</option>`;
-        }
-      });
-    }
+    this.populateUserSwitcher();
 
     if (this.activeCheck) {
       this.tasks = await db.getTasksForCheck(this.activeCheck.id);
@@ -530,7 +582,9 @@ const App = {
     if (storedAuth) {
       try {
         const parsed = JSON.parse(storedAuth);
-        this.currentUser = { name: parsed.name, role: parsed.role };
+        this.currentUser = { name: parsed.name, role: parsed.role, isDeveloper: !!parsed.isDeveloper, isReadOnly: !!parsed.isReadOnly };
+        this.isDevSession = !!parsed.isDeveloper;
+        this.authenticatedUser = parsed.name;
         this.authReady = true;
       } catch {
         this.authReady = false;
@@ -563,9 +617,16 @@ const App = {
     const user = AUTH_USERS[username];
 
     if (user && user.pin === pin) {
-      this.currentUser = { name: user.displayName, role: user.role };
+      this.currentUser = { name: user.displayName, role: user.role, isDeveloper: !!user.isDeveloper, isReadOnly: !!user.isReadOnly };
+      this.isDevSession = !!user.isDeveloper;
+      this.authenticatedUser = user.displayName;
       this.authReady = true;
-      localStorage.setItem(STORAGE_KEYS.AUTH, JSON.stringify({ name: user.displayName, role: user.role }));
+      localStorage.setItem(STORAGE_KEYS.AUTH, JSON.stringify({
+        name: user.displayName,
+        role: user.role,
+        isDeveloper: !!user.isDeveloper,
+        isReadOnly: !!user.isReadOnly
+      }));
       this.renderAuthScreen();
       this.refreshPermissions();
       await this.loadInitialData();
@@ -579,12 +640,47 @@ const App = {
   logout() {
     localStorage.removeItem(STORAGE_KEYS.AUTH);
     this.authReady = false;
+    this.isDevSession = false;
+    this.authenticatedUser = null;
     this.currentUser = { name: 'Line Manager', role: 'manager' };
     document.getElementById('appShell')?.classList.add('hidden');
     document.getElementById('setupWizard')?.classList.add('hidden');
     document.getElementById('checkMetaContainer')?.classList.add('hidden');
+    document.getElementById('authScreen')?.classList.remove('hidden');
+    document.getElementById('loginForm')?.reset();
     this.renderAuthScreen();
     this.showToast('You have been logged out.', 'info');
+  },
+
+  populateUserSwitcher() {
+    const switcher = document.getElementById('userSwitcher');
+    if (!switcher) return;
+
+    let options = '';
+    if (this.isDevSession) {
+      options += '<option value="DEV">DEV (DEVELOPER)</option>';
+    }
+    options += `
+      <option value="LBMM">LBMM (Manager)</option>
+      <option value="MCC">MCC (Manager)</option>
+      <option value="DCA">DCA (Manager)</option>
+    `;
+
+    this.personnel.forEach(p => {
+      if (!['LBMM', 'MCC', 'DCA', 'DEV', 'Line Manager'].includes(p.name)) {
+        options += `<option value="${p.id}">${p.name} (${p.role.toUpperCase()})</option>`;
+      }
+    });
+
+    switcher.innerHTML = options;
+
+    if (this.currentUser) {
+      if (this.currentUser.name === 'DEV') {
+        switcher.value = 'DEV';
+      } else if (['LBMM', 'MCC', 'DCA'].includes(this.currentUser.name)) {
+        switcher.value = this.currentUser.name;
+      }
+    }
   },
 
   setupAutoSave() {
@@ -968,7 +1064,12 @@ const App = {
           <span>${type}</span>
           ${isNonRoutine ? '<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">Defects</span>' : ''}
         </td>
-        <td class="text-center font-semibold text-slate-700">${total}</td>
+        <td class="text-center font-semibold text-slate-700">
+          <div class="inline-flex items-center justify-center gap-1.5">
+            <span id="planned-count-${type}">${total}</span>
+            ${!controlsDisabled && !isNonRoutine ? `<button type="button" class="text-slate-400 hover:text-slate-700 p-0.5 rounded hover:bg-slate-200 transition-colors edit-planned-btn no-print" data-type="${type}" data-current="${total}" title="Edit planned card count">✏️</button>` : ''}
+          </div>
+        </td>
         <td class="text-center text-emerald-700 font-extrabold text-base" id="closed-count-${type}">${closed}</td>
         <td class="text-center">${statusBadgeHTML}</td>
         <td class="text-center font-black text-[#A50050]">${pct}%</td>
@@ -979,6 +1080,17 @@ const App = {
             <button class="${btnClass} action-btn-inc" data-type="${type}" ${controlsDisabled ? 'disabled' : ''} title="Add 1 card">+1</button>
             <button class="${btnClass} action-btn-inc5 !bg-purple-100 hover:!bg-purple-200 text-purple-900 border-purple-300" data-type="${type}" ${controlsDisabled ? 'disabled' : ''} title="Add 5 cards">+5</button>
           </div>
+        </td>
+        <td class="no-print text-center">
+          ${!isNonRoutine ? `
+            <button type="button" class="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs delete-package-btn transition-colors active:scale-95" data-type="${type}" ${controlsDisabled ? 'disabled' : ''} title="Delete work package from check">
+              🗑️
+            </button>
+          ` : `
+            <button type="button" class="px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs open-manage-defects-btn transition-colors active:scale-95" title="Manage Non-Routine defects">
+              📋
+            </button>
+          `}
         </td>
       </tr>
     `;
@@ -1007,6 +1119,40 @@ const App = {
       btn.addEventListener('click', async () => {
         const type = btn.dataset.type;
         await this.adjustTaskCount(type, 5);
+      });
+    });
+
+    document.querySelectorAll('.edit-planned-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!this.canWrite()) return;
+        const type = btn.dataset.type;
+        const currentCount = parseInt(btn.dataset.current) || 0;
+        const input = prompt(`Enter new planned card count for ${type}:`, currentCount);
+        if (input === null) return;
+        const newCount = parseInt(input.trim());
+        if (isNaN(newCount) || newCount < 0) {
+          this.showToast('Please enter a valid positive number.', 'error');
+          return;
+        }
+        await this.adjustPlannedCards(type, newCount);
+      });
+    });
+
+    document.querySelectorAll('.delete-package-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!this.canWrite()) return;
+        const type = btn.dataset.type;
+        if (confirm(`Are you sure you want to remove work package "${type}" from this active check? This will delete its task record.`)) {
+          await this.deleteWorkPackage(type);
+        }
+      });
+    });
+
+    document.querySelectorAll('.open-manage-defects-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.openManageDefectsModal();
       });
     });
   },
@@ -1045,6 +1191,7 @@ const App = {
       user: this.currentUser.name
     });
 
+    cloudSync.queueAutoPush(db);
     await this.refreshDashboard();
   },
 
@@ -1070,6 +1217,329 @@ const App = {
       }
       this.showToast(`Live Sync: Return to Service date updated to ${data.rts} by ${data.user}`, 'info');
     }
+  },
+
+  async adjustPlannedCards(type, newCount) {
+    if (!this.canWrite() || !this.activeCheck) return;
+    const task = this.tasks.find(t => t.checkType === type);
+    if (!task) return;
+
+    const oldCount = task.totalPlanned;
+    task.totalPlanned = newCount;
+    if (task.closed > newCount) {
+      task.closed = newCount;
+    }
+    await db.updateTask(task);
+
+    if (Array.isArray(this.activeCheck.checkTypes)) {
+      const p = this.activeCheck.checkTypes.find(x => x.type === type);
+      if (p) {
+        p.plannedTasks = newCount;
+        await db.updateCheck(this.activeCheck);
+      }
+    }
+
+    await db.addAuditEntry({
+      checkId: this.activeCheck.id,
+      timestamp: new Date().toISOString(),
+      userId: this.currentUser.name,
+      userName: this.currentUser.name,
+      action: 'Planned Cards Adjusted',
+      details: `Work package "${type}" planned count changed from ${oldCount} to ${newCount}.`
+    });
+
+    cloudSync.queueAutoPush(db);
+    this.showToast(`Updated ${type} planned cards to ${newCount}`, 'success');
+    await this.refreshDashboard();
+  },
+
+  async deleteWorkPackage(type) {
+    if (!this.canWrite() || !this.activeCheck) return;
+    const task = this.tasks.find(t => t.checkType === type);
+    if (task) {
+      await db.deleteTask(task.id);
+    }
+
+    if (Array.isArray(this.activeCheck.checkTypes)) {
+      this.activeCheck.checkTypes = this.activeCheck.checkTypes.filter(x => x.type !== type);
+      await db.updateCheck(this.activeCheck);
+    }
+
+    await db.addAuditEntry({
+      checkId: this.activeCheck.id,
+      timestamp: new Date().toISOString(),
+      userId: this.currentUser.name,
+      userName: this.currentUser.name,
+      action: 'Work Package Deleted',
+      details: `Work package "${type}" removed from active check.`
+    });
+
+    cloudSync.queueAutoPush(db);
+    this.showToast(`Work package "${type}" removed.`, 'info');
+    await this.loadInitialData();
+    await this.refreshDashboard();
+  },
+
+  openAddPackageModal() {
+    if (!this.canWrite() || !this.activeCheck) return;
+    const select = document.getElementById('packageTypeSelect');
+    if (!select) return;
+
+    const currentTypes = (this.activeCheck.checkTypes || []).map(p => p.type);
+    select.innerHTML = '<option value="">-- Choose a package --</option>';
+
+    PREDEFINED_CHECKS.forEach(p => {
+      if (!currentTypes.includes(p.code)) {
+        select.innerHTML += `<option value="${p.code}" data-count="${p.defaultCount}">${p.code} - ${p.name} (${p.defaultCount} cards)</option>`;
+      }
+    });
+    select.innerHTML += '<option value="CUSTOM">Custom Work Package...</option>';
+
+    document.getElementById('packagePlannedCountInput').value = '25';
+    document.getElementById('customPackageNameGroup').classList.add('hidden');
+    document.getElementById('customPackageNameInput').value = '';
+    document.getElementById('addPackageModal').classList.remove('hidden');
+  },
+
+  async handleAddPackage(e) {
+    e.preventDefault();
+    if (!this.canWrite() || !this.activeCheck) return;
+
+    const select = document.getElementById('packageTypeSelect');
+    let type = select.value;
+    if (type === 'CUSTOM') {
+      type = document.getElementById('customPackageNameInput').value.trim();
+      if (!type) {
+        this.showToast('Please enter a custom package name.', 'error');
+        return;
+      }
+    }
+
+    if (!type) {
+      this.showToast('Please choose a package type.', 'error');
+      return;
+    }
+
+    const count = parseInt(document.getElementById('packagePlannedCountInput').value) || 1;
+
+    // Check if already exists
+    if ((this.activeCheck.checkTypes || []).some(x => x.type.toUpperCase() === type.toUpperCase())) {
+      this.showToast(`Work package "${type}" already exists in this check.`, 'error');
+      return;
+    }
+
+    if (!Array.isArray(this.activeCheck.checkTypes)) {
+      this.activeCheck.checkTypes = [];
+    }
+    this.activeCheck.checkTypes.push({ type, plannedTasks: count });
+    await db.updateCheck(this.activeCheck);
+
+    await db.addTask({
+      checkId: this.activeCheck.id,
+      checkType: type,
+      totalPlanned: count,
+      closed: 0,
+      remarks: ''
+    });
+
+    await db.addAuditEntry({
+      checkId: this.activeCheck.id,
+      timestamp: new Date().toISOString(),
+      userId: this.currentUser.name,
+      userName: this.currentUser.name,
+      action: 'Work Package Added',
+      details: `Added work package "${type}" with ${count} planned cards.`
+    });
+
+    cloudSync.queueAutoPush(db);
+    document.getElementById('addPackageModal').classList.add('hidden');
+    document.getElementById('addPackageForm').reset();
+    this.showToast(`Added work package "${type}" (${count} cards)`, 'success');
+    await this.loadInitialData();
+    await this.refreshDashboard();
+  },
+
+  async openManageDefectsModal() {
+    if (!this.activeCheck) return;
+    const container = document.getElementById('defectsListContainer');
+    if (!container) return;
+
+    const allAudit = await db.getAuditEntriesForCheck(this.activeCheck.id);
+    const defectLogs = allAudit.filter(a => a.action === 'Non-Routine Defect Logged');
+
+    if (defectLogs.length === 0) {
+      container.innerHTML = `
+        <div class="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+          <p class="font-bold text-sm">No non-routine defects logged yet.</p>
+          <p class="text-xs mt-1">Defects logged during this check will appear here.</p>
+        </div>
+      `;
+    } else {
+      container.innerHTML = '';
+      defectLogs.slice().reverse().forEach(defect => {
+        const dateStr = new Date(defect.timestamp).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        const canDel = this.canWrite();
+        container.innerHTML += `
+          <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-start justify-between gap-3 shadow-xs hover:border-slate-300 transition-colors">
+            <div class="flex-1">
+              <p class="font-bold text-slate-900 text-xs leading-snug m-0">${defect.details}</p>
+              <div class="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500">
+                <span>By: <strong class="text-slate-700">${defect.userName || defect.userId}</strong></span>
+                <span>•</span>
+                <span>${dateStr}</span>
+              </div>
+            </div>
+            ${canDel ? `
+              <button type="button" class="btn-danger !py-1 !px-2.5 text-xs flex items-center gap-1 delete-defect-item-btn" data-id="${defect.id}" title="Delete this defect entry">
+                <span>🗑️</span>
+                <span>Delete</span>
+              </button>
+            ` : ''}
+          </div>
+        `;
+      });
+
+      container.querySelectorAll('.delete-defect-item-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = parseInt(btn.dataset.id);
+          if (confirm('Are you sure you want to remove this defect? The non-routine defect count will be decremented.')) {
+            await this.deleteDefect(id);
+          }
+        });
+      });
+    }
+
+    document.getElementById('manageDefectsModal').classList.remove('hidden');
+  },
+
+  async deleteDefect(auditId) {
+    if (!this.canWrite() || !this.activeCheck) return;
+
+    const nrRecord = this.tasks.find(t => t.checkType === 'Non-Routine');
+    if (nrRecord && nrRecord.totalPlanned > 0) {
+      nrRecord.totalPlanned -= 1;
+      if (nrRecord.closed > nrRecord.totalPlanned) {
+        nrRecord.closed = nrRecord.totalPlanned;
+      }
+      await db.updateTask(nrRecord);
+    }
+
+    await db.deleteAuditEntry(auditId);
+
+    await db.addAuditEntry({
+      checkId: this.activeCheck.id,
+      timestamp: new Date().toISOString(),
+      userId: this.currentUser.name,
+      userName: this.currentUser.name,
+      action: 'Non-Routine Defect Removed',
+      details: `Removed non-routine defect item. Non-routine card count decremented.`
+    });
+
+    cloudSync.queueAutoPush(db);
+    this.showToast('Defect deleted successfully.', 'info');
+    await this.refreshDashboard();
+    await this.openManageDefectsModal();
+  },
+
+  setupCloudSyncUI() {
+    const cloudBtn = document.getElementById('cloudSyncBtn');
+    const cloudDot = document.getElementById('cloudSyncDot');
+    const cloudText = document.getElementById('cloudSyncText');
+
+    cloudSync.onStatusChange((status, detail) => {
+      if (!cloudDot || !cloudText) return;
+      if (status === 'SYNCING') {
+        cloudDot.className = 'inline-block w-2 h-2 rounded-full bg-blue-500 mr-1.5 animate-ping';
+        cloudText.textContent = 'Syncing...';
+      } else if (status === 'SYNCED' || status === 'UPDATED') {
+        cloudDot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1.5';
+        cloudText.textContent = 'Cloud: Synced';
+        const modalStatus = document.getElementById('modalCloudStatusText');
+        if (modalStatus) modalStatus.textContent = 'Active (Synced)';
+        const modalLast = document.getElementById('modalCloudLastSyncText');
+        if (modalLast) modalLast.textContent = `Last sync: ${new Date().toLocaleTimeString()}`;
+      } else if (status === 'OFFLINE') {
+        cloudDot.className = 'inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5';
+        cloudText.textContent = 'Cloud: Offline';
+      } else if (status === 'ERROR') {
+        cloudDot.className = 'inline-block w-2 h-2 rounded-full bg-rose-500 mr-1.5';
+        cloudText.textContent = 'Cloud: Error';
+      }
+    });
+
+    cloudBtn?.addEventListener('click', async () => {
+      this.showToast('Syncing with cloud...', 'info');
+      const res = await cloudSync.syncNow(db);
+      if (res.success) {
+        this.showToast('Cloud sync complete! Checks up to date.', 'success');
+        await this.loadInitialData();
+        if (this.activeCheck) await this.refreshDashboard();
+      } else {
+        this.showToast(`Sync alert: ${res.reason || 'Network offline'}`, 'warning');
+      }
+    });
+
+    document.getElementById('modalForceSyncBtn')?.addEventListener('click', async () => {
+      const res = await cloudSync.syncNow(db);
+      if (res.success) {
+        this.showToast('Cloud sync complete!', 'success');
+        await this.loadInitialData();
+      }
+    });
+
+    document.getElementById('openCloudSettingsBtn')?.addEventListener('click', () => {
+      this.openCloudSettingsModal();
+    });
+
+    document.getElementById('closeCloudSyncModalBtn')?.addEventListener('click', () => {
+      document.getElementById('cloudSyncModal').classList.add('hidden');
+    });
+
+    document.getElementById('cancelCloudSyncModalBtn')?.addEventListener('click', () => {
+      document.getElementById('cloudSyncModal').classList.add('hidden');
+    });
+
+    const providerSelect = document.getElementById('cloudProviderSelect');
+    providerSelect?.addEventListener('change', (e) => {
+      const val = e.target.value;
+      document.getElementById('supabaseConfigFields').classList.toggle('hidden', val !== 'supabase');
+      document.getElementById('firebaseConfigFields').classList.toggle('hidden', val !== 'firebase');
+    });
+
+    document.getElementById('cloudConfigForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const roomCode = document.getElementById('cloudRoomCodeInput').value.trim().toUpperCase() || 'RANO-C-CHECK';
+      const provider = document.getElementById('cloudProviderSelect').value;
+      const supabaseUrl = document.getElementById('supabaseUrlInput').value.trim();
+      const supabaseKey = document.getElementById('supabaseKeyInput').value.trim();
+      const firebaseProjectId = document.getElementById('firebaseProjectIdInput').value.trim();
+
+      cloudSync.saveConfig({
+        roomCode,
+        provider,
+        supabaseUrl,
+        supabaseKey,
+        firebaseProjectId
+      });
+
+      this.showToast('Cloud settings saved. Triggering sync...', 'success');
+      document.getElementById('cloudSyncModal').classList.add('hidden');
+      cloudSync.syncNow(db);
+    });
+  },
+
+  openCloudSettingsModal() {
+    const config = cloudSync.config;
+    document.getElementById('cloudRoomCodeInput').value = config.roomCode || 'RANO-C-CHECK';
+    document.getElementById('cloudProviderSelect').value = config.provider || 'relay';
+    document.getElementById('supabaseUrlInput').value = config.supabaseUrl || '';
+    document.getElementById('supabaseKeyInput').value = config.supabaseKey || '';
+    document.getElementById('firebaseProjectIdInput').value = config.firebaseProjectId || '';
+
+    document.getElementById('supabaseConfigFields').classList.toggle('hidden', config.provider !== 'supabase');
+    document.getElementById('firebaseConfigFields').classList.toggle('hidden', config.provider !== 'firebase');
+
+    document.getElementById('cloudSyncModal').classList.remove('hidden');
   },
 
   populateDefectAssigneeSelect() {
@@ -1579,6 +2049,7 @@ ${dsrHTML}
 
   canWrite() {
     if (!this.authReady) return false;
+    if (this.isDevSession) return true; // DEV always has full write permissions
     const name = this.currentUser?.name?.toUpperCase();
     if (name === 'DCA' || this.currentUser?.isReadOnly) {
       return false;
@@ -1590,6 +2061,7 @@ ${dsrHTML}
     const isWritable = this.canWrite();
     
     if (document.getElementById('addDefectBtn')) document.getElementById('addDefectBtn').disabled = !isWritable;
+    if (document.getElementById('openAddPackageBtn')) document.getElementById('openAddPackageBtn').disabled = !isWritable;
     if (document.getElementById('closeCheckBtn')) document.getElementById('closeCheckBtn').disabled = !isWritable;
     if (document.getElementById('saveHandoverBtn')) document.getElementById('saveHandoverBtn').disabled = !isWritable;
     if (document.getElementById('importBackupBtn')) document.getElementById('importBackupBtn').disabled = !isWritable;

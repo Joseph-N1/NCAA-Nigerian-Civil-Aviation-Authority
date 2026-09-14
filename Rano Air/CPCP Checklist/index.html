@@ -105,6 +105,11 @@
             <span id="peerSyncBadge" class="inline-flex items-center rounded-full border border-purple-200 bg-purple-100 px-2.5 py-0.5 text-[11px] font-bold text-purple-900">
               <span class="inline-block w-2 h-2 rounded-full bg-[#A50050] mr-1.5"></span> Live Offline Broadcast
             </span>
+            <button type="button" id="cloudSyncBtn" class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 hover:bg-blue-100 px-2.5 py-0.5 text-[11px] font-bold text-blue-900 transition-colors cursor-pointer shadow-sm active:scale-95" title="Click to manually sync with Cloud now">
+              <span id="cloudSyncDot" class="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1.5 animate-pulse"></span>
+              <span id="cloudSyncText">Cloud: Auto-Sync</span>
+              <span class="ml-1 text-xs">🔄</span>
+            </button>
           </div>
           <h1 class="text-2xl sm:text-3xl font-black text-slate-900 leading-none m-0">
             Check Progress Tracker
@@ -137,6 +142,10 @@
                   <span>Export Backup (HTML)</span>
                 </button>
                 <div class="dropdown-divider"></div>
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="openCloudSettingsBtn" role="menuitem">
+                  <span class="text-base">☁️</span>
+                  <span>Cloud Multi-Device Sync</span>
+                </button>
                 <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="importBackupBtn" role="menuitem">
                   <span class="text-base">📤</span>
                   <span>Restore Backup (JSON)</span>
@@ -157,10 +166,9 @@
             <small class="text-slate-500 text-[10px] uppercase font-bold" id="userRole">Manager</small>
           </div>
           <select id="userSwitcher" class="form-select text-xs !py-1 !px-2 bg-white border-slate-300 rounded-lg cursor-pointer text-slate-900" style="width: auto;">
-            <option value="manager">DEV (DEVELOPER)</option>
             <option value="LBMM">LBMM (Manager)</option>
-            <option value="DCA">DCA (Manager)</option>
             <option value="MCC">MCC (Manager)</option>
+            <option value="DCA">DCA (Manager)</option>
           </select>
         </div>
       </div>
@@ -246,9 +254,19 @@
 
       <!-- Live Work Package Progress Register Table -->
       <div class="glass-card overflow-x-auto">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-          <h3 class="text-sm font-bold text-[#A50050] uppercase tracking-wider m-0">LIVE WORK PACKAGE PROGRESS REGISTER</h3>
-          <span class="text-xs text-slate-600 font-medium">Use +/- buttons for live card status updates</span>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3 flex-wrap">
+          <div>
+            <h3 class="text-sm font-bold text-[#A50050] uppercase tracking-wider m-0">LIVE WORK PACKAGE PROGRESS REGISTER</h3>
+            <span class="text-xs text-slate-600 font-medium">Use +/- for status updates · Click ✏️ on Planned to adjust card count</span>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button type="button" id="openAddPackageBtn" class="btn-primary !py-1.5 !px-3 text-xs font-bold flex items-center gap-1.5 shadow-sm" title="Add another work package to this active check">
+              <span>+ Add Package</span>
+            </button>
+            <button type="button" id="openManageDefectsBtn" class="btn-secondary !py-1.5 !px-3 text-xs font-bold flex items-center gap-1.5 shadow-sm" title="View, manage, and delete logged non-routine defects">
+              <span>📋 Non-Routine Defects</span>
+            </button>
+          </div>
         </div>
         <table class="data-table">
           <thead>
@@ -260,6 +278,7 @@
               <th class="text-center">PROGRESS</th>
               <th class="text-center">REMAINING</th>
               <th class="text-center no-print">QUICK CARD INCREMENTS</th>
+              <th class="text-center no-print w-24">ACTIONS</th>
             </tr>
           </thead>
           <tbody id="progressTableBody">
@@ -645,6 +664,123 @@
       </div>
       <div id="dsrPreviewContainer" class="overflow-x-auto bg-slate-100/60 p-3 rounded-xl border border-slate-200">
         <!-- Rendered DSR here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Work Package Modal -->
+  <div class="modal-overlay hidden fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" id="addPackageModal">
+    <div class="glass-card w-full max-w-[500px] modal-card-inner">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-extrabold text-slate-900 m-0">Add Work Package to Check</h3>
+        <button class="btn-icon" id="closeAddPackageModalBtn">✕</button>
+      </div>
+      <form id="addPackageForm" class="space-y-4">
+        <div>
+          <label for="packageTypeSelect" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Select Work Package</label>
+          <select id="packageTypeSelect" class="form-select" required></select>
+        </div>
+        <div id="customPackageNameGroup" class="hidden">
+          <label for="customPackageNameInput" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Custom Package Name</label>
+          <input id="customPackageNameInput" type="text" class="form-input" placeholder="e.g. Engine Change, Landing Gear Inspection">
+        </div>
+        <div>
+          <label for="packagePlannedCountInput" class="block text-slate-700 text-xs font-bold mb-1.5 uppercase">Planned Task Cards Count</label>
+          <input id="packagePlannedCountInput" type="number" min="1" max="1000" class="form-input" required placeholder="25">
+        </div>
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
+          <button type="button" class="btn-secondary" id="cancelAddPackageModalBtn">Cancel</button>
+          <button type="submit" class="btn-primary">Add Package</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Manage Non-Routine Defects Modal -->
+  <div class="modal-overlay hidden fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" id="manageDefectsModal">
+    <div class="glass-card w-full max-w-[700px] max-h-[85vh] flex flex-col modal-card-inner">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-200 pb-3">
+        <div>
+          <h3 class="text-lg font-extrabold text-slate-900 m-0">Non-Routine Defects Register</h3>
+          <p class="text-xs text-slate-500 m-0">View all defects raised for this check · Delete accidental or duplicate entries</p>
+        </div>
+        <button class="btn-icon" id="closeManageDefectsModalBtn">✕</button>
+      </div>
+      <div id="defectsListContainer" class="overflow-y-auto flex-1 space-y-2 pr-1 max-h-[50vh]">
+        <!-- Defects dynamically injected here -->
+      </div>
+      <div class="flex justify-between items-center gap-3 pt-4 border-t border-slate-200 mt-4">
+        <button type="button" class="btn-primary !py-2 !px-4 text-xs font-bold" id="addNewDefectFromManageBtn">+ Log New Defect</button>
+        <button type="button" class="btn-secondary" id="cancelManageDefectsModalBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cloud Multi-Device Sync Modal -->
+  <div class="modal-overlay hidden fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" id="cloudSyncModal">
+    <div class="glass-card w-full max-w-[560px] max-h-[90vh] overflow-y-auto modal-card-inner">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-2.5">
+          <span class="text-2xl">☁️</span>
+          <div>
+            <h3 class="text-lg font-extrabold text-slate-900 m-0">Cloud Multi-Device Sync</h3>
+            <p class="text-xs text-slate-500 m-0">Keep MCC, LBMM, DEV, and Certifiers synchronized in real-time</p>
+          </div>
+        </div>
+        <button class="btn-icon" id="closeCloudSyncModalBtn">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs text-slate-700">
+        <div class="bg-blue-50 border border-blue-200 p-3.5 rounded-xl flex items-center justify-between">
+          <div>
+            <span class="font-bold text-blue-900 block text-sm">Sync Status: <span id="modalCloudStatusText" class="text-emerald-700 font-extrabold">Active</span></span>
+            <span class="text-[11px] text-blue-800" id="modalCloudLastSyncText">Last sync: Just now</span>
+          </div>
+          <button type="button" id="modalForceSyncBtn" class="btn-primary !py-2 !px-4 text-xs font-bold flex items-center gap-1.5 shadow-md">
+            <span>Sync Now</span>
+            <span>🔄</span>
+          </button>
+        </div>
+
+        <form id="cloudConfigForm" class="space-y-3.5">
+          <div>
+            <label for="cloudRoomCodeInput" class="block font-bold uppercase tracking-wider text-slate-700 mb-1">Check Sync Room Code</label>
+            <input id="cloudRoomCodeInput" type="text" class="form-input font-mono uppercase font-bold" placeholder="e.g. RANO-5NBZY" required>
+            <p class="text-[11px] text-slate-500 mt-1">MCC and LBMM must use the exact same room code to share the check.</p>
+          </div>
+
+          <div>
+            <label for="cloudProviderSelect" class="block font-bold uppercase tracking-wider text-slate-700 mb-1">Sync Provider</label>
+            <select id="cloudProviderSelect" class="form-select">
+              <option value="relay">Instant Cloud Relay (Free, Zero Account Required)</option>
+              <option value="supabase">Supabase Database (Free Cloud Postgres)</option>
+              <option value="firebase">Firebase Firestore (Free Google Cloud)</option>
+            </select>
+          </div>
+
+          <div id="supabaseConfigFields" class="space-y-3 hidden bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div>
+              <label for="supabaseUrlInput" class="block font-bold text-slate-700 mb-1">Supabase Project URL</label>
+              <input id="supabaseUrlInput" type="url" class="form-input" placeholder="https://xyzcompany.supabase.co">
+            </div>
+            <div>
+              <label for="supabaseKeyInput" class="block font-bold text-slate-700 mb-1">Supabase Anon Public API Key</label>
+              <input id="supabaseKeyInput" type="password" class="form-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+            </div>
+          </div>
+
+          <div id="firebaseConfigFields" class="space-y-3 hidden bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div>
+              <label for="firebaseProjectIdInput" class="block font-bold text-slate-700 mb-1">Firebase Project ID</label>
+              <input id="firebaseProjectIdInput" type="text" class="form-input" placeholder="rano-air-cpcp">
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
+            <button type="button" class="btn-secondary" id="cancelCloudSyncModalBtn">Close</button>
+            <button type="submit" class="btn-primary">Save Settings</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
