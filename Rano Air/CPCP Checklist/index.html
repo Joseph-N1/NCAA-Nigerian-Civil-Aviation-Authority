@@ -182,7 +182,7 @@
           <span class="font-extrabold text-white text-base" id="metaReg">-</span>
           <span class="text-xs text-rose-300 font-semibold" id="metaType">(-)</span>
         </div>
-        <div class="border-r border-slate-700 pr-2">
+        <div class="border-r-0 md:border-r border-slate-700 pr-2">
           <span class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">MSN</span>
           <span class="font-extrabold text-white text-base" id="metaMSN">-</span>
         </div>
@@ -257,7 +257,7 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3 flex-wrap">
           <div>
             <h3 class="text-sm font-bold text-[#A50050] uppercase tracking-wider m-0">LIVE WORK PACKAGE PROGRESS REGISTER</h3>
-            <span class="text-xs text-slate-600 font-medium">Use +/- for status updates · Click ✏️ on Planned to adjust card count</span>
+            <span class="text-xs text-slate-600 font-medium">Use +/- for card updates · Select Actions ▾ to edit targets or delete packages</span>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
             <button type="button" id="openAddPackageBtn" class="btn-primary !py-1.5 !px-3 text-xs font-bold flex items-center gap-1.5 shadow-sm" title="Add another work package to this active check">
@@ -278,7 +278,7 @@
               <th class="text-center">PROGRESS</th>
               <th class="text-center">REMAINING</th>
               <th class="text-center no-print">QUICK CARD INCREMENTS</th>
-              <th class="text-center no-print w-24">ACTIONS</th>
+              <th class="text-center no-print w-28">ACTIONS</th>
             </tr>
           </thead>
           <tbody id="progressTableBody">
@@ -302,6 +302,10 @@
               <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="generateDsrBtn" role="menuitem">
                 <span class="text-base">👁️</span>
                 <span class="font-medium">Preview DSR</span>
+              </button>
+              <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="dropdownDraftShiftBriefingBtn" role="menuitem">
+                <span class="text-base">📱</span>
+                <span class="font-medium">Draft Shift Briefing (WhatsApp)</span>
               </button>
               <div class="dropdown-divider"></div>
               <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="printDsrBtn" role="menuitem">
@@ -394,8 +398,12 @@
           <h3 class="text-lg font-bold text-slate-900 m-0">Shift Handover Log (Current 12h Window)</h3>
           <p class="text-xs text-slate-600 mt-1 m-0">Log critical maintenance findings, deferred work cards, and handover instructions.</p>
         </div>
-        <div class="flex items-center gap-2">
-          <button class="btn-primary !py-2 !px-4 text-xs font-bold" id="saveHandoverBtn">Save Handover Notes</button>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button type="button" class="btn-primary !py-2 !px-4 text-xs font-bold flex items-center gap-1.5 shadow-sm" id="draftShiftBriefingBtn">
+            <span>📋</span>
+            <span>Draft Shift Briefing</span>
+          </button>
+          <button class="btn-secondary !py-2 !px-4 text-xs font-bold" id="saveHandoverBtn">Save Handover Notes</button>
         </div>
       </div>
       <div class="space-y-4">
@@ -781,6 +789,42 @@
             <button type="submit" class="btn-primary">Save Settings</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ SHIFT HANDOVER BRIEFING MODAL (1-CLICK DRAFT) ═══════════ -->
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden no-print" id="shiftBriefingModal">
+    <div class="glass-card w-full max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl bg-white border border-slate-200 rounded-2xl">
+      <div class="p-4 sm:p-5 border-b border-slate-200 flex justify-between items-center bg-gradient-to-r from-slate-900 to-[#9B0056] text-white">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">📋</span>
+          <div>
+            <h3 class="font-extrabold text-base sm:text-lg leading-tight m-0 text-white">Shift Handover & DSR Briefing</h3>
+            <p class="text-xs text-rose-200 m-0">Auto-compiled operational briefing for incoming shift & management</p>
+          </div>
+        </div>
+        <button type="button" class="text-slate-300 hover:text-white text-xl font-bold cursor-pointer p-1" id="closeShiftBriefingModalBtn">&times;</button>
+      </div>
+
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 font-mono text-xs sm:text-sm text-slate-800 whitespace-pre-wrap leading-relaxed shadow-inner" id="shiftBriefingPreviewText">
+          Loading briefing preview...
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button type="button" class="btn-primary !bg-emerald-600 hover:!bg-emerald-700 !border-emerald-600 !py-2 !px-3.5 text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer" id="copyWhatsAppBriefingBtn">
+            <span>🟢</span>
+            <span>Copy for WhatsApp</span>
+          </button>
+          <button type="button" class="btn-secondary !py-2 !px-3.5 text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer" id="copyTextBriefingBtn">
+            <span>📋</span>
+            <span>Copy Plain Text</span>
+          </button>
+        </div>
+        <button type="button" class="btn-secondary !py-2 !px-4 text-xs font-bold cursor-pointer" id="cancelShiftBriefingModalBtn">Close</button>
       </div>
     </div>
   </div>

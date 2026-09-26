@@ -334,3 +334,46 @@ div[id$="Modal"]:not(.hidden) .modal-card-inner {
 .print-only {
   display: none;
 }
+
+/* ── Mobile-Only Responsive Polish (Phones < 640px) - Strictly Zero Impact on Laptop (>=641px) ── */
+@media (max-width: 640px) {
+  .glass-card {
+    padding: 1rem !important;
+    border-radius: 14px !important;
+  }
+  .glass-card-sm {
+    padding: 0.875rem !important;
+    border-radius: 12px !important;
+  }
+  #metricsRow p {
+    font-size: 1.625rem !important;
+    line-height: 2rem !important;
+  }
+  #metricsRow h2 {
+    font-size: 0.6875rem !important;
+  }
+  .data-table {
+    min-width: 720px; /* guarantees full columns without squishing, scrolling smoothly */
+  }
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.625rem !important;
+    font-size: 0.8125rem !important;
+  }
+  .data-table th {
+    font-size: 0.6875rem !important;
+  }
+  .tab-button {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.8125rem !important;
+  }
+  .toast {
+    min-width: calc(100vw - 32px) !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+  .toast-container {
+    top: 1rem !important;
+    right: 1rem !important;
+    left: 1rem !important;
+  }
+}

@@ -437,6 +437,9 @@ const App = {
           modalSaveBtn?.setAttribute('aria-expanded', 'false');
         }
       }
+      if (!e.target.closest('.row-action-dropdown')) {
+        document.querySelectorAll('.row-action-menu').forEach(m => m.classList.add('hidden'));
+      }
     });
 
     // Close modals on backdrop click
@@ -456,6 +459,8 @@ const App = {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+        document.getElementById('shiftBriefingModal')?.classList.add('hidden');
+        document.querySelectorAll('.row-action-menu').forEach(m => m.classList.add('hidden'));
         if (reportsMenu && !reportsMenu.classList.contains('hidden')) {
           reportsMenu.classList.add('hidden');
           reportsBtn?.setAttribute('aria-expanded', 'false');
@@ -475,8 +480,32 @@ const App = {
     document.getElementById('confirmLogoutBtn')?.addEventListener('click', () => this.logout());
     document.getElementById('loginForm')?.addEventListener('submit', (e) => this.handleLogin(e));
 
-    document.getElementById('saveHandoverBtn').addEventListener('click', async () => {
+    document.getElementById('saveHandoverBtn')?.addEventListener('click', async () => {
       await this.saveHandoverNotes();
+    });
+
+    document.getElementById('draftShiftBriefingBtn')?.addEventListener('click', async () => {
+      await this.openShiftBriefingModal();
+    });
+
+    document.getElementById('dropdownDraftShiftBriefingBtn')?.addEventListener('click', async () => {
+      await this.openShiftBriefingModal();
+    });
+
+    document.getElementById('closeShiftBriefingModalBtn')?.addEventListener('click', () => {
+      document.getElementById('shiftBriefingModal')?.classList.add('hidden');
+    });
+
+    document.getElementById('cancelShiftBriefingModalBtn')?.addEventListener('click', () => {
+      document.getElementById('shiftBriefingModal')?.classList.add('hidden');
+    });
+
+    document.getElementById('copyWhatsAppBriefingBtn')?.addEventListener('click', async () => {
+      await this.copyShiftBriefingWhatsApp();
+    });
+
+    document.getElementById('copyTextBriefingBtn')?.addEventListener('click', async () => {
+      await this.copyShiftBriefingText();
     });
 
     document.getElementById('closeCheckBtn').addEventListener('click', async () => {
@@ -1065,10 +1094,7 @@ const App = {
           ${isNonRoutine ? '<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">Defects</span>' : ''}
         </td>
         <td class="text-center font-semibold text-slate-700">
-          <div class="inline-flex items-center justify-center gap-1.5">
-            <span id="planned-count-${type}">${total}</span>
-            ${!controlsDisabled && !isNonRoutine ? `<button type="button" class="text-slate-400 hover:text-slate-700 p-0.5 rounded hover:bg-slate-200 transition-colors edit-planned-btn no-print" data-type="${type}" data-current="${total}" title="Edit planned card count">✏️</button>` : ''}
-          </div>
+          <span id="planned-count-${type}">${total}</span>
         </td>
         <td class="text-center text-emerald-700 font-extrabold text-base" id="closed-count-${type}">${closed}</td>
         <td class="text-center">${statusBadgeHTML}</td>
@@ -1081,16 +1107,31 @@ const App = {
             <button class="${btnClass} action-btn-inc5 !bg-purple-100 hover:!bg-purple-200 text-purple-900 border-purple-300" data-type="${type}" ${controlsDisabled ? 'disabled' : ''} title="Add 5 cards">+5</button>
           </div>
         </td>
-        <td class="no-print text-center">
-          ${!isNonRoutine ? `
-            <button type="button" class="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs delete-package-btn transition-colors active:scale-95" data-type="${type}" ${controlsDisabled ? 'disabled' : ''} title="Delete work package from check">
-              🗑️
+        <td class="no-print text-center relative">
+          <div class="relative inline-block text-left row-action-dropdown">
+            <button type="button" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold text-xs text-slate-700 inline-flex items-center gap-1 cursor-pointer transition-colors active:scale-95 row-action-trigger" data-type="${type}" ${controlsDisabled ? 'disabled' : ''} title="Options for ${type}">
+              <span>Actions</span>
+              <span class="text-[8px] opacity-70">▼</span>
             </button>
-          ` : `
-            <button type="button" class="px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs open-manage-defects-btn transition-colors active:scale-95" title="Manage Non-Routine defects">
-              📋
-            </button>
-          `}
+            <div class="row-action-menu hidden absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50 text-left">
+              ${!isNonRoutine ? `
+                <button type="button" class="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2 cursor-pointer edit-planned-btn" data-type="${type}" data-current="${total}">
+                  <span>✏️</span>
+                  <span>Edit Planned Target</span>
+                </button>
+                <div class="my-1 border-t border-slate-100"></div>
+                <button type="button" class="w-full text-left px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer delete-package-btn" data-type="${type}">
+                  <span>🗑️</span>
+                  <span>Delete Work Package</span>
+                </button>
+              ` : `
+                <button type="button" class="w-full text-left px-3 py-2 text-xs font-semibold text-amber-800 hover:bg-amber-50 flex items-center gap-2 cursor-pointer open-manage-defects-btn">
+                  <span>📋</span>
+                  <span>Manage Logged Defects</span>
+                </button>
+              `}
+            </div>
+          </div>
         </td>
       </tr>
     `;
@@ -1122,9 +1163,24 @@ const App = {
       });
     });
 
+    // Row Actions Dropdown Toggle
+    document.querySelectorAll('.row-action-trigger').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const menu = trigger.nextElementSibling;
+        if (!menu) return;
+        const isHidden = menu.classList.contains('hidden');
+        document.querySelectorAll('.row-action-menu').forEach(m => m.classList.add('hidden'));
+        if (isHidden) {
+          menu.classList.remove('hidden');
+        }
+      });
+    });
+
     document.querySelectorAll('.edit-planned-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
+        btn.closest('.row-action-menu')?.classList.add('hidden');
         if (!this.canWrite()) return;
         const type = btn.dataset.type;
         const currentCount = parseInt(btn.dataset.current) || 0;
@@ -1142,6 +1198,7 @@ const App = {
     document.querySelectorAll('.delete-package-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
+        btn.closest('.row-action-menu')?.classList.add('hidden');
         if (!this.canWrite()) return;
         const type = btn.dataset.type;
         if (confirm(`Are you sure you want to remove work package "${type}" from this active check? This will delete its task record.`)) {
@@ -1151,7 +1208,9 @@ const App = {
     });
 
     document.querySelectorAll('.open-manage-defects-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        btn.closest('.row-action-menu')?.classList.add('hidden');
         this.openManageDefectsModal();
       });
     });
@@ -1598,21 +1657,7 @@ const App = {
       document.getElementById('engineerModal').classList.add('hidden');
       await this.loadInitialData();
       
-      // Update Personnel switcher list
-      const switcher = document.getElementById('userSwitcher');
-      if (switcher) {
-        switcher.innerHTML = `
-          <option value="manager">DEV (DEVELOPER)</option>
-          <option value="LBMM">LBMM (Manager)</option>
-          <option value="MCC">MCC (Manager)</option>
-          <option value="DCA">DCA (Manager)</option>
-        `;
-        this.personnel.forEach(p => {
-          if (!['LBMM', 'MCC', 'DCA', 'Line Manager'].includes(p.name)) {
-            switcher.innerHTML += `<option value="${p.id}">${p.name} (${p.role.toUpperCase()})</option>`;
-          }
-        });
-      }
+      this.populateUserSwitcher();
     } catch (err) {
       this.showToast('Staff ID already registered.', 'error');
     }
@@ -1723,6 +1768,131 @@ const App = {
     });
 
     this.showToast('Handover remarks saved to audit log.', 'success');
+  },
+
+  async openShiftBriefingModal() {
+    if (!this.activeCheck) {
+      this.showToast('No active check found to draft a briefing for.', 'info');
+      return;
+    }
+    const data = await this.compileShiftBriefingData();
+    const previewEl = document.getElementById('shiftBriefingPreviewText');
+    if (previewEl) {
+      previewEl.textContent = data.textBriefing;
+    }
+    this._currentBriefingData = data;
+    document.getElementById('shiftBriefingModal')?.classList.remove('hidden');
+  },
+
+  async compileShiftBriefingData() {
+    const check = this.activeCheck;
+    const tasks = this.tasks || [];
+    const logs = await db.getAuditEntriesForCheck(check.id);
+    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+    const currentShiftLogs = logs.filter(l => l.timestamp >= twelveHoursAgo);
+
+    const shiftProgressUpdates = currentShiftLogs.filter(l => l.action === 'Progress Updated').length;
+    const shiftNewDefects = currentShiftLogs.filter(l => l.action === 'Non-Routine Defect Logged').length;
+
+    let totalPlanned = 0;
+    let totalClosed = 0;
+    const packageLines = [];
+    tasks.forEach(t => {
+      totalPlanned += t.totalPlanned;
+      totalClosed += t.closed;
+      const pct = t.totalPlanned > 0 ? Math.round((t.closed / t.totalPlanned) * 100) : 0;
+      packageLines.push(`• ${t.checkType}: ${t.closed}/${t.totalPlanned} cards (${pct}%)`);
+    });
+
+    const overallPct = totalPlanned > 0 ? Math.round((totalClosed / totalPlanned) * 100) : 0;
+    const remaining = totalPlanned - totalClosed;
+
+    const notes = document.getElementById('handoverRemarksInput')?.value.trim() || 'No additional shift remarks provided.';
+    const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const timeStr = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+    // WhatsApp Formatted (with bold markdown and emojis)
+    const whatsapp = [
+      `✈️ *RANO AIR · BASE MAINTENANCE*`,
+      `📋 *SHIFT HANDOVER & DSR BRIEFING*`,
+      `━━━━━━━━━━━━━━━━━━━━`,
+      `*Aircraft:* ${check.aircraftReg} (${check.aircraftType || 'B737'})`,
+      `*MSN:* ${check.msn || '-'}`,
+      `*Check:* ${check.checkType || 'C-Check'}`,
+      `*Date/Time:* ${dateStr} @ ${timeStr}`,
+      `*Supervisor:* ${this.currentUser ? this.currentUser.name : 'MCC/LBMM'}`,
+      `━━━━━━━━━━━━━━━━━━━━`,
+      `📊 *OVERALL CHECK PROGRESS: ${overallPct}%*`,
+      `• Total Work Cards: ${totalPlanned}`,
+      `• Cards Completed: ${totalClosed}`,
+      `• Cards Remaining: ${remaining}`,
+      `━━━━━━━━━━━━━━━━━━━━`,
+      `⚡ *CURRENT 12-HOUR SHIFT DELTA*`,
+      `• Work Card Updates: ${shiftProgressUpdates} recorded`,
+      `• Non-Routine Defects Raised: ${shiftNewDefects} new`,
+      `━━━━━━━━━━━━━━━━━━━━`,
+      `📦 *PACKAGE STATUS*`,
+      ...packageLines,
+      `━━━━━━━━━━━━━━━━━━━━`,
+      `📝 *HANDOVER REMARKS / DIRECTIVES:*`,
+      `${notes}`,
+      `━━━━━━━━━━━━━━━━━━━━`,
+      `_Generated via Rano Air Check Progress Tracker_`
+    ].join('\n');
+
+    // Plain text formatted
+    const plainText = [
+      `RANO AIR · BASE MAINTENANCE`,
+      `SHIFT HANDOVER & DSR BRIEFING`,
+      `====================================`,
+      `Aircraft:    ${check.aircraftReg} (${check.aircraftType || 'B737'})`,
+      `MSN:         ${check.msn || '-'}`,
+      `Check:       ${check.checkType || 'C-Check'}`,
+      `Date/Time:   ${dateStr} @ ${timeStr}`,
+      `Author:      ${this.currentUser ? this.currentUser.name : 'MCC/LBMM'}`,
+      `====================================`,
+      `OVERALL CHECK PROGRESS: ${overallPct}%`,
+      `Total Planned Cards:    ${totalPlanned}`,
+      `Total Closed Cards:     ${totalClosed}`,
+      `Cards Remaining:        ${remaining}`,
+      `====================================`,
+      `CURRENT 12-HOUR SHIFT DELTA:`,
+      `- Card Updates Logged:  ${shiftProgressUpdates}`,
+      `- New Defects Logged:   ${shiftNewDefects}`,
+      `====================================`,
+      `WORK PACKAGE STATUS:`,
+      ...packageLines.map(l => '  ' + l),
+      `====================================`,
+      `SUPERVISOR HANDOVER NOTES:`,
+      notes,
+      `====================================`,
+      `Generated via Rano Air Check Progress Tracker`
+    ].join('\n');
+
+    return {
+      whatsapp,
+      textBriefing: plainText
+    };
+  },
+
+  async copyShiftBriefingWhatsApp() {
+    if (!this._currentBriefingData) return;
+    try {
+      await navigator.clipboard.writeText(this._currentBriefingData.whatsapp);
+      this.showToast('✅ WhatsApp briefing copied! Ready to paste.', 'success');
+    } catch (e) {
+      this.showToast('Could not copy to clipboard automatically.', 'error');
+    }
+  },
+
+  async copyShiftBriefingText() {
+    if (!this._currentBriefingData) return;
+    try {
+      await navigator.clipboard.writeText(this._currentBriefingData.textBriefing);
+      this.showToast('📋 Plain text briefing copied!', 'success');
+    } catch (e) {
+      this.showToast('Could not copy to clipboard automatically.', 'error');
+    }
   },
 
   async renderAuditTab() {
