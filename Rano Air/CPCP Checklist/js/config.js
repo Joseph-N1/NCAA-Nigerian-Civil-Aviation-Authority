@@ -1,8 +1,8 @@
 export const APP_CONFIG = {
   companyName: 'Rano Air',
   companyTagline: 'Nnamdi Azikiwe International Airport (NAIA) · Maintenance Control',
-  appVersion: '2.1.0',
-  lastUpdated: '14 Sep 2026',
+  appVersion: '2.2.0',
+  lastUpdated: '26 Sep 2026',
   authTimeoutMinutes: 30,
   autoSaveDelayMs: 1000,
   autoSaveIntervalMs: 30000,
