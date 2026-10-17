@@ -1,6 +1,10 @@
 [build]
-  command = "npm --prefix \"Rano Air/CPCP Checklist\" run build"
-  publish = "Rano Air/CPCP Checklist/dist"
+  base = "Rano Air/CPCP Checklist"
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
 
 [[redirects]]
   from = "/*"
@@ -28,4 +32,4 @@
     Pragma = "no-cache"
     Expires = "0"
 
-# Deploy version: v2.2.0 (Actions Dropdown, Isolated Phone Polish, 1-Click Shift Handover Briefing)
+# Deploy version: v2.3.0 (Secure Cloud Auth + Netlify Functions)

@@ -3,26 +3,19 @@
 // Service Worker - Offline-First Production Cache
 // ============================================
 
-const CACHE_NAME = 'rano-air-cpcp-v15';
+const CACHE_NAME = 'rano-air-cpcp-v16';
 
 self.addEventListener('install', (event) => {
+  // Only pre-cache the HTML shell and manifest.
+  // Vite-hashed JS/CSS assets are cached dynamically on first fetch.
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      const urlsToCache = [
+      const shellUrls = [
         './',
         './index.html',
-        './manifest.json',
-        './css/main.css',
-        './assets/logo.png',
-        './js/config.js',
-        './js/db.js',
-        './js/app.js',
-        './js/charts.js',
-        './js/dsr.js',
-        './js/html2pdf.bundle.min.js',
-        './js/sync.js'
+        './manifest.json'
       ];
-      for (const url of urlsToCache) {
+      for (const url of shellUrls) {
         try {
           await cache.add(url);
         } catch (e) {
@@ -49,6 +42,10 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  // Never cache Netlify function calls (API requests)
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith('/.netlify/')) return;
 
   event.respondWith(
     fetch(event.request)
