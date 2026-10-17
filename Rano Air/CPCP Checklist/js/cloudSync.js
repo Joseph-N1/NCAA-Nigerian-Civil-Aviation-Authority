@@ -11,7 +11,7 @@
 
 const CLOUD_STORAGE_KEY = 'rano-air-cpcp-cloud-config';
 
-export const cloudSync = {
+const legacyCloudSync = {
   config: {
     enabled: true,
     provider: 'relay', // 'relay' | 'supabase' | 'firebase'
@@ -328,3 +328,5 @@ export const cloudSync = {
     return null;
   }
 };
+
+export { cloudSync } from './secureCloudSync.js';

@@ -24,10 +24,10 @@ export const APP_CONFIG = {
 };
 
 export const AUTH_USERS = {
-  DEV: { displayName: 'DEV', role: 'manager', pin: '1738', isDeveloper: true },
-  DCA: { displayName: 'DCA', role: 'manager', pin: '4821', isReadOnly: true },
-  LBMM: { displayName: 'LBMM', role: 'manager', pin: '7135' },
-  MCC: { displayName: 'MCC', role: 'manager', pin: '9064' }
+  DEV: { displayName: 'DEV', role: 'manager', isDeveloper: true },
+  DCA: { displayName: 'DCA', role: 'manager', isReadOnly: true },
+  LBMM: { displayName: 'LBMM', role: 'manager' },
+  MCC: { displayName: 'MCC', role: 'manager' }
 };
 
 export const STORAGE_KEYS = {

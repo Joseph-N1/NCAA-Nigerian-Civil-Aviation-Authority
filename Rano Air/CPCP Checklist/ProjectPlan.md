@@ -23,7 +23,8 @@ js/db.js                IndexedDB schema and CRUD operations
 js/charts.js            Inline SVG dashboard and report charts
 js/dsr.js               DSR HTML generator
 js/sync.js              Browser-context events and optional WebSocket client
-js/cloudSync.js         Relay, Supabase, and Firebase synchronization adapters
+js/secureCloudSync.js   Browser client for authenticated Netlify cloud synchronization
+netlify/functions/      Server-side sign-in and revision-checked synchronization endpoint
 public/sw.js            Canonical service-worker source copied into dist/
 netlify.toml            Netlify build, publish, and SPA redirect configuration
 vite.config.js          Vite and Tailwind plugin configuration
@@ -48,7 +49,7 @@ Vite code-splits the PDF export dependencies. `html2canvas` and `jspdf` load onl
 
 ### Data and synchronization
 
-The app stores operational data in IndexedDB (`RanoAirCPCPTrackerDB`) and keeps browser-local draft, session, peer, and cloud configuration values in local storage. Cloud synchronization is optional and does not replace local persistence. The present static server does not provide a WebSocket service, so `/ws-sync` falls back without error; a future WebSocket solution requires a real server, authentication, and conflict-resolution design.
+The app stores operational data in IndexedDB (`RanoAirCPCPTrackerDB`) and keeps draft, peer, and non-sensitive cloud room settings in local storage. Login and cloud tokens are session-only. The Netlify function validates environment-held PINs, issues short-lived signed tokens, writes room data to a site-wide Blob store, and rejects stale revisions rather than silently overwriting newer data. Cloud synchronization is optional and does not replace local persistence. The static local server does not provide a WebSocket service, so `/ws-sync` falls back without error.
 
 ### Verification required for changes
 

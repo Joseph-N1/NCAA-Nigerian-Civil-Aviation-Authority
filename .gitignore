@@ -143,6 +143,9 @@ ehthumbs.db
 .env.*
 !.env.example
 
+# Netlify CLI local state (site ID, deploy state — not needed in repo)
+**/.netlify/
+
 # Optional: keep local backup or transfer artifacts out of Git
 **/*backup*
 **/*Backup*

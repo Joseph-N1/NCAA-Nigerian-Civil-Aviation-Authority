@@ -13,15 +13,15 @@ Implemented capabilities include:
 - Shift handover notes plus copyable plain-text and WhatsApp briefing output.
 - DSR preview, A4 printing, HTML/PDF export, DSR snapshots, and JSON/HTML/PDF backup export with JSON import.
 - Progressive web application support: `public/sw.js` is deployed as `/sw.js` and caches the app for offline use after the initial load.
-- Same-browser-context updates via `BroadcastChannel`/local-storage events and optional cloud synchronization through a relay, Supabase, or Firebase configuration.
+- Same-browser-context updates via `BroadcastChannel`/local-storage events and authenticated cloud synchronization through a Netlify Function and site-wide Netlify Blob store.
 
 PDF rendering libraries are loaded only when a user requests a PDF DSR or backup, so normal dashboard startup does not download that export code.
 
 ### Operational and security boundaries
 
-- PIN access is client-side workflow control, not server-enforced authentication. Do not treat it as sufficient protection for a public or sensitive multi-user deployment.
-- Cloud configuration and any provider keys are browser-local. A production cloud rollout requires provider-side rules and authenticated server-side controls.
-- The bundled `server.js` only serves static files; it does not implement the optional `/ws-sync` WebSocket endpoint in `js/sync.js`. Cloud sync is the supported multi-device route in the current application.
+- Local access state is held only for the current browser session. Netlify validates PINs from runtime environment variables and issues short-lived signed cloud tokens; PINs and signing secrets are not shipped to the browser.
+- Netlify environment variables must be configured before production use. The `.env.example` file documents required names but deliberately contains no usable values.
+- Cloud writes use room-specific revision checks; a conflicting remote revision is loaded instead of being silently overwritten. The bundled `server.js` remains a static local server and does not provide the optional `/ws-sync` endpoint.
 
 ---
 

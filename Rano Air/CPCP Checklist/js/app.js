@@ -3,7 +3,7 @@ import { renderDonutChart, renderMasterDonutChart } from './charts.js';
 import { generateDSR } from './dsr.js';
 import { APP_CONFIG, AUTH_USERS, STORAGE_KEYS } from './config.js';
 import syncEngine from './sync.js';
-import { cloudSync } from './cloudSync.js';
+import { cloudSync } from './secureCloudSync.js';
 
 let pdfToolsPromise;
 
@@ -621,10 +621,16 @@ const App = {
   },
 
   setupAuth() {
-    const storedAuth = localStorage.getItem(STORAGE_KEYS.AUTH);
+    const storedAuth = sessionStorage.getItem(STORAGE_KEYS.AUTH);
     if (storedAuth) {
       try {
         const parsed = JSON.parse(storedAuth);
+        if (!cloudSync.session || cloudSync.session.user?.displayName !== parsed.name) {
+          sessionStorage.removeItem(STORAGE_KEYS.AUTH);
+          this.authReady = false;
+          this.renderAuthScreen();
+          return;
+        }
         this.currentUser = { name: parsed.name, role: parsed.role, isDeveloper: !!parsed.isDeveloper, isReadOnly: !!parsed.isReadOnly };
         this.isDevSession = !!parsed.isDeveloper;
         this.authenticatedUser = parsed.name;
@@ -657,14 +663,13 @@ const App = {
     event.preventDefault();
     const username = document.getElementById('loginUsername').value.trim().toUpperCase();
     const pin = document.getElementById('loginPin').value.trim();
-    const user = AUTH_USERS[username];
-
-    if (user && user.pin === pin) {
+    try {
+      const user = await cloudSync.authenticate(username, pin);
       this.currentUser = { name: user.displayName, role: user.role, isDeveloper: !!user.isDeveloper, isReadOnly: !!user.isReadOnly };
       this.isDevSession = !!user.isDeveloper;
       this.authenticatedUser = user.displayName;
       this.authReady = true;
-      localStorage.setItem(STORAGE_KEYS.AUTH, JSON.stringify({
+      sessionStorage.setItem(STORAGE_KEYS.AUTH, JSON.stringify({
         name: user.displayName,
         role: user.role,
         isDeveloper: !!user.isDeveloper,
@@ -675,13 +680,14 @@ const App = {
       await this.loadInitialData();
       this.showToast(`Logged in as ${user.displayName}`, 'success');
       return;
+    } catch (error) {
+      this.showToast(error.message || 'Unable to sign in. Check your connection and credentials.', 'error');
     }
-
-    this.showToast('Invalid credentials. Please enter a valid user PIN.', 'error');
   },
 
   logout() {
-    localStorage.removeItem(STORAGE_KEYS.AUTH);
+    sessionStorage.removeItem(STORAGE_KEYS.AUTH);
+    cloudSync.logout();
     this.authReady = false;
     this.isDevSession = false;
     this.authenticatedUser = null;
@@ -1572,28 +1578,10 @@ const App = {
       document.getElementById('cloudSyncModal').classList.add('hidden');
     });
 
-    const providerSelect = document.getElementById('cloudProviderSelect');
-    providerSelect?.addEventListener('change', (e) => {
-      const val = e.target.value;
-      document.getElementById('supabaseConfigFields').classList.toggle('hidden', val !== 'supabase');
-      document.getElementById('firebaseConfigFields').classList.toggle('hidden', val !== 'firebase');
-    });
-
     document.getElementById('cloudConfigForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const roomCode = document.getElementById('cloudRoomCodeInput').value.trim().toUpperCase() || 'RANO-C-CHECK';
-      const provider = document.getElementById('cloudProviderSelect').value;
-      const supabaseUrl = document.getElementById('supabaseUrlInput').value.trim();
-      const supabaseKey = document.getElementById('supabaseKeyInput').value.trim();
-      const firebaseProjectId = document.getElementById('firebaseProjectIdInput').value.trim();
-
-      cloudSync.saveConfig({
-        roomCode,
-        provider,
-        supabaseUrl,
-        supabaseKey,
-        firebaseProjectId
-      });
+      cloudSync.saveConfig({ roomCode, lastRevision: 0 });
 
       this.showToast('Cloud settings saved. Triggering sync...', 'success');
       document.getElementById('cloudSyncModal').classList.add('hidden');
@@ -1604,13 +1592,6 @@ const App = {
   openCloudSettingsModal() {
     const config = cloudSync.config;
     document.getElementById('cloudRoomCodeInput').value = config.roomCode || 'RANO-C-CHECK';
-    document.getElementById('cloudProviderSelect').value = config.provider || 'relay';
-    document.getElementById('supabaseUrlInput').value = config.supabaseUrl || '';
-    document.getElementById('supabaseKeyInput').value = config.supabaseKey || '';
-    document.getElementById('firebaseProjectIdInput').value = config.firebaseProjectId || '';
-
-    document.getElementById('supabaseConfigFields').classList.toggle('hidden', config.provider !== 'supabase');
-    document.getElementById('firebaseConfigFields').classList.toggle('hidden', config.provider !== 'firebase');
 
     document.getElementById('cloudSyncModal').classList.remove('hidden');
   },
