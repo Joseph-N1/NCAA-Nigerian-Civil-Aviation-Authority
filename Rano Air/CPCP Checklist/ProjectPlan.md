@@ -1,4 +1,65 @@
-# CPCP Check Tracker — Project Plan
+# CPCP Check Tracker — Technical Reference and Historical Plan
+
+## Current Implementation Baseline — v2.2.0
+
+This section supersedes the original phased plan below, which is preserved solely as historical build context.
+
+### Source and release context
+
+- Project directory: `Rano Air/CPCP Checklist/` within the parent NCAA repository.
+- Active branch: `main`, tracking `origin/main`.
+- Origin: `https://github.com/Joseph-N1/NCAA-Nigerian-Civil-Aviation-Authority.git`.
+- CPCP branches `cpcp-feature-updates` and `cpcp-ui-consolidation` currently share the v2.2.0 baseline commit with `main`.
+- Do not commit or push without explicit user approval. Before any release, review `git status`, the diff, and a production build.
+
+### Actual application structure
+
+```text
+index.html              SPA interface, dialogs, and service-worker registration
+css/main.css            Tailwind entry point, visual system, and print rules
+js/app.js               UI controller, auth, autosave, DSR/backup exports
+js/config.js            Version, branding, local roles, and runtime settings
+js/db.js                IndexedDB schema and CRUD operations
+js/charts.js            Inline SVG dashboard and report charts
+js/dsr.js               DSR HTML generator
+js/sync.js              Browser-context events and optional WebSocket client
+js/cloudSync.js         Relay, Supabase, and Firebase synchronization adapters
+public/sw.js            Canonical service-worker source copied into dist/
+netlify.toml            Netlify build, publish, and SPA redirect configuration
+vite.config.js          Vite and Tailwind plugin configuration
+server.js               Local static server (port 8081)
+```
+
+The root `sw.js` is a legacy duplicate of `public/sw.js`; keep them aligned if changing service-worker behavior. The deployed `dist/sw.js` comes from `public/sw.js`.
+
+### Build and deployment
+
+| Purpose | Current command or configuration |
+|---|---|
+| Development | `npm run dev` (Vite, port 3000) |
+| Production build | `npm run build` |
+| Build preview | `npm run preview` |
+| Local static fallback | `node server.js` (port 8081) |
+| Netlify command | `npm run build` |
+| Netlify publish directory | `dist` |
+| SPA handling | `/*` redirects to `/index.html` |
+
+Vite code-splits the PDF export dependencies. `html2canvas` and `jspdf` load only when a DSR or backup PDF is requested; regular application startup remains free of that cost.
+
+### Data and synchronization
+
+The app stores operational data in IndexedDB (`RanoAirCPCPTrackerDB`) and keeps browser-local draft, session, peer, and cloud configuration values in local storage. Cloud synchronization is optional and does not replace local persistence. The present static server does not provide a WebSocket service, so `/ws-sync` falls back without error; a future WebSocket solution requires a real server, authentication, and conflict-resolution design.
+
+### Verification required for changes
+
+1. Run `npm run build` and confirm a deployable `dist/` directory is generated.
+2. Exercise check setup/resume, dashboard updates, DSR print/HTML/PDF output, and JSON backup export.
+3. Test cloud synchronization only with a non-production room/configuration.
+4. Inspect `git diff` and `git status` before asking for a commit or deployment.
+
+---
+
+## Historical Phased Plan
 
 ## 1. Project Purpose
 

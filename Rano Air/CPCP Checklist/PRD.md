@@ -1,6 +1,31 @@
 # Product Requirements Document (PRD)
 
-## CPCP Check Progress Tracker — Rano Air AMO
+## Current Product Baseline — v2.2.0
+
+This section is the authoritative description of the implemented application as of the v2.2.0 baseline. The original MVP specification below is retained as historical context; where it conflicts with this section, this section takes precedence.
+
+The Rano Air CPCP Check Progress Tracker is a Vite-built, single-page, offline-capable maintenance progress application. It uses native IndexedDB (`RanoAirCPCPTrackerDB`) for `checks`, `tasks`, `personnel`, `audit_log`, and `dsr_snapshots`.
+
+Implemented capabilities include:
+
+- Active-check setup for CPCP, A-check, C-check, OOP, routine, custom, and non-routine work packages; live completion totals and SVG dashboard charts.
+- Defect and personnel management, audit-log review, automatic local draft saving, local PIN access modes (DEV, DCA read-only, LBMM, and MCC), and session timeout handling.
+- Shift handover notes plus copyable plain-text and WhatsApp briefing output.
+- DSR preview, A4 printing, HTML/PDF export, DSR snapshots, and JSON/HTML/PDF backup export with JSON import.
+- Progressive web application support: `public/sw.js` is deployed as `/sw.js` and caches the app for offline use after the initial load.
+- Same-browser-context updates via `BroadcastChannel`/local-storage events and optional cloud synchronization through a relay, Supabase, or Firebase configuration.
+
+PDF rendering libraries are loaded only when a user requests a PDF DSR or backup, so normal dashboard startup does not download that export code.
+
+### Operational and security boundaries
+
+- PIN access is client-side workflow control, not server-enforced authentication. Do not treat it as sufficient protection for a public or sensitive multi-user deployment.
+- Cloud configuration and any provider keys are browser-local. A production cloud rollout requires provider-side rules and authenticated server-side controls.
+- The bundled `server.js` only serves static files; it does not implement the optional `/ws-sync` WebSocket endpoint in `js/sync.js`. Cloud sync is the supported multi-device route in the current application.
+
+---
+
+## Historical MVP Specification — CPCP Check Progress Tracker
 
 ---
 

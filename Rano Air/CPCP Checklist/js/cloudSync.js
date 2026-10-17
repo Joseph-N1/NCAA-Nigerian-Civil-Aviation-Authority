@@ -123,7 +123,7 @@ export const cloudSync = {
 
       const tasks = await db.getTasksForCheck(activeCheck.id);
       const personnel = await db.getAllPersonnel();
-      const audit = await db.getAuditLog(activeCheck.id);
+      const audit = await db.getAuditEntriesForCheck(activeCheck.id);
 
       const payload = {
         roomCode: this.config.roomCode || 'RANO-C-CHECK',

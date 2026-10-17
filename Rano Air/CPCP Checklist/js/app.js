@@ -1,11 +1,25 @@
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import db from './db.js';
 import { renderDonutChart, renderMasterDonutChart } from './charts.js';
 import { generateDSR } from './dsr.js';
 import { APP_CONFIG, AUTH_USERS, STORAGE_KEYS } from './config.js';
 import syncEngine from './sync.js';
 import { cloudSync } from './cloudSync.js';
+
+let pdfToolsPromise;
+
+function loadPdfTools() {
+  if (!pdfToolsPromise) {
+    pdfToolsPromise = Promise.all([
+      import('html2canvas'),
+      import('jspdf')
+    ]).then(([html2canvasModule, jspdfModule]) => ({
+      html2canvas: html2canvasModule.default,
+      jsPDF: jspdfModule.jsPDF
+    }));
+  }
+
+  return pdfToolsPromise;
+}
 
 // Predefined check options with official Rano Air palette variables
 const PREDEFINED_CHECKS = [
@@ -2088,6 +2102,7 @@ ${dsrHTML}
 
     try {
       this.showToast('Generating PDF...', 'info');
+      const { html2canvas, jsPDF } = await loadPdfTools();
 
       const canvas = await html2canvas(container, {
         scale: 2,
@@ -2314,6 +2329,7 @@ ${dsrHTML}
 
       try {
         this.showToast('Generating PDF backup report...', 'info');
+        const { html2canvas, jsPDF } = await loadPdfTools();
         const canvas = await html2canvas(container, {
           scale: 2,
           useCORS: true,
