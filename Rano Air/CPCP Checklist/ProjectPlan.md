@@ -17,7 +17,7 @@ This section supersedes the original phased plan below, which is preserved solel
 ```text
 index.html              SPA interface, dialogs, and service-worker registration
 css/main.css            Tailwind entry point, visual system, and print rules
-js/app.js               UI controller, auth, autosave, DSR/backup exports
+js/app.js               UI controller, auth, autosave, DSR/backup exports, guarded historical recovery
 js/config.js            Version, branding, local roles, and runtime settings
 js/db.js                IndexedDB schema and CRUD operations
 js/charts.js            Inline SVG dashboard and report charts
@@ -50,6 +50,8 @@ Vite code-splits the PDF export dependencies. `html2canvas` and `jspdf` load onl
 ### Data and synchronization
 
 The app stores operational data in IndexedDB (`RanoAirCPCPTrackerDB`) and keeps draft, peer, and non-sensitive cloud room settings in local storage. Login and cloud tokens are session-only. The Netlify function validates environment-held PINs, issues short-lived signed tokens, writes room data to a site-wide Blob store, and rejects stale revisions rather than silently overwriting newer data. Cloud synchronization is optional and does not replace local persistence. The static local server does not provide a WebSocket service, so `/ws-sync` falls back without error.
+
+For an approved data recovery, a manager can use **More → Recover Historical Check**. The app reads a JSON archive without changing it, lets the manager select a check, downloads a fresh local JSON backup, makes only the selected check active, restores all archive stores locally, and then writes it as the next cloud revision. This privileged recovery action deliberately bypasses the ordinary stale-revision refusal; it is confirmation-gated and unavailable to read-only users. It must be used only after the archive has been verified as the intended source of truth.
 
 ### Verification required for changes
 
@@ -272,6 +274,7 @@ Exported interface:
   // Backup
   exportBackup()                  → Full JSON export of all stores
   importBackup(data)              → Restore from JSON backup
+  restoreHistoricalCheck()        → Backup first, restore selected check and publish approved cloud recovery
   clearAll()                      → Wipe all data (with confirmation)
 ```
 

@@ -115,12 +115,12 @@ export default async (request) => {
 
   if (body.action === 'pull') return json({ record });
 
-  if (body.action !== 'push') return json({ error: 'Unknown action.' }, 400);
+  if (body.action !== 'push' && body.action !== 'restore') return json({ error: 'Unknown action.' }, 400);
   if (user.isReadOnly) return json({ error: 'This account has read-only cloud access.' }, 403);
   if (!validatePayload(body.payload)) return json({ error: 'Invalid sync payload.' }, 400);
 
   const currentRevision = record?.revision || 0;
-  if (Number(body.baseRevision || 0) !== currentRevision) {
+  if (body.action === 'push' && Number(body.baseRevision || 0) !== currentRevision) {
     return json({ error: 'Cloud data changed on another device.', code: 'REVISION_CONFLICT', record }, 409);
   }
 
@@ -129,6 +129,7 @@ export default async (request) => {
     revision: currentRevision + 1,
     updatedAt: new Date().toISOString(),
     updatedBy: user.displayName,
+    restoredFromBackup: body.action === 'restore',
     payload: body.payload
   };
   await store.set(key, JSON.stringify(nextRecord));

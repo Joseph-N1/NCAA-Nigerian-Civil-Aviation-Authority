@@ -3,7 +3,7 @@
 // Service Worker — Offline-First Caching
 // ============================================
 
-const CACHE_NAME = 'ncaa-dolt-v5';
+const CACHE_NAME = 'ncaa-dolt-v6';
 
 const STATIC_ASSETS = [
   './',

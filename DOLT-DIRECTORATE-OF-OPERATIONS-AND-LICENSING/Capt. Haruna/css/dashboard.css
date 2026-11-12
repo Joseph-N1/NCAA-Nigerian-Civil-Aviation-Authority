@@ -5,44 +5,48 @@
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--space-6);
-  margin-top: var(--space-6);
+  grid-template-columns: 1.6fr 1.2fr;
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+  min-width: 0;
 }
 
 .dashboard-main-col {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-5);
+  min-width: 0;
 }
 
 .dashboard-side-col {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-5);
+  min-width: 0;
 }
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--space-4);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
 }
 
 .metric-card {
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  min-height: 132px;
-  padding: var(--space-5);
+  min-height: 120px;
+  padding: var(--space-4) var(--space-5);
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent),
     var(--glass-bg);
   border: 1px solid var(--glass-border);
-  border-radius: 26px;
+  border-radius: 22px;
   box-shadow: var(--shadow-raised), var(--shadow-inset-edge);
   position: relative;
   overflow: hidden;
+  min-width: 0;
 }
 
 .metric-card::before {
@@ -61,9 +65,9 @@
 .metric-card.warning::before { background: var(--color-warning); }
 
 .metric-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 16px;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -95,10 +99,10 @@
 }
 
 .metric-value {
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1;
+  font-size: clamp(1.8rem, 3.5vw, 2.7rem);
+  line-height: 1.1;
   font-weight: var(--font-weight-heavy);
-  margin: var(--space-2) 0;
+  margin: var(--space-1) 0;
   color: var(--color-text-primary);
 }
 
@@ -131,6 +135,8 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   transition: transform var(--transition-fast), border-color var(--transition-fast);
+  gap: var(--space-3);
+  min-width: 0;
 }
 
 .expiry-alert-item:hover {
@@ -143,6 +149,7 @@
   align-items: center;
   gap: var(--space-3);
   min-width: 0;
+  flex: 1;
 }
 
 .expiry-alert-avatar {
@@ -151,6 +158,7 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .expiry-alert-placeholder {
@@ -165,21 +173,29 @@
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   border: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .expiry-alert-info {
   min-width: 0;
+  overflow: hidden;
 }
 
 .expiry-alert-name {
   font-weight: var(--font-weight-medium);
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .expiry-alert-meta {
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .expiry-alert-right {
@@ -318,10 +334,10 @@
 .quick-search-hero {
   background: linear-gradient(135deg, rgba(26, 39, 68, 0.72), rgba(13, 24, 41, 0.72));
   border: 1px solid var(--glass-border);
-  border-radius: 28px;
-  padding: var(--space-8);
+  border-radius: 24px;
+  padding: var(--space-6) var(--space-8);
   text-align: center;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-raised), var(--shadow-inset-edge);
@@ -343,7 +359,7 @@
 
 .quick-search-subtitle {
   color: var(--color-text-secondary);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
 }
 
 .quick-search-bar {
@@ -353,10 +369,10 @@
 }
 
 .quick-search-bar input {
-  padding: var(--space-4) var(--space-5) var(--space-4) var(--space-12);
+  padding: var(--space-3) var(--space-5) var(--space-3) var(--space-12);
   font-size: var(--font-size-md);
   background: var(--color-bg-secondary);
-  border-radius: 20px;
+  border-radius: 16px;
   box-shadow: var(--shadow-raised-soft), var(--shadow-inset-edge);
 }
 
@@ -371,7 +387,7 @@
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 1024px) {
+@media (max-width: 1180px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
@@ -379,6 +395,6 @@
 
 @media (max-width: 640px) {
   .metric-card {
-    min-height: 112px;
+    min-height: 104px;
   }
 }

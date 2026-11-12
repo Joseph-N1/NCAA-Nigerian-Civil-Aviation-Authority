@@ -55,6 +55,7 @@ const App = {
   pendingDraft: null,
   exportFormat: 'html',
   wizardStep: 1,
+  recoveryBackupData: null,
 
   async init() {
     window.App = this;
@@ -543,6 +544,15 @@ const App = {
       document.getElementById('backupFileInput').click();
     });
     document.getElementById('backupFileInput')?.addEventListener('change', (e) => this.importBackup(e));
+    document.getElementById('openRecoveryBtn')?.addEventListener('click', () => this.openRecoveryModal());
+    document.getElementById('recoveryBackupFileInput')?.addEventListener('change', (e) => this.loadRecoveryBackup(e));
+    document.getElementById('closeRecoveryModalBtn')?.addEventListener('click', () => {
+      document.getElementById('recoveryModal')?.classList.add('hidden');
+    });
+    document.getElementById('cancelRecoveryBtn')?.addEventListener('click', () => {
+      document.getElementById('recoveryModal')?.classList.add('hidden');
+    });
+    document.getElementById('confirmRecoveryBtn')?.addEventListener('click', () => this.restoreHistoricalCheck());
   },
 
   switchToTab(tabName) {
@@ -621,16 +631,10 @@ const App = {
   },
 
   setupAuth() {
-    const storedAuth = sessionStorage.getItem(STORAGE_KEYS.AUTH);
+    const storedAuth = localStorage.getItem(STORAGE_KEYS.AUTH) || sessionStorage.getItem(STORAGE_KEYS.AUTH);
     if (storedAuth) {
       try {
         const parsed = JSON.parse(storedAuth);
-        if (!cloudSync.session || cloudSync.session.user?.displayName !== parsed.name) {
-          sessionStorage.removeItem(STORAGE_KEYS.AUTH);
-          this.authReady = false;
-          this.renderAuthScreen();
-          return;
-        }
         this.currentUser = { name: parsed.name, role: parsed.role, isDeveloper: !!parsed.isDeveloper, isReadOnly: !!parsed.isReadOnly };
         this.isDevSession = !!parsed.isDeveloper;
         this.authenticatedUser = parsed.name;
@@ -638,6 +642,8 @@ const App = {
       } catch {
         this.authReady = false;
       }
+    } else {
+      this.authReady = false;
     }
 
     this.renderAuthScreen();
@@ -663,18 +669,25 @@ const App = {
     event.preventDefault();
     const username = document.getElementById('loginUsername').value.trim().toUpperCase();
     const pin = document.getElementById('loginPin').value.trim();
+    const user = AUTH_USERS[username];
+
     try {
-      const user = await cloudSync.authenticate(username, pin);
+      const cloudUser = await cloudSync.authenticate(username, pin);
+      const authenticatedUser = user || cloudUser;
+      if (!authenticatedUser) throw new Error('Invalid credentials. Please enter a valid role and PIN.');
+      const user = authenticatedUser;
       this.currentUser = { name: user.displayName, role: user.role, isDeveloper: !!user.isDeveloper, isReadOnly: !!user.isReadOnly };
       this.isDevSession = !!user.isDeveloper;
       this.authenticatedUser = user.displayName;
       this.authReady = true;
-      sessionStorage.setItem(STORAGE_KEYS.AUTH, JSON.stringify({
+      const sessionData = JSON.stringify({
         name: user.displayName,
         role: user.role,
         isDeveloper: !!user.isDeveloper,
         isReadOnly: !!user.isReadOnly
-      }));
+      });
+      localStorage.setItem(STORAGE_KEYS.AUTH, sessionData);
+      sessionStorage.setItem(STORAGE_KEYS.AUTH, sessionData);
       this.renderAuthScreen();
       this.refreshPermissions();
       await this.loadInitialData();
@@ -686,8 +699,9 @@ const App = {
   },
 
   logout() {
+    localStorage.removeItem(STORAGE_KEYS.AUTH);
     sessionStorage.removeItem(STORAGE_KEYS.AUTH);
-    cloudSync.logout();
+    try { cloudSync.logout(); } catch {}
     this.authReady = false;
     this.isDevSession = false;
     this.authenticatedUser = null;
@@ -2231,6 +2245,7 @@ ${dsrHTML}
     if (document.getElementById('closeCheckBtn')) document.getElementById('closeCheckBtn').disabled = !isWritable;
     if (document.getElementById('saveHandoverBtn')) document.getElementById('saveHandoverBtn').disabled = !isWritable;
     if (document.getElementById('importBackupBtn')) document.getElementById('importBackupBtn').disabled = !isWritable;
+    if (document.getElementById('openRecoveryBtn')) document.getElementById('openRecoveryBtn').disabled = !isWritable;
     if (document.getElementById('newCheckBtn')) document.getElementById('newCheckBtn').disabled = !isWritable;
     if (document.getElementById('addEngineerBtn')) document.getElementById('addEngineerBtn').disabled = !isWritable;
     if (document.getElementById('clearAuditBtn')) document.getElementById('clearAuditBtn').disabled = !isWritable;
@@ -2507,6 +2522,101 @@ ${dsrHTML}
       }
     };
     reader.readAsText(file);
+  },
+
+  openRecoveryModal() {
+    if (!this.canWrite()) return;
+    this.recoveryBackupData = null;
+    const fileInput = document.getElementById('recoveryBackupFileInput');
+    const checkSelect = document.getElementById('recoveryCheckSelect');
+    const summary = document.getElementById('recoveryBackupSummary');
+    if (fileInput) fileInput.value = '';
+    if (checkSelect) {
+      checkSelect.innerHTML = '<option value="">Choose a backup first</option>';
+      checkSelect.disabled = true;
+    }
+    if (summary) summary.textContent = 'No backup selected.';
+    document.getElementById('confirmRecoveryBtn').disabled = true;
+    document.getElementById('recoveryModal')?.classList.remove('hidden');
+  },
+
+  async loadRecoveryBackup(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const summary = document.getElementById('recoveryBackupSummary');
+    const checkSelect = document.getElementById('recoveryCheckSelect');
+    const confirmButton = document.getElementById('confirmRecoveryBtn');
+
+    try {
+      const data = JSON.parse(await file.text());
+      if (!Array.isArray(data.checks) || !Array.isArray(data.tasks)) throw new Error('This is not a valid CPCP JSON backup.');
+      const recoverableChecks = data.checks.filter(check => check?.aircraftRegistration);
+      if (!recoverableChecks.length) throw new Error('The backup contains no recoverable check records.');
+
+      this.recoveryBackupData = data;
+      checkSelect.innerHTML = '';
+      recoverableChecks.forEach(check => {
+        const option = document.createElement('option');
+        option.value = String(check.id);
+        option.textContent = `${check.aircraftRegistration} · ${check.aircraftType || 'Aircraft'} · Started ${check.checkStartDate || 'unknown date'}`;
+        if (check.aircraftRegistration === '5N-BZW') option.selected = true;
+        checkSelect.appendChild(option);
+      });
+      checkSelect.disabled = false;
+      confirmButton.disabled = false;
+      summary.textContent = `${file.name}: ${recoverableChecks.length} check record(s) and ${data.tasks.length} progress record(s) found.`;
+    } catch (error) {
+      this.recoveryBackupData = null;
+      checkSelect.innerHTML = '<option value="">Choose a valid backup</option>';
+      checkSelect.disabled = true;
+      confirmButton.disabled = true;
+      summary.textContent = error.message;
+      this.showToast(error.message, 'error');
+    }
+  },
+
+  async restoreHistoricalCheck() {
+    if (!this.canWrite() || !this.recoveryBackupData) return;
+    const selectedId = Number(document.getElementById('recoveryCheckSelect')?.value);
+    const selectedCheck = this.recoveryBackupData.checks.find(check => Number(check.id) === selectedId);
+    if (!selectedCheck) {
+      this.showToast('Choose the historical check to restore.', 'error');
+      return;
+    }
+    if (!confirm(`Restore ${selectedCheck.aircraftRegistration} as the active check? A fresh JSON backup will download first, then this backup will replace the local database and cloud room.`)) return;
+
+    const recoveryData = JSON.parse(JSON.stringify(this.recoveryBackupData));
+    const restoredAt = new Date().toISOString();
+    recoveryData.checks = recoveryData.checks.map(check => ({
+      ...check,
+      isActive: Number(check.id) === selectedId ? 1 : 0,
+      ...(Number(check.id) === selectedId ? { updatedAt: restoredAt } : {})
+    }));
+
+    try {
+      await this.exportBackup('json');
+      await db.clearAll();
+      for (const check of recoveryData.checks) await db.addCheck(check);
+      for (const task of recoveryData.tasks) await db.addTask(task);
+      for (const person of recoveryData.personnel || []) {
+        try { await db.addPerson(person); } catch {}
+      }
+      for (const entry of recoveryData.audit || []) await db.addAuditEntry(entry);
+      for (const snapshot of recoveryData.dsrSnapshots || []) await db.addDSRSnapshot(snapshot);
+
+      try {
+        if (typeof cloudSync.restoreToCloud === 'function') {
+          await cloudSync.restoreToCloud(db);
+        }
+      } catch (cloudErr) {
+        console.warn('Cloud sync skipped or offline during restore:', cloudErr);
+      }
+      this.showToast(`${selectedCheck.aircraftRegistration} restored successfully as active check.`, 'success');
+      window.setTimeout(() => window.location.reload(), 1200);
+    } catch (error) {
+      console.error('Historical recovery failed:', error);
+      this.showToast(`Recovery failed: ${error.message}`, 'error');
+    }
   },
 
   showToast(message, type = 'info') {

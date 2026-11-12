@@ -3,7 +3,7 @@
 // Service Worker - Offline-First Production Cache
 // ============================================
 
-const CACHE_NAME = 'rano-air-cpcp-v16';
+const CACHE_NAME = 'rano-air-cpcp-v17';
 
 self.addEventListener('install', (event) => {
   // Only pre-cache the HTML shell and manifest.

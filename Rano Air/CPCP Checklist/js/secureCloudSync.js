@@ -187,6 +187,28 @@ export const cloudSync = {
     }
   },
 
+  async restoreToCloud(db) {
+    if (!db?.db || !this.session || this.session.user?.isReadOnly) {
+      throw new Error('A write-enabled signed-in session is required to restore a check.');
+    }
+    const activeCheck = await db.getActiveCheck();
+    if (!activeCheck) throw new Error('No active check is available to restore.');
+
+    const payload = {
+      updatedAt: new Date().toISOString(),
+      activeCheck,
+      tasks: await db.getTasksForCheck(activeCheck.id),
+      personnel: await db.getAllPersonnel(),
+      audit: (await db.getAuditEntriesForCheck(activeCheck.id)).slice(-50)
+    };
+    const { record } = await this.request({ action: 'restore', payload });
+    this.config.lastRevision = record.revision;
+    this.config.lastSyncTimestamp = new Date().toISOString();
+    this.saveConfig({});
+    this.notifyStatus('SYNCED', `Restored cloud revision ${record.revision}.`);
+    return record;
+  },
+
   async applyCloudPayload(data, db) {
     const { activeCheck, tasks, personnel } = data || {};
     if (!activeCheck) return;

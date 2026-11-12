@@ -79,8 +79,8 @@
         </form>
 
         <div class="mt-6 text-xs text-slate-600 border-t border-slate-100 pt-4 flex flex-col gap-1 text-center bg-slate-50/80 p-3 rounded-xl">
-          <p><strong class="text-slate-900">Authorised Roles:</strong> DCA / LBMM / MCC</p>
-          <p class="text-[11px] text-slate-500"><strong class="text-slate-800">Sample PINs:</strong> 4821 / 7135 / 9064</p>
+          <p><strong class="text-slate-900">Authorised Roles:</strong> MCC / LBMM / DEV / DCA</p>
+          <p class="text-[11px] text-slate-500">Use the PIN provided for your authorised role.</p>
         </div>
       </div>
 
@@ -146,9 +146,13 @@
                   <span class="text-base">☁️</span>
                   <span>Cloud Multi-Device Sync</span>
                 </button>
-                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left" id="importBackupBtn" role="menuitem">
-                  <span class="text-base">📤</span>
-                  <span>Restore Backup (JSON)</span>
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left font-semibold text-slate-800 hover:text-slate-950" id="importBackupBtn" role="menuitem">
+                  <span class="text-base">📥</span>
+                  <span>Import / Restore Backup (JSON)</span>
+                </button>
+                <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left text-amber-800 hover:text-amber-950 hover:bg-amber-50 font-bold" id="openRecoveryBtn" role="menuitem">
+                  <span class="text-base">🛟</span>
+                  <span>Recover Historical Check</span>
                 </button>
                 <div class="dropdown-divider"></div>
                 <button type="button" class="dropdown-item flex items-center gap-2.5 w-full text-left text-rose-700 hover:text-rose-900 hover:bg-rose-50 font-bold" id="confirmLogoutBtn" role="menuitem">
@@ -762,6 +766,38 @@
             <button type="submit" class="btn-primary">Save Settings</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden fixed inset-0 bg-slate-900/80 z-[110] flex items-center justify-center p-4 backdrop-blur-sm" id="recoveryModal">
+    <div class="glass-card w-full max-w-[600px] modal-card-inner">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-200 pb-3">
+        <div>
+          <h3 class="text-lg font-extrabold text-slate-900 m-0">Recover Historical Check</h3>
+          <p class="text-xs text-slate-500 m-0">Restore one saved check locally and replace the secure cloud-room snapshot.</p>
+        </div>
+        <button type="button" class="btn-icon" id="closeRecoveryModalBtn">✕</button>
+      </div>
+      <div class="space-y-4 text-sm text-slate-700">
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
+          This is a controlled recovery action. The app downloads a fresh backup of this laptop first. The selected check becomes active; other checks in the selected backup, including test checks, are retained as inactive records.
+        </div>
+        <div>
+          <label for="recoveryBackupFileInput" class="block font-bold uppercase tracking-wider text-slate-700 mb-1">JSON backup to recover</label>
+          <input id="recoveryBackupFileInput" type="file" accept=".json,application/json" class="form-input">
+          <p id="recoveryBackupSummary" class="mt-1 text-xs text-slate-500">No backup selected.</p>
+        </div>
+        <div>
+          <label for="recoveryCheckSelect" class="block font-bold uppercase tracking-wider text-slate-700 mb-1">Check to make active</label>
+          <select id="recoveryCheckSelect" class="form-select" disabled>
+            <option value="">Choose a backup first</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
+          <button type="button" class="btn-secondary" id="cancelRecoveryBtn">Cancel</button>
+          <button type="button" class="btn-danger !from-amber-600 !to-amber-800" id="confirmRecoveryBtn" disabled>Restore Selected Check</button>
+        </div>
       </div>
     </div>
   </div>

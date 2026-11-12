@@ -263,9 +263,10 @@ class DataTable {
         </div>
       </div>
       <div class="table-container animate-fade-in">
-        <table>
-          <thead class="table-header">
-            <tr>
+        <div class="table-scroll-wrapper">
+          <table>
+            <thead class="table-header">
+              <tr>
     `;
 
     // Headers
@@ -290,7 +291,7 @@ class DataTable {
     if (paginatedData.length === 0) {
       html += `
         <tr>
-          <td colspan="${this.options.columns.length + 1}" style="text-align: center; padding: var(--space-8); color: var(--color-text-muted);">
+          <td colspan="${this.options.columns.length + 2}" style="text-align: center; padding: var(--space-8); color: var(--color-text-muted);">
             No records found.
           </td>
         </tr>
@@ -327,19 +328,17 @@ class DataTable {
       });
     }
 
-    html += `</tbody></table>`;
-
-    // Paging Footer
-    html += `
-      <div class="table-pagination no-print">
-        <div>Showing <strong>${totalRecords === 0 ? 0 : startIdx + 1}</strong> to <strong>${endIdx}</strong> of <strong>${totalRecords}</strong> records</div>
-        <div class="pagination-controls">
-          <button class="btn btn-secondary btn-sm btn-page-prev" ${this.currentPage === 1 ? 'disabled' : ''}>Previous</button>
-          <span style="margin: 0 var(--space-2);">Page ${this.currentPage} of ${totalPages}</span>
-          <button class="btn btn-secondary btn-sm btn-page-next" ${this.currentPage === totalPages ? 'disabled' : ''}>Next</button>
+    html += `</tbody></table>
         </div>
-      </div>
-    </div>`;
+        <div class="table-pagination no-print">
+          <div>Showing <strong>${totalRecords === 0 ? 0 : startIdx + 1}</strong> to <strong>${endIdx}</strong> of <strong>${totalRecords}</strong> records</div>
+          <div class="pagination-controls">
+            <button class="btn btn-secondary btn-sm btn-page-prev" ${this.currentPage === 1 ? 'disabled' : ''}>Previous</button>
+            <span style="margin: 0 var(--space-2);">Page ${this.currentPage} of ${totalPages}</span>
+            <button class="btn btn-secondary btn-sm btn-page-next" ${this.currentPage === totalPages ? 'disabled' : ''}>Next</button>
+          </div>
+        </div>
+      </div>`;
 
     this.container.innerHTML = html;
     this.bindTableEvents();

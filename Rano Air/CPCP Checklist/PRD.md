@@ -14,6 +14,7 @@ Implemented capabilities include:
 - DSR preview, A4 printing, HTML/PDF export, DSR snapshots, and JSON/HTML/PDF backup export with JSON import.
 - Progressive web application support: `public/sw.js` is deployed as `/sw.js` and caches the app for offline use after the initial load.
 - Same-browser-context updates via `BroadcastChannel`/local-storage events and authenticated cloud synchronization through a Netlify Function and site-wide Netlify Blob store.
+- Manager-controlled historical recovery: a JSON archive can be inspected, a specific check selected, and restored as the active local and cloud check. A fresh local JSON backup is downloaded before replacement; other archived checks are retained as inactive records.
 
 PDF rendering libraries are loaded only when a user requests a PDF DSR or backup, so normal dashboard startup does not download that export code.
 
@@ -22,6 +23,7 @@ PDF rendering libraries are loaded only when a user requests a PDF DSR or backup
 - Local access state is held only for the current browser session. Netlify validates PINs from runtime environment variables and issues short-lived signed cloud tokens; PINs and signing secrets are not shipped to the browser.
 - Netlify environment variables must be configured before production use. The `.env.example` file documents required names but deliberately contains no usable values.
 - Cloud writes use room-specific revision checks; a conflicting remote revision is loaded instead of being silently overwritten. The bundled `server.js` remains a static local server and does not provide the optional `/ws-sync` endpoint.
+- Historical recovery is intentionally an exception to normal revision checking. It is available only to a cloud-enabled write-capable role, requires an explicit confirmation, and creates the next cloud revision from the selected archive so other authorised devices can pull the approved recovery state.
 
 ---
 

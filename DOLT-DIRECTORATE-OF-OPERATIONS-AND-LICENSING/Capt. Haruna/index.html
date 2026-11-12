@@ -12,11 +12,11 @@
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
 
   <!-- Core Stylesheet -->
-  <link rel="stylesheet" href="css/index.css?v=7">
-  <link rel="stylesheet" href="css/components.css?v=7">
-  <link rel="stylesheet" href="css/dashboard.css?v=7">
-  <link rel="stylesheet" href="css/personnel.css?v=7">
-  <link rel="stylesheet" href="css/forms.css?v=7">
+  <link rel="stylesheet" href="css/index.css?v=10">
+  <link rel="stylesheet" href="css/components.css?v=10">
+  <link rel="stylesheet" href="css/dashboard.css?v=10">
+  <link rel="stylesheet" href="css/personnel.css?v=10">
+  <link rel="stylesheet" href="css/forms.css?v=10">
 
   <!-- Dexie.js library -->
   <script src="lib/dexie.min.js"></script>
@@ -24,55 +24,70 @@
 <body>
 
   <!-- ============================================
-       1. Authentication / PIN Overlay
+       1. Authentication / Login Overlay
        ============================================ -->
   <div id="authOverlay" class="auth-overlay active">
-    <div class="auth-container card animate-scale-in">
-      <div class="auth-logo ncaa-mark">NCAA</div>
-      <div class="auth-header">
-        <h2 id="authTitle" class="auth-title">Welcome to NCAA DOLT</h2>
-        <p id="authSubtitle" class="auth-subtitle">Select your role to access the database</p>
-      </div>
+    <div class="auth-split-card">
 
-      <!-- Role Selection (Initially shown for setup or login) -->
-      <div id="authRoleSelector" class="role-selector">
-        <div class="role-card active" data-role="GM">
-          <div class="role-icon">👤</div>
-          <div class="role-title">GM (DOLT)</div>
-          <div class="role-desc">Read-only dashboard</div>
+      <!-- LEFT: NCAA Brand Hero Panel -->
+      <div class="auth-brand-panel">
+        <div class="auth-brand-bg-circle auth-brand-bg-circle-1"></div>
+        <div class="auth-brand-bg-circle auth-brand-bg-circle-2"></div>
+
+        <div class="auth-brand-content">
+          <div class="auth-brand-logo">
+            <div class="ncaa-mark" style="font-size: 1.6rem; padding: 0.4rem 0.7rem;">NCAA</div>
+            <div>
+              <span class="auth-brand-name">NCAA DOLT</span>
+              <span class="auth-brand-sub">Licensing &amp; Operations</span>
+            </div>
+          </div>
+          <div class="auth-brand-hero">
+            <span class="auth-brand-badge">✈️ Personnel Licensing</span>
+            <h2 class="auth-brand-title">License Management<br/>Database System</h2>
+            <p class="auth-brand-desc">
+              Comprehensive personnel licensing records for Pilots, Cabin Crew, Flight Dispatchers, AMEs, ATCs, ASOs, ATSEPs, and Flight Engineers.
+            </p>
+          </div>
         </div>
-        <div class="role-card" data-role="Assistant">
-          <div class="role-icon">🔧</div>
-          <div class="role-title">Assistant</div>
-          <div class="role-desc">Data Entry & Updates</div>
+
+        <div class="auth-brand-footer">
+          <span>NCAA · Abuja, Nigeria</span>
+          <span class="auth-offline-badge">
+            <span class="auth-offline-dot"></span> Offline Ready
+          </span>
         </div>
       </div>
 
-      <!-- PIN Display -->
-      <div class="pin-display">
-        <div class="pin-dot"></div>
-        <div class="pin-dot"></div>
-        <div class="pin-dot"></div>
-        <div class="pin-dot"></div>
+      <!-- RIGHT: Secure Login Form Panel -->
+      <div class="auth-form-panel">
+        <div class="auth-form-header">
+          <p class="auth-form-label">Authorised Access</p>
+          <h1 class="auth-form-title">Staff Authentication</h1>
+          <p class="auth-form-desc">Enter your role name and security PIN to access the license database.</p>
+        </div>
+
+        <form id="loginForm" class="auth-login-form">
+          <div class="auth-field">
+            <label for="loginUsername">Staff Role</label>
+            <input id="loginUsername" type="text" placeholder="e.g. GM, Assistant 1, Assistant 2" autocomplete="off" required />
+          </div>
+          <div class="auth-field">
+            <label for="loginPin">Security PIN</label>
+            <input id="loginPin" type="password" placeholder="••••" inputmode="numeric" maxlength="4" autocomplete="off" required />
+          </div>
+          <button class="auth-submit-btn" type="submit">
+            <span>Access License Dashboard</span>
+            <span style="font-size: 1.1rem;">➔</span>
+          </button>
+        </form>
+
+        <div class="auth-hint-box">
+          <p><strong>Authorised Roles:</strong> GM (DOLT) · Assistant 1 · Assistant 2 · Assistant 3</p>
+          <p class="auth-hint-pins"><strong>Sample PINs:</strong> GM: 1111 · Asst 1: 2222 · Asst 2: 3333 · Asst 3: 4444</p>
+        </div>
       </div>
 
-      <p id="authStatusText" class="text-xs text-muted mb-2">Enter 4-digit PIN</p>
-
-      <!-- Pin Pad -->
-      <div class="pin-pad">
-        <button class="pin-btn" data-num="1">1</button>
-        <button class="pin-btn" data-num="2">2</button>
-        <button class="pin-btn" data-num="3">3</button>
-        <button class="pin-btn" data-num="4">4</button>
-        <button class="pin-btn" data-num="5">5</button>
-        <button class="pin-btn" data-num="6">6</button>
-        <button class="pin-btn" data-num="7">7</button>
-        <button class="pin-btn" data-num="8">8</button>
-        <button class="pin-btn" data-num="9">9</button>
-        <button class="pin-btn pin-btn-action" data-action="clear">Clear</button>
-        <button class="pin-btn" data-num="0">0</button>
-        <button class="pin-btn pin-btn-action" data-action="backspace">⌫</button>
-      </div>
     </div>
   </div>
 
@@ -230,29 +245,29 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Main JavaScript App Init -->
-  <script src="js/db.js?v=7"></script>
-  <script src="js/utils/date-utils.js?v=7"></script>
-  <script src="js/utils/validators.js?v=7"></script>
-  <script src="js/utils/export.js?v=7"></script>
-  <script src="js/utils/import.js?v=7"></script>
-  <script src="js/components/toast.js?v=7"></script>
-  <script src="js/components/auth.js?v=7"></script>
-  <script src="js/components/sidebar.js?v=7"></script>
-  <script src="js/components/search.js?v=7"></script>
-  <script src="js/components/table.js?v=7"></script>
-  <script src="js/components/form-builder.js?v=7"></script>
-  <script src="js/components/detail-panel.js?v=7"></script>
-  <script src="js/pages/dashboard.js?v=7"></script>
-  <script src="js/pages/pilots.js?v=7"></script>
-  <script src="js/pages/cabin-crew.js?v=7"></script>
-  <script src="js/pages/flight-dispatchers.js?v=7"></script>
-  <script src="js/pages/ame.js?v=7"></script>
-  <script src="js/pages/atc.js?v=7"></script>
-  <script src="js/pages/aso.js?v=7"></script>
-  <script src="js/pages/atsep.js?v=7"></script>
-  <script src="js/pages/flight-engineers.js?v=7"></script>
-  <script src="js/pages/settings.js?v=7"></script>
-  <script src="js/app.js?v=7"></script>
+  <script src="js/db.js?v=10"></script>
+  <script src="js/utils/date-utils.js?v=10"></script>
+  <script src="js/utils/validators.js?v=10"></script>
+  <script src="js/utils/export.js?v=10"></script>
+  <script src="js/utils/import.js?v=10"></script>
+  <script src="js/components/toast.js?v=10"></script>
+  <script src="js/components/auth.js?v=10"></script>
+  <script src="js/components/sidebar.js?v=10"></script>
+  <script src="js/components/search.js?v=10"></script>
+  <script src="js/components/table.js?v=10"></script>
+  <script src="js/components/form-builder.js?v=10"></script>
+  <script src="js/components/detail-panel.js?v=10"></script>
+  <script src="js/pages/dashboard.js?v=10"></script>
+  <script src="js/pages/pilots.js?v=10"></script>
+  <script src="js/pages/cabin-crew.js?v=10"></script>
+  <script src="js/pages/flight-dispatchers.js?v=10"></script>
+  <script src="js/pages/ame.js?v=10"></script>
+  <script src="js/pages/atc.js?v=10"></script>
+  <script src="js/pages/aso.js?v=10"></script>
+  <script src="js/pages/atsep.js?v=10"></script>
+  <script src="js/pages/flight-engineers.js?v=10"></script>
+  <script src="js/pages/settings.js?v=10"></script>
+  <script src="js/app.js?v=10"></script>
 
   <!-- PWA Service Worker Registration -->
   <script>
