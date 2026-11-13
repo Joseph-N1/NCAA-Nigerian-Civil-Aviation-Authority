@@ -41,6 +41,10 @@
 **/node_modules/
 **/.npm/
 **/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+**/.pnp.*
 **/dist/
 **/.parcel-cache/
 **/.vite/
@@ -56,9 +60,10 @@
 **/dolt-secretary-backup-*.json
 
 # Environment variables and secrets
-.env
-.env.*
+**/.env
+**/.env.*
 !.env.example
+!**/.env.example
 .env.local
 .env.*.local
 *.pem
@@ -67,6 +72,11 @@
 *.pfx
 credentials.json
 service-account*.json
+*.secret
+*.crt
+*.cer
+*.der
+*.mobileprovision
 
 # IDE and editor noise
 .vscode/*
@@ -109,6 +119,7 @@ ehthumbs.db
 
 # Local databases and model artifacts
 **/*.db
+**/*.db-*
 **/*.sqlite
 **/*.sqlite3
 **/*.dump
@@ -128,7 +139,19 @@ ehthumbs.db
 **/*.onnx
 **/*.model
 
+# Browser / desktop app local state, recovery data, and exports
+**/IndexedDB/
+**/Local Storage/
+**/Session Storage/
+**/Cache/
+**/Code Cache/
+**/GPUCache/
+**/*-journal
+**/*.jsonl
+**/*.ndjson
+
 # Operational records, user data exports, and recovery snapshots
+**/Capt-Haruna-Desktop-Bundle/README_TRANSFER.txt
 **/*_CHECK_ONLY.json
 **/*_RESTORE_ALL_DATA.json
 **/*local*before*recovery*
@@ -138,6 +161,9 @@ ehthumbs.db
 **/*records*.csv
 **/*backup*.json
 **/*Backup*.json
+**/NCAA_DOLT_Backup_*.json
+**/3_starter_personnel_backup.json
+**/dolt-secretary-backup-*.json
 
 # Archives, exports, and reference media
 *.zip

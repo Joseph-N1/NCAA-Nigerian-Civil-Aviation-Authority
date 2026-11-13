@@ -15,7 +15,7 @@ const CabinCrewPage = {
           <h2 class="page-title">👤 Cabin Crew Directory</h2>
           <p class="page-subtitle">Manage cabin crew licenses, aircraft type ratings, emergency drills, and medical certifications</p>
         </div>
-        <div class="assistant-only no-print">
+        <div class="no-print assistant-only">
           <button id="btnAddNewCabin" class="btn btn-primary">＋ Add Cabin Crew</button>
         </div>
       </div>

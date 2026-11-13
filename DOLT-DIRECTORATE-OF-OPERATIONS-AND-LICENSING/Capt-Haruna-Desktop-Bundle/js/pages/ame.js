@@ -15,7 +15,7 @@ const AMEPage = {
           <h2 class="page-title">🔧 AME (Engineers) Directory</h2>
           <p class="page-subtitle">Manage Aircraft Maintenance Engineers licenses, categories, ratings, and competency audits</p>
         </div>
-        <div class="assistant-only no-print">
+        <div class="no-print assistant-only">
           <button id="btnAddNewAME" class="btn btn-primary">＋ Add AME Engineer</button>
         </div>
       </div>

@@ -3,8 +3,8 @@
    Design System — index.css
    ============================================ */
 
-/* ---------- Google Font (cached by SW) ---------- */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+/* ---------- Font Stack: Instant Local/System Fonts (Zero Network Overhead) ---------- */
+
 
 /* ============================================
    1. CSS Custom Properties (Design Tokens)
@@ -425,12 +425,9 @@ table {
   z-index: var(--z-sidebar);
   display: flex;
   flex-direction: column;
-  transition: width var(--transition-slow);
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), width 0.3s cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
   overflow: hidden;
-}
-
-body.sidebar-collapsed .sidebar {
-  width: var(--sidebar-collapsed);
 }
 
 .main-wrapper {
@@ -442,29 +439,105 @@ body.sidebar-collapsed .sidebar {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  transition: margin-left var(--transition-slow), width var(--transition-slow);
+  transition: margin-left 0.3s cubic-bezier(0.2, 0, 0, 1), width 0.3s cubic-bezier(0.2, 0, 0, 1), max-width 0.3s cubic-bezier(0.2, 0, 0, 1);
+  will-change: margin-left, width;
 }
 
-body.sidebar-collapsed .main-wrapper {
-  margin-left: var(--sidebar-collapsed);
-  width: calc(100% - var(--sidebar-collapsed));
-  max-width: calc(100% - var(--sidebar-collapsed));
+/* Fully retracted sidebar state (Option 1) */
+body.sidebar-collapsed .sidebar,
+.app-container.sidebar-collapsed .sidebar {
+  transform: translateX(-100%) !important;
+  pointer-events: none;
+}
+
+body.sidebar-collapsed .main-wrapper,
+.app-container.sidebar-collapsed .main-wrapper {
+  margin-left: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+body.sidebar-collapsed .main-content,
+.app-container.sidebar-collapsed .main-content {
+  max-width: 100% !important;
+  padding-left: var(--space-8);
+  padding-right: var(--space-8);
 }
 
 .main-header {
   min-height: var(--header-height);
-  background: rgba(10, 22, 40, 0.8);
+  background: rgba(10, 22, 40, 0.88);
   backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-8);
+  gap: var(--space-4);
+  padding: 0 var(--space-6);
   position: sticky;
   top: 0;
   z-index: var(--z-header);
-  flex-wrap: wrap;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  max-width: 440px;
+  min-width: 0;
+}
+
+.sidebar-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sidebar-toggle-btn:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-accent-teal);
+  color: var(--color-accent-teal);
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(0, 212, 170, 0.25);
+}
+
+.sidebar-toggle-btn.is-collapsed {
+  background: rgba(0, 212, 170, 0.12);
+  border-color: var(--color-accent-teal);
+  color: var(--color-accent-teal);
+}
+
+.sidebar-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  margin-left: auto;
+  transition: all var(--transition-fast);
+}
+
+.sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--color-border);
+  color: var(--color-accent-teal);
 }
 
 body.theme-light .main-header {
@@ -1088,10 +1161,19 @@ body.theme-light .main-header {
 }
 @media (max-width: 768px) {
   .sidebar {
-    width: var(--sidebar-collapsed);
+    transform: translateX(-100%);
+    width: var(--sidebar-width) !important;
+    box-shadow: 0 0 32px rgba(0, 0, 0, 0.6);
   }
   .main-wrapper {
-    margin-left: var(--sidebar-collapsed);
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  body:not(.sidebar-collapsed) .sidebar {
+    transform: translateX(0) !important;
+    pointer-events: auto;
+    z-index: 1000;
   }
   .grid-4 {
     grid-template-columns: 1fr;

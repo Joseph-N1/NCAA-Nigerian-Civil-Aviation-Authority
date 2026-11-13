@@ -19,22 +19,50 @@ const App = {
   async init() {
     console.log('Initializing NCAA DOLT App Controller...');
     
-    // Initialize components
-    await window.DB.init();
-    await window.Auth.init();
-    window.Sidebar.init();
-    window.Search.init();
-    window.DetailPanel.init();
-
-    this.bindEvents();
-    await this.setupTheme();
-    this.setupNetworkStatus();
-    await this.checkBackupReminders();
-
-    // Trigger initial route only if authenticated
+    // Register login routing before initialization so a fast submit cannot be missed.
     window.addEventListener('app-login', () => {
       this.route();
     });
+
+    try {
+      await window.DB.init();
+      await window.Auth.init();
+    } catch (err) {
+      console.error('Database/authentication initialization failed:', err);
+      window.Auth.setupEventListeners();
+      this.showStartupError('The local database could not be opened. Your records were not changed. Refresh the page or try another browser window.');
+    }
+
+    for (const [name, component] of [
+      ['Sidebar', window.Sidebar],
+      ['Search', window.Search],
+      ['Detail panel', window.DetailPanel]
+    ]) {
+      try {
+        component?.init();
+      } catch (err) {
+        console.error(`${name} initialization failed:`, err);
+      }
+    }
+
+    this.bindEvents();
+    try {
+      await this.setupTheme();
+    } catch (err) {
+      console.warn('Theme setup failed; using the default theme:', err);
+    }
+    this.setupNetworkStatus();
+    await this.checkBackupReminders();
+  },
+
+  showStartupError(message) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const alert = document.createElement('div');
+    alert.className = 'toast toast-error';
+    alert.setAttribute('role', 'alert');
+    alert.textContent = message;
+    container.appendChild(alert);
   },
 
   bindEvents() {
@@ -204,6 +232,7 @@ const App = {
 
   setupNetworkStatus() {
     const statusBadge = document.getElementById('offlineStatus');
+    if (!statusBadge) return;
     
     const updateStatus = () => {
       if (navigator.onLine) {

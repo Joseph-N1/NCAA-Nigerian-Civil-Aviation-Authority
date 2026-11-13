@@ -15,7 +15,7 @@ const ASOPage = {
           <h2 class="page-title">📻 ASO (Station Operators) Directory</h2>
           <p class="page-subtitle">Manage Aeronautical Station Operators licenses, station endorsements, and recurrent communications training</p>
         </div>
-        <div class="assistant-only no-print">
+        <div class="no-print assistant-only">
           <button id="btnAddNewASO" class="btn btn-primary">＋ Add ASO Operator</button>
         </div>
       </div>

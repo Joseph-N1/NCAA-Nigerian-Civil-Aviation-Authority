@@ -15,7 +15,7 @@ const PilotsPage = {
           <h2 class="page-title">✈ Pilots Directory</h2>
           <p class="page-subtitle">Manage ATPL, CPL, PPL licenses, instrument ratings, and medical compliance</p>
         </div>
-        <div class="assistant-only no-print">
+        <div class="no-print assistant-only">
           <button id="btnAddNewPilot" class="btn btn-primary">＋ Add New Pilot</button>
         </div>
       </div>

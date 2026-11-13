@@ -15,7 +15,7 @@ const ATCPage = {
           <h2 class="page-title">📡 ATC (Controllers) Directory</h2>
           <p class="page-subtitle">Manage Air Traffic Controllers licenses, unit endorsements, and recurrent competency checks</p>
         </div>
-        <div class="assistant-only no-print">
+        <div class="no-print assistant-only">
           <button id="btnAddNewATC" class="btn btn-primary">＋ Add ATC Controller</button>
         </div>
       </div>

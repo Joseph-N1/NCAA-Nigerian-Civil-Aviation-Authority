@@ -78,9 +78,6 @@ const DetailPanel = {
           <div class="detail-header-license">${record.licenseNumber}</div>
           <span class="badge badge-${record.licenseStatus.toLowerCase()}">${record.licenseStatus}</span>
         </div>
-        <div class="detail-header-actions assistant-only" style="display: flex; gap: var(--space-2); margin-left: auto;">
-          <button class="btn btn-primary btn-sm" id="btnDetailEdit" title="Edit this record">✏️ Edit</button>
-        </div>
       </div>
 
       <!-- Detail Body -->
@@ -88,10 +85,7 @@ const DetailPanel = {
         
         <!-- Section 1: General Info -->
         <div class="detail-section">
-          <div class="detail-section-header">
-            <h5 class="detail-section-title">👤 Personal Information</h5>
-            <button class="btn btn-ghost btn-sm btn-add-section assistant-only" data-section="personal" title="Edit personal information">＋ Add</button>
-          </div>
+          <h5 class="detail-section-title">👤 Personal Information</h5>
           <div class="detail-grid">
             <div class="detail-item"><span class="detail-label">Title</span><span class="detail-val">${record.title || 'N/A'}</span></div>
             <div class="detail-item"><span class="detail-label">Date of Birth</span><span class="detail-val">${formattedDob}</span></div>
@@ -106,10 +100,7 @@ const DetailPanel = {
 
         <!-- Section 2: License General Details -->
         <div class="detail-section">
-          <div class="detail-section-header">
-            <h5 class="detail-section-title">✈ License Details</h5>
-            <button class="btn btn-ghost btn-sm btn-add-section assistant-only" data-section="license" title="Edit license information">＋ Add</button>
-          </div>
+          <h5 class="detail-section-title">✈ License Details</h5>
           <div class="detail-grid">
             <div class="detail-item"><span class="detail-label">License Type</span><span class="detail-val">${record.licenseType || 'N/A'}</span></div>
             <div class="detail-item"><span class="detail-label">First Issue Date</span><span class="detail-val">${formattedIssue}</span></div>
@@ -127,19 +118,13 @@ const DetailPanel = {
 
         <!-- Section 3: Category Specific Ratings -->
         <div class="detail-section">
-          <div class="detail-section-header">
-            <h5 class="detail-section-title">🛡 Ratings & Endorsements</h5>
-            <button class="btn btn-ghost btn-sm btn-add-section assistant-only" data-section="ratings" title="Edit ratings and endorsements">＋ Add</button>
-          </div>
+          <h5 class="detail-section-title">🛡 Ratings & Endorsements</h5>
           ${this.getCategorySpecificDetailsHTML(record)}
         </div>
 
         <!-- Section 4: Medical Details -->
         <div class="detail-section">
-          <div class="detail-section-header">
-            <h5 class="detail-section-title">🏥 Medical Certificate</h5>
-            <button class="btn btn-ghost btn-sm btn-add-section assistant-only" data-section="medical" title="Edit medical certificate">＋ Add</button>
-          </div>
+          <h5 class="detail-section-title">🏥 Medical Certificate</h5>
           <div class="detail-grid">
             <div class="detail-item"><span class="detail-label">Medical Class</span><span class="detail-val">${record.medicalClass || 'N/A'}</span></div>
             <div class="detail-item"><span class="detail-label">Medical Valid Until</span><span class="detail-val">${formattedMedical}</span></div>
@@ -149,10 +134,7 @@ const DetailPanel = {
 
         <!-- Limitations & Remarks -->
         <div class="detail-section">
-          <div class="detail-section-header">
-            <h5 class="detail-section-title">⚠️ Limitations & Remarks</h5>
-            <button class="btn btn-ghost btn-sm btn-add-section assistant-only" data-section="limitations" title="Edit limitations and remarks">＋ Add</button>
-          </div>
+          <h5 class="detail-section-title">⚠️ Limitations & Remarks</h5>
           <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary); line-height: 1.5;">
             <strong>Limitations:</strong> ${record.limitations || 'None'}<br>
             <strong>Remarks:</strong> ${record.remarks || 'None'}
@@ -166,9 +148,7 @@ const DetailPanel = {
 
         <!-- Section 5: Audit Logs -->
         <div class="detail-section">
-          <div class="detail-section-header">
-            <h5 class="detail-section-title">📝 Audit History Log</h5>
-          </div>
+          <h5 class="detail-section-title">📝 Audit History Log</h5>
           <div class="audit-list">
             ${audits.length === 0 
               ? '<div style="color: var(--color-text-muted); font-size: var(--font-size-xs);">No log edits recorded.</div>'
@@ -198,25 +178,6 @@ const DetailPanel = {
     // Attach local button actions
     document.getElementById('btnDetailClose').addEventListener('click', () => this.hide());
     document.getElementById('btnDetailPrint').addEventListener('click', () => this.printDetails(record));
-    const btnEdit = document.getElementById('btnDetailEdit');
-    if (btnEdit) {
-      btnEdit.addEventListener('click', () => {
-        this.hide();
-        setTimeout(() => {
-          window.PageRouter.showForm(record.category, record.id);
-        }, 300);
-      });
-    }
-    
-    // Add section edit buttons
-    document.querySelectorAll('.btn-add-section').forEach(btn => {
-      btn.addEventListener('click', () => {
-        this.hide();
-        setTimeout(() => {
-          window.PageRouter.showForm(record.category, record.id);
-        }, 300);
-      });
-    });
   },
 
   getCategorySpecificDetailsHTML(record) {

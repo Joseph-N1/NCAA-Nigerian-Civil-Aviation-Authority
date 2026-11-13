@@ -5,26 +5,64 @@
 
 const App = {
   currentPageModule: null,
+  categoryTitles: {
+    PILOT: 'Pilot',
+    CABIN_CREW: 'Cabin Crew',
+    FLIGHT_DISPATCHER: 'Flight Dispatcher',
+    AME: 'AME Engineer',
+    ATC: 'ATC Controller',
+    ASO: 'ASO Operator',
+    ATSEP: 'ATSEP Engineer',
+    FLIGHT_ENGINEER: 'Flight Engineer'
+  },
 
   async init() {
     console.log('Initializing NCAA DOLT App Controller...');
     
-    // Initialize components
-    await window.DB.init();
-    await window.Auth.init();
-    window.Sidebar.init();
-    window.Search.init();
-    window.DetailPanel.init();
-
-    this.bindEvents();
-    await this.setupTheme();
-    this.setupNetworkStatus();
-    await this.checkBackupReminders();
-
-    // Trigger initial route only if authenticated
+    // Register login routing before initialization so a fast submit cannot be missed.
     window.addEventListener('app-login', () => {
       this.route();
     });
+
+    try {
+      await window.DB.init();
+      await window.Auth.init();
+    } catch (err) {
+      console.error('Database/authentication initialization failed:', err);
+      window.Auth.setupEventListeners();
+      this.showStartupError('The local database could not be opened. Your records were not changed. Refresh the page or try another browser window.');
+    }
+
+    for (const [name, component] of [
+      ['Sidebar', window.Sidebar],
+      ['Search', window.Search],
+      ['Detail panel', window.DetailPanel]
+    ]) {
+      try {
+        component?.init();
+      } catch (err) {
+        console.error(`${name} initialization failed:`, err);
+      }
+    }
+
+    this.bindEvents();
+    try {
+      await this.setupTheme();
+    } catch (err) {
+      console.warn('Theme setup failed; using the default theme:', err);
+    }
+    this.setupNetworkStatus();
+    await this.checkBackupReminders();
+  },
+
+  showStartupError(message) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const alert = document.createElement('div');
+    alert.className = 'toast toast-error';
+    alert.setAttribute('role', 'alert');
+    alert.textContent = message;
+    container.appendChild(alert);
   },
 
   bindEvents() {
@@ -54,9 +92,58 @@ const App = {
     }
 
     // Backup suggestion click
-    document.getElementById('backupReminderBanner').addEventListener('click', () => {
-      window.location.hash = '#settings';
+    const backupBanner = document.getElementById('backupReminderBanner');
+    if (backupBanner) {
+      backupBanner.addEventListener('click', () => {
+        window.location.hash = '#settings';
+      });
+    }
+
+    this.bindGlobalAddMenu();
+  },
+
+  bindGlobalAddMenu() {
+    const menu = document.getElementById('globalAddMenu');
+    const toggle = document.getElementById('btnGlobalAddRecord');
+    const dropdown = document.getElementById('globalAddDropdown');
+    if (!menu || !toggle || !dropdown) return;
+
+    toggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const isHidden = dropdown.classList.toggle('hidden');
+      toggle.setAttribute('aria-expanded', String(!isHidden));
     });
+
+    dropdown.querySelectorAll('[data-category]').forEach(button => {
+      button.addEventListener('click', () => {
+        dropdown.classList.add('hidden');
+        toggle.setAttribute('aria-expanded', 'false');
+        this.openAddRecordModal(button.getAttribute('data-category'));
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!menu.contains(event.target)) {
+        dropdown.classList.add('hidden');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  },
+
+  openAddRecordModal(category) {
+    if (!window.Auth.hasWriteAccess()) {
+      window.Toast.warning('Assistant Access Required', 'Log in as Assistant to add or edit personnel records.');
+      return;
+    }
+
+    const overlay = document.getElementById('formModalOverlay');
+    const title = document.getElementById('formModalTitle');
+    if (!overlay || !title || !window.FormBuilder) return;
+
+    const displayName = this.categoryTitles[category] || 'Personnel';
+    title.innerText = `Add New ${displayName}`;
+    window.FormBuilder.render(category, 'formModalBody');
+    overlay.classList.add('active');
   },
 
   async setupTheme() {
@@ -145,6 +232,7 @@ const App = {
 
   setupNetworkStatus() {
     const statusBadge = document.getElementById('offlineStatus');
+    if (!statusBadge) return;
     
     const updateStatus = () => {
       if (navigator.onLine) {

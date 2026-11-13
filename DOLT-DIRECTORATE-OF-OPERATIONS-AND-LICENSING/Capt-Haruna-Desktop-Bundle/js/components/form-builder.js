@@ -268,13 +268,17 @@ const FormBuilder = {
           </div>
 
           <!-- Review Summary Panel -->
-          <div class="card" style="padding: var(--space-4); background: rgba(0,0,0,0.15);">
-            <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-2); color: var(--color-text-primary);">📝 Verify Information Summary:</div>
-            <div style="font-size: var(--font-size-sm); line-height: 1.6; color: var(--color-text-secondary);">
-              <strong>Category:</strong> ${this.category}<br>
-              <strong>Name:</strong> <span id="revName">...</span><br>
-              <strong>License No:</strong> <span id="revLicenseNo">...</span><br>
-              <strong>Valid Until:</strong> <span id="revExpiry">...</span>
+          <div class="card" style="padding: var(--space-4); background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3); color: var(--color-text-primary);">📝 Verify Information Summary:</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); font-size: var(--font-size-sm); line-height: 1.6; color: var(--color-text-secondary);">
+              <div><strong style="color: var(--color-text-primary);">Category:</strong> <span id="revCategory">${this.category}</span></div>
+              <div><strong style="color: var(--color-text-primary);">Full Name:</strong> <span id="revName">...</span></div>
+              <div><strong style="color: var(--color-text-primary);">License No:</strong> <span id="revLicenseNo">...</span></div>
+              <div><strong style="color: var(--color-text-primary);">Status:</strong> <span id="revStatus">...</span></div>
+              <div><strong style="color: var(--color-text-primary);">Valid Until:</strong> <span id="revExpiry">...</span></div>
+              <div><strong style="color: var(--color-text-primary);">Employer:</strong> <span id="revEmployer">...</span></div>
+              <div><strong style="color: var(--color-text-primary);">Medical Class:</strong> <span id="revMedical">...</span></div>
+              <div><strong style="color: var(--color-text-primary);">Passport Photo:</strong> <span id="revPhoto">...</span></div>
             </div>
           </div>
         </div>
@@ -294,7 +298,7 @@ const FormBuilder = {
           <h4 class="form-section-title">✈ Pilot Subtypes & Ratings</h4>
           <div class="form-grid-2">
             <div class="form-group">
-              <label for="f_pilotLicenseSubType">Pilot Subtype</label>
+              <label for="f_pilotLicenseSubType">Pilot License Subtype</label>
               <select id="f_pilotLicenseSubType" name="pilotLicenseSubType">
                 <option value="">Select Subtype</option>
                 <option value="Student Authorization" ${this.formData.pilotLicenseSubType === 'Student Authorization' ? 'selected' : ''}>Student Authorization</option>
@@ -304,43 +308,95 @@ const FormBuilder = {
               </select>
             </div>
             <div class="form-group">
-              <label>Category Ratings</label>
-              <div class="checkbox-group">
-                <label class="checkbox-item">
-                  <input type="checkbox" name="categoryRating" value="Aeroplane" ${this.formData.categoryRating.includes('Aeroplane') ? 'checked' : ''}>
-                  <div class="checkbox-box"></div>
-                  <span class="checkbox-text">Aeroplane</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" name="categoryRating" value="Helicopter" ${this.formData.categoryRating.includes('Helicopter') ? 'checked' : ''}>
-                  <div class="checkbox-box"></div>
-                  <span class="checkbox-text">Helicopter</span>
-                </label>
-              </div>
+              <label for="f_examinerDesignation">Examiner Designation</label>
+              <select id="f_examinerDesignation" name="examinerDesignation">
+                <option value="">None / Not Applicable</option>
+                <option value="TRE" ${this.formData.examinerDesignation === 'TRE' ? 'selected' : ''}>TRE — Type Rating Examiner</option>
+                <option value="CRE" ${this.formData.examinerDesignation === 'CRE' ? 'selected' : ''}>CRE — Class Rating Examiner</option>
+                <option value="FE" ${this.formData.examinerDesignation === 'FE' ? 'selected' : ''}>FE — Flight Examiner</option>
+                <option value="IRE" ${this.formData.examinerDesignation === 'IRE' ? 'selected' : ''}>IRE — Instrument Rating Examiner</option>
+                <option value="SFE" ${this.formData.examinerDesignation === 'SFE' ? 'selected' : ''}>SFE — Synthetic Flight Examiner</option>
+              </select>
             </div>
           </div>
 
-          <div class="form-grid-2">
-            <div class="form-group">
-              <label>Class Ratings</label>
-              <div class="checkbox-group">
-                <label class="checkbox-item">
-                  <input type="checkbox" name="classRatings" value="Single-Engine Land" ${this.formData.classRatings.includes('Single-Engine Land') ? 'checked' : ''}>
-                  <div class="checkbox-box"></div>
-                  <span class="checkbox-text">Single-Engine Land</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" name="classRatings" value="Multi-Engine Land" ${this.formData.classRatings.includes('Multi-Engine Land') ? 'checked' : ''}>
-                  <div class="checkbox-box"></div>
-                  <span class="checkbox-text">Multi-Engine Land</span>
-                </label>
-              </div>
+          <div class="form-group mb-4">
+            <label>Category Ratings</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="categoryRating" value="Aeroplane" ${(this.formData.categoryRating || []).includes('Aeroplane') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">Aeroplane</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="categoryRating" value="Helicopter" ${(this.formData.categoryRating || []).includes('Helicopter') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">Helicopter</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="categoryRating" value="Glider" ${(this.formData.categoryRating || []).includes('Glider') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">Glider</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="categoryRating" value="Free Balloon" ${(this.formData.categoryRating || []).includes('Free Balloon') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">Free Balloon</span>
+              </label>
             </div>
+          </div>
+
+          <div class="form-group mb-4">
+            <label>Class Ratings</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="classRatings" value="Single-Engine Land" ${(this.formData.classRatings || []).includes('Single-Engine Land') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">Single-Engine Land</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="classRatings" value="Multi-Engine Land" ${(this.formData.classRatings || []).includes('Multi-Engine Land') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">Multi-Engine Land</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="classRatings" value="Single-Engine Sea" ${(this.formData.classRatings || []).includes('Single-Engine Sea') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">Single-Engine Sea</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="classRatings" value="Multi-Engine Sea" ${(this.formData.classRatings || []).includes('Multi-Engine Sea') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">Multi-Engine Sea</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group mb-4">
+            <label for="f_typeRatings">Type Ratings Held</label>
+            <input type="text" id="f_typeRatings" name="typeRatings" placeholder="e.g. B737-800; ATR72-600; A320" value="${Array.isArray(this.formData.typeRatings) ? this.formData.typeRatings.join('; ') : (this.formData.typeRatings || '')}">
+          </div>
+
+          <div class="form-grid-3">
             <div class="form-group">
               <label class="switch">
                 <input type="checkbox" id="f_instrumentRating" name="instrumentRating" class="switch-input" ${this.formData.instrumentRating ? 'checked' : ''}>
                 <span class="switch-slider"></span>
-                <span class="switch-label">Instrument Rating Held</span>
+                <span class="switch-label">Instrument Rating</span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label class="switch">
+                <input type="checkbox" id="f_nightRating" name="nightRating" class="switch-input" ${this.formData.nightRating ? 'checked' : ''}>
+                <span class="switch-slider"></span>
+                <span class="switch-label">Night Rating</span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label class="switch">
+                <input type="checkbox" id="f_instructorRating" name="instructorRating" class="switch-input" ${this.formData.instructorRating ? 'checked' : ''}>
+                <span class="switch-slider"></span>
+                <span class="switch-label">Instructor Rating</span>
               </label>
             </div>
           </div>
@@ -351,7 +407,7 @@ const FormBuilder = {
               <input type="date" id="f_instrumentValidUntil" name="instrumentValidUntil" value="${this.formData.instrumentValidUntil ? this.formData.instrumentValidUntil.split('T')[0] : ''}">
             </div>
             <div class="form-group">
-              <label for="f_simulatorValidUntil">Simulator Valid Until</label>
+              <label for="f_simulatorValidUntil">Simulator Check Valid Until</label>
               <input type="date" id="f_simulatorValidUntil" name="simulatorValidUntil" value="${this.formData.simulatorValidUntil ? this.formData.simulatorValidUntil.split('T')[0] : ''}">
             </div>
             <div class="form-group">
@@ -360,123 +416,267 @@ const FormBuilder = {
             </div>
           </div>
 
-          <div class="form-grid-2">
-            <div class="form-group">
-              <label class="switch">
-                <input type="checkbox" id="f_instructorRating" name="instructorRating" class="switch-input" ${this.formData.instructorRating ? 'checked' : ''}>
-                <span class="switch-slider"></span>
-                <span class="switch-label">Instructor Rating Endorsed</span>
+          <div class="form-group mb-4">
+            <label>Instructor Rating Subtypes</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="instructorRatingType" value="FI" ${(this.formData.instructorRatingType || []).includes('FI') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">FI (Flight Instructor)</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="instructorRatingType" value="TRI" ${(this.formData.instructorRatingType || []).includes('TRI') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">TRI (Type Rating Instructor)</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="instructorRatingType" value="SFI" ${(this.formData.instructorRatingType || []).includes('SFI') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">SFI (Synthetic Flight Instructor)</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="instructorRatingType" value="CRI" ${(this.formData.instructorRatingType || []).includes('CRI') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">CRI (Class Rating Instructor)</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="instructorRatingType" value="IRI" ${(this.formData.instructorRatingType || []).includes('IRI') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">IRI (Instrument Rating Instructor)</span>
               </label>
             </div>
+          </div>
+
+          <div class="form-group mb-4">
+            <label for="f_instructorRatingEndorsement">Instructor Rating Endorsement Details</label>
+            <input type="text" id="f_instructorRatingEndorsement" name="instructorRatingEndorsement" placeholder="e.g. Endorsed for multi-engine instrument flight training" value="${this.formData.instructorRatingEndorsement || ''}">
+          </div>
+
+          <h5 style="font-size: var(--font-size-sm); color: var(--color-accent-teal); margin: var(--space-4) 0 var(--space-2); text-transform: uppercase; letter-spacing: 0.05em;">⏱ Flight Hours Breakdown</h5>
+          <div class="form-grid-3">
             <div class="form-group">
-              <label for="f_instructorRatingEndorsement">Instructor Rating Endorsements</label>
-              <input type="text" id="f_instructorRatingEndorsement" name="instructorRatingEndorsement" placeholder="e.g. FI, TRI" value="${this.formData.instructorRatingEndorsement || ''}">
+              <label for="f_totalFlightHours">Total Flight Hours</label>
+              <input type="number" step="0.1" id="f_totalFlightHours" name="totalFlightHours" value="${this.formData.totalFlightHours || 0}">
+            </div>
+            <div class="form-group">
+              <label for="f_picHours">Pilot-in-Command (PIC) Hours</label>
+              <input type="number" step="0.1" id="f_picHours" name="picHours" value="${this.formData.picHours || 0}">
+            </div>
+            <div class="form-group">
+              <label for="f_crossCountryHours">Cross-Country Hours</label>
+              <input type="number" step="0.1" id="f_crossCountryHours" name="crossCountryHours" value="${this.formData.crossCountryHours || 0}">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="f_instrumentFlightHours">Instrument Flight Hours</label>
+              <input type="number" step="0.1" id="f_instrumentFlightHours" name="instrumentFlightHours" value="${this.formData.instrumentFlightHours || 0}">
+            </div>
+            <div class="form-group">
+              <label for="f_nightHours">Night Flight Hours</label>
+              <input type="number" step="0.1" id="f_nightHours" name="nightHours" value="${this.formData.nightHours || 0}">
+            </div>
+            <div class="form-group">
+              <label for="f_multiEngineHours">Multi-Engine Hours</label>
+              <input type="number" step="0.1" id="f_multiEngineHours" name="multiEngineHours" value="${this.formData.multiEngineHours || 0}">
             </div>
           </div>
         `;
       
       case 'CABIN_CREW':
         return `
-          <h4 class="form-section-title">👤 Cabin Crew Details & Drills</h4>
+          <h4 class="form-section-title">👤 Cabin Crew License & Drills</h4>
           <div class="form-grid-2">
             <div class="form-group">
               <label for="f_cabinCrewLicenseType">Cabin Crew License Type</label>
-              <input type="text" id="f_cabinCrewLicenseType" name="cabinCrewLicenseType" placeholder="e.g. Standard Purple License" value="${this.formData.cabinCrewLicenseType || ''}">
+              <input type="text" id="f_cabinCrewLicenseType" name="cabinCrewLicenseType" placeholder="e.g. Standard Purple License, Senior Cabin Crew" value="${this.formData.cabinCrewLicenseType || ''}">
             </div>
             <div class="form-group">
               <label for="f_aircraftTypesQualified">Qualified Aircraft Types</label>
-              <input type="text" id="f_aircraftTypesQualified" name="aircraftTypesQualified" placeholder="e.g. B737; CRJ900 (semicolon separated)" value="${(this.formData.aircraftTypesQualified || []).join('; ')}">
+              <input type="text" id="f_aircraftTypesQualified" name="aircraftTypesQualified" placeholder="e.g. B737; CRJ900; ERJ145 (semicolon separated)" value="${Array.isArray(this.formData.aircraftTypesQualified) ? this.formData.aircraftTypesQualified.join('; ') : (this.formData.aircraftTypesQualified || '')}">
             </div>
           </div>
 
-          <div class="form-grid-3">
+          <h5 style="font-size: var(--font-size-sm); color: var(--color-accent-teal); margin: var(--space-4) 0 var(--space-2); text-transform: uppercase; letter-spacing: 0.05em;">🚨 Safety & Recurrent Drills Validity</h5>
+          <div class="form-grid-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3) var(--space-4);">
             <div class="form-group">
-              <label for="f_emergencyDrillsValidUntil">Emergency Drills Validity</label>
+              <label for="f_emergencyDrillsValidUntil">Emergency Drills</label>
               <input type="date" id="f_emergencyDrillsValidUntil" name="emergencyDrillsValidUntil" value="${this.formData.emergencyDrillsValidUntil ? this.formData.emergencyDrillsValidUntil.split('T')[0] : ''}">
             </div>
             <div class="form-group">
-              <label for="f_evacuationDrillValidUntil">Evacuation Drill Validity</label>
+              <label for="f_evacuationDrillValidUntil">Evacuation Drill</label>
               <input type="date" id="f_evacuationDrillValidUntil" name="evacuationDrillValidUntil" value="${this.formData.evacuationDrillValidUntil ? this.formData.evacuationDrillValidUntil.split('T')[0] : ''}">
             </div>
             <div class="form-group">
-              <label for="f_fireDrillValidUntil">Fire Drill Validity</label>
+              <label for="f_fireDrillValidUntil">Fire Drill</label>
               <input type="date" id="f_fireDrillValidUntil" name="fireDrillValidUntil" value="${this.formData.fireDrillValidUntil ? this.formData.fireDrillValidUntil.split('T')[0] : ''}">
             </div>
-          </div>
-
-          <div class="form-grid-3">
             <div class="form-group">
-              <label for="f_ditchingDrillValidUntil">Ditching Drill Validity</label>
+              <label for="f_ditchingDrillValidUntil">Ditching Drill</label>
               <input type="date" id="f_ditchingDrillValidUntil" name="ditchingDrillValidUntil" value="${this.formData.ditchingDrillValidUntil ? this.formData.ditchingDrillValidUntil.split('T')[0] : ''}">
             </div>
             <div class="form-group">
-              <label for="f_firstAidValidUntil">First Aid Validity</label>
+              <label for="f_firstAidValidUntil">First Aid</label>
               <input type="date" id="f_firstAidValidUntil" name="firstAidValidUntil" value="${this.formData.firstAidValidUntil ? this.formData.firstAidValidUntil.split('T')[0] : ''}">
             </div>
             <div class="form-group">
-              <label for="f_crmTrainingValidUntil">CRM Validity</label>
+              <label for="f_crmTrainingValidUntil">CRM Training</label>
               <input type="date" id="f_crmTrainingValidUntil" name="crmTrainingValidUntil" value="${this.formData.crmTrainingValidUntil ? this.formData.crmTrainingValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_dangerousGoodsValidUntil">Dangerous Goods</label>
+              <input type="date" id="f_dangerousGoodsValidUntil" name="dangerousGoodsValidUntil" value="${this.formData.dangerousGoodsValidUntil ? this.formData.dangerousGoodsValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_securityTrainingValidUntil">Security Training</label>
+              <input type="date" id="f_securityTrainingValidUntil" name="securityTrainingValidUntil" value="${this.formData.securityTrainingValidUntil ? this.formData.securityTrainingValidUntil.split('T')[0] : ''}">
+            </div>
+          </div>
+
+          <div class="form-grid-2" style="margin-top: var(--space-4);">
+            <div class="form-group">
+              <label class="switch">
+                <input type="checkbox" id="f_instructorRating" name="instructorRating" class="switch-input" ${this.formData.instructorRating ? 'checked' : ''}>
+                <span class="switch-slider"></span>
+                <span class="switch-label">Cabin Crew Instructor</span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="f_instructorRatingDetails">Instructor Endorsement Details</label>
+              <input type="text" id="f_instructorRatingDetails" name="instructorRatingDetails" placeholder="e.g. Line Check Cabin Crew Instructor" value="${this.formData.instructorRatingDetails || ''}">
+            </div>
+          </div>
+
+          <h5 style="font-size: var(--font-size-sm); color: var(--color-accent-teal); margin: var(--space-4) 0 var(--space-2); text-transform: uppercase; letter-spacing: 0.05em;">🩺 Clinical & Comprehensive Exams</h5>
+          <div class="form-grid-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3) var(--space-4);">
+            <div class="form-group">
+              <label for="f_comprehensiveMedicalValidUntil">Comprehensive Med. Valid Until</label>
+              <input type="date" id="f_comprehensiveMedicalValidUntil" name="comprehensiveMedicalValidUntil" value="${this.formData.comprehensiveMedicalValidUntil ? this.formData.comprehensiveMedicalValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_medicalGeneralExamValidUntil">General Exam Valid Until</label>
+              <input type="date" id="f_medicalGeneralExamValidUntil" name="medicalGeneralExamValidUntil" value="${this.formData.medicalGeneralExamValidUntil ? this.formData.medicalGeneralExamValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_ecgResult">ECG Assessment Result</label>
+              <select id="f_ecgResult" name="ecgResult">
+                <option value="">Select ECG Status</option>
+                <option value="Normal" ${this.formData.ecgResult === 'Normal' ? 'selected' : ''}>Normal / Satisfactory</option>
+                <option value="Borderline" ${this.formData.ecgResult === 'Borderline' ? 'selected' : ''}>Borderline / Monitor</option>
+                <option value="Abnormal" ${this.formData.ecgResult === 'Abnormal' ? 'selected' : ''}>Abnormal</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="f_audioResult">Audiometry Result</label>
+              <select id="f_audioResult" name="audioResult">
+                <option value="">Select Audio Status</option>
+                <option value="Normal" ${this.formData.audioResult === 'Normal' ? 'selected' : ''}>Normal Hearing</option>
+                <option value="Impaired" ${this.formData.audioResult === 'Impaired' ? 'selected' : ''}>Hearing Impairment</option>
+              </select>
             </div>
           </div>
         `;
 
       case 'FLIGHT_DISPATCHER':
         return `
-          <h4 class="form-section-title">📋 Flight Dispatcher Ratings</h4>
+          <h4 class="form-section-title">📋 Flight Dispatcher Ratings & Authorisations</h4>
           <div class="form-grid-2">
             <div class="form-group">
               <label for="f_dispatcherLicenseType">Dispatcher License Type</label>
-              <input type="text" id="f_dispatcherLicenseType" name="dispatcherLicenseType" placeholder="e.g. Dispatcher License" value="${this.formData.dispatcherLicenseType || ''}">
+              <input type="text" id="f_dispatcherLicenseType" name="dispatcherLicenseType" placeholder="e.g. Flight Operations Officer (FOO) License" value="${this.formData.dispatcherLicenseType || ''}">
             </div>
+            <div class="form-group">
+              <label for="f_aircraftTypesAuthorized">Aircraft Types Authorized</label>
+              <input type="text" id="f_aircraftTypesAuthorized" name="aircraftTypesAuthorized" placeholder="e.g. B737NG; B777; E195 (semicolon separated)" value="${Array.isArray(this.formData.aircraftTypesAuthorized) ? this.formData.aircraftTypesAuthorized.join('; ') : (this.formData.aircraftTypesAuthorized || '')}">
+            </div>
+          </div>
+
+          <div class="form-group mb-4">
+            <label for="f_operationalSpecifications">Operational Specifications / Authorisations</label>
+            <input type="text" id="f_operationalSpecifications" name="operationalSpecifications" placeholder="e.g. Extended Diversion Time Ops (EDTO), RNAV/RNP, CAT II/III" value="${this.formData.operationalSpecifications || ''}">
+          </div>
+
+          <h5 style="font-size: var(--font-size-sm); color: var(--color-accent-teal); margin: var(--space-4) 0 var(--space-2); text-transform: uppercase; letter-spacing: 0.05em;">📅 Competency & Recurrent Dates</h5>
+          <div class="form-grid-3">
             <div class="form-group">
               <label for="f_meteorologyValidUntil">Meteorology Valid Until</label>
               <input type="date" id="f_meteorologyValidUntil" name="meteorologyValidUntil" value="${this.formData.meteorologyValidUntil ? this.formData.meteorologyValidUntil.split('T')[0] : ''}">
             </div>
-          </div>
-          <div class="form-grid-2">
             <div class="form-group">
               <label for="f_flightPlanningValidUntil">Flight Planning Valid Until</label>
               <input type="date" id="f_flightPlanningValidUntil" name="flightPlanningValidUntil" value="${this.formData.flightPlanningValidUntil ? this.formData.flightPlanningValidUntil.split('T')[0] : ''}">
             </div>
             <div class="form-group">
+              <label for="f_performanceValidUntil">Performance Valid Until</label>
+              <input type="date" id="f_performanceValidUntil" name="performanceValidUntil" value="${this.formData.performanceValidUntil ? this.formData.performanceValidUntil.split('T')[0] : ''}">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
               <label for="f_navigationValidUntil">Navigation Valid Until</label>
               <input type="date" id="f_navigationValidUntil" name="navigationValidUntil" value="${this.formData.navigationValidUntil ? this.formData.navigationValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_regulationsValidUntil">Air Regulations Valid Until</label>
+              <input type="date" id="f_regulationsValidUntil" name="regulationsValidUntil" value="${this.formData.regulationsValidUntil ? this.formData.regulationsValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_recurrentTrainingValidUntil">Recurrent Training Valid Until</label>
+              <input type="date" id="f_recurrentTrainingValidUntil" name="recurrentTrainingValidUntil" value="${this.formData.recurrentTrainingValidUntil ? this.formData.recurrentTrainingValidUntil.split('T')[0] : ''}">
             </div>
           </div>
         `;
 
       case 'AME':
         return `
-          <h4 class="form-section-title">🔧 AME Specialisations & Audits</h4>
+          <h4 class="form-section-title">🔧 AME Specialisations, AMO & Ratings</h4>
           <div class="form-group mb-4">
             <label>AME License Categories</label>
             <div class="checkbox-group">
               <label class="checkbox-item">
-                <input type="checkbox" name="ameLicenseCategory" value="Airframe (A)" ${this.formData.ameLicenseCategory.includes('Airframe (A)') ? 'checked' : ''}>
+                <input type="checkbox" name="ameLicenseCategory" value="Airframe (A)" ${(this.formData.ameLicenseCategory || []).includes('Airframe (A)') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
                 <span class="checkbox-text">Airframe (A)</span>
               </label>
               <label class="checkbox-item">
-                <input type="checkbox" name="ameLicenseCategory" value="Powerplant (P)" ${this.formData.ameLicenseCategory.includes('Powerplant (P)') ? 'checked' : ''}>
+                <input type="checkbox" name="ameLicenseCategory" value="Powerplant (P)" ${(this.formData.ameLicenseCategory || []).includes('Powerplant (P)') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
                 <span class="checkbox-text">Powerplant (P)</span>
               </label>
               <label class="checkbox-item">
-                <input type="checkbox" name="ameLicenseCategory" value="Avionics (AV)" ${this.formData.ameLicenseCategory.includes('Avionics (AV)') ? 'checked' : ''}>
+                <input type="checkbox" name="ameLicenseCategory" value="Avionics (AV)" ${(this.formData.ameLicenseCategory || []).includes('Avionics (AV)') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
                 <span class="checkbox-text">Avionics (AV)</span>
               </label>
               <label class="checkbox-item">
-                <input type="checkbox" name="ameLicenseCategory" value="Instruments (I)" ${this.formData.ameLicenseCategory.includes('Instruments (I)') ? 'checked' : ''}>
+                <input type="checkbox" name="ameLicenseCategory" value="Instruments (I)" ${(this.formData.ameLicenseCategory || []).includes('Instruments (I)') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
                 <span class="checkbox-text">Instruments (I)</span>
               </label>
             </div>
           </div>
 
-          <div class="form-grid-3">
+          <div class="form-grid-2">
             <div class="form-group">
-              <label for="f_practicalExperienceMonths">Experience Months</label>
+              <label for="f_aircraftTypesRated">Aircraft / Engine Types Rated</label>
+              <input type="text" id="f_aircraftTypesRated" name="aircraftTypesRated" placeholder="e.g. B737-700/800 (CFM56); ATR42/72 (PW120)" value="${Array.isArray(this.formData.aircraftTypesRated) ? this.formData.aircraftTypesRated.join('; ') : (this.formData.aircraftTypesRated || '')}">
+            </div>
+            <div class="form-group">
+              <label for="f_approvedMaintenanceOrg">Approved Maintenance Org (AMO)</label>
+              <input type="text" id="f_approvedMaintenanceOrg" name="approvedMaintenanceOrg" placeholder="e.g. Aero Contractors AMO, Air Peace MRO" value="${this.formData.approvedMaintenanceOrg || ''}">
+            </div>
+          </div>
+
+          <div class="form-group mb-4">
+            <label for="f_certificationAuthorisations">Certification Authorisations</label>
+            <input type="text" id="f_certificationAuthorisations" name="certificationAuthorisations" placeholder="e.g. Line Maintenance Release, A-Check, Overhaul" value="${this.formData.certificationAuthorisations || ''}">
+          </div>
+
+          <div class="form-grid-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3) var(--space-4);">
+            <div class="form-group">
+              <label for="f_practicalExperienceMonths">Experience (Months)</label>
               <input type="number" id="f_practicalExperienceMonths" name="practicalExperienceMonths" value="${this.formData.practicalExperienceMonths || 0}">
             </div>
             <div class="form-group">
@@ -487,32 +687,41 @@ const FormBuilder = {
               <label for="f_competencyAuditValidUntil">Audit Valid Until</label>
               <input type="date" id="f_competencyAuditValidUntil" name="competencyAuditValidUntil" value="${this.formData.competencyAuditValidUntil ? this.formData.competencyAuditValidUntil.split('T')[0] : ''}">
             </div>
+            <div class="form-group">
+              <label for="f_recurrentTrainingValidUntil">Recurrent Training Valid</label>
+              <input type="date" id="f_recurrentTrainingValidUntil" name="recurrentTrainingValidUntil" value="${this.formData.recurrentTrainingValidUntil ? this.formData.recurrentTrainingValidUntil.split('T')[0] : ''}">
+            </div>
           </div>
         `;
 
       case 'ATC':
         return `
-          <h4 class="form-section-title">📡 Air Traffic Control Endorsements</h4>
+          <h4 class="form-section-title">📡 Air Traffic Control Endorsements & Station</h4>
           <div class="form-group mb-4">
             <label>ATC Ratings Held</label>
             <div class="checkbox-group">
               <label class="checkbox-item">
-                <input type="checkbox" name="atcRatings" value="Aerodrome Control" ${this.formData.atcRatings.includes('Aerodrome Control') ? 'checked' : ''}>
+                <input type="checkbox" name="atcRatings" value="Aerodrome Control" ${(this.formData.atcRatings || []).includes('Aerodrome Control') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
                 <span class="checkbox-text">Aerodrome Control</span>
               </label>
               <label class="checkbox-item">
-                <input type="checkbox" name="atcRatings" value="Approach Procedural" ${this.formData.atcRatings.includes('Approach Procedural') ? 'checked' : ''}>
+                <input type="checkbox" name="atcRatings" value="Approach Procedural" ${(this.formData.atcRatings || []).includes('Approach Procedural') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
                 <span class="checkbox-text">Approach Procedural</span>
               </label>
               <label class="checkbox-item">
-                <input type="checkbox" name="atcRatings" value="Approach Surveillance" ${this.formData.atcRatings.includes('Approach Surveillance') ? 'checked' : ''}>
+                <input type="checkbox" name="atcRatings" value="Approach Surveillance" ${(this.formData.atcRatings || []).includes('Approach Surveillance') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
                 <span class="checkbox-text">Approach Surveillance</span>
               </label>
               <label class="checkbox-item">
-                <input type="checkbox" name="atcRatings" value="Area Radar" ${this.formData.atcRatings.includes('Area Radar') ? 'checked' : ''}>
+                <input type="checkbox" name="atcRatings" value="Area Procedural" ${(this.formData.atcRatings || []).includes('Area Procedural') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">Area Procedural</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="atcRatings" value="Area Radar" ${(this.formData.atcRatings || []).includes('Area Radar') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
                 <span class="checkbox-text">Area Radar</span>
               </label>
@@ -521,12 +730,42 @@ const FormBuilder = {
 
           <div class="form-grid-2">
             <div class="form-group">
-              <label for="f_atcUnit">ATC Assigned Unit/Facility</label>
-              <input type="text" id="f_atcUnit" name="atcUnit" placeholder="e.g. DNMM Tower, DNUA Control" value="${this.formData.atcUnit || ''}">
+              <label for="f_atcUnit">Assigned ATC Unit / Facility</label>
+              <input type="text" id="f_atcUnit" name="atcUnit" placeholder="e.g. Lagos Tower (DNMM), Kano ACC" value="${this.formData.atcUnit || ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_unitEndorsements">Unit Endorsements</label>
+              <input type="text" id="f_unitEndorsements" name="unitEndorsements" placeholder="e.g. DNMM Aerodrome, DNKK Approach" value="${Array.isArray(this.formData.unitEndorsements) ? this.formData.unitEndorsements.join('; ') : (this.formData.unitEndorsements || '')}">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="f_onTheJobTrainingHours">OJT Hours</label>
+              <input type="number" id="f_onTheJobTrainingHours" name="onTheJobTrainingHours" value="${this.formData.onTheJobTrainingHours || 0}">
             </div>
             <div class="form-group">
               <label for="f_competencyCheckValidUntil">Competency Check Valid Until</label>
               <input type="date" id="f_competencyCheckValidUntil" name="competencyCheckValidUntil" value="${this.formData.competencyCheckValidUntil ? this.formData.competencyCheckValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_simulatorAssessmentDate">Simulator Assessment Date</label>
+              <input type="date" id="f_simulatorAssessmentDate" name="simulatorAssessmentDate" value="${this.formData.simulatorAssessmentDate ? this.formData.simulatorAssessmentDate.split('T')[0] : ''}">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="f_recurrentTrainingValidUntil">Recurrent Training Valid Until</label>
+              <input type="date" id="f_recurrentTrainingValidUntil" name="recurrentTrainingValidUntil" value="${this.formData.recurrentTrainingValidUntil ? this.formData.recurrentTrainingValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_emergencyTrainingValidUntil">Emergency Training Valid Until</label>
+              <input type="date" id="f_emergencyTrainingValidUntil" name="emergencyTrainingValidUntil" value="${this.formData.emergencyTrainingValidUntil ? this.formData.emergencyTrainingValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_englishProficiencyValidUntil">English Proficiency Valid Until</label>
+              <input type="date" id="f_englishProficiencyValidUntil" name="englishProficiencyValidUntil" value="${this.formData.englishProficiencyValidUntil ? this.formData.englishProficiencyValidUntil.split('T')[0] : ''}">
             </div>
           </div>
         `;
@@ -537,102 +776,158 @@ const FormBuilder = {
           <div class="form-grid-2">
             <div class="form-group">
               <label for="f_asoLicenseType">ASO License Type</label>
-              <input type="text" id="f_asoLicenseType" name="asoLicenseType" value="${this.formData.asoLicenseType || ''}">
+              <input type="text" id="f_asoLicenseType" name="asoLicenseType" placeholder="e.g. Standard Aeronautical Station Operator" value="${this.formData.asoLicenseType || ''}">
             </div>
             <div class="form-group">
-              <label for="f_stationAssignment">Assigned Station</label>
-              <input type="text" id="f_stationAssignment" name="stationAssignment" placeholder="e.g. Lagos Radio" value="${this.formData.stationAssignment || ''}">
+              <label for="f_stationAssignment">Assigned Radio Station</label>
+              <input type="text" id="f_stationAssignment" name="stationAssignment" placeholder="e.g. Lagos Aeradio, Kano Radio Comms" value="${this.formData.stationAssignment || ''}">
             </div>
           </div>
-          <div class="form-grid-2">
+
+          <div class="form-group mb-4">
+            <label for="f_frequenciesAuthorized">Authorized Frequencies</label>
+            <input type="text" id="f_frequenciesAuthorized" name="frequenciesAuthorized" placeholder="e.g. 124.9 MHz; 8861 kHz; 5556 kHz (semicolon separated)" value="${Array.isArray(this.formData.frequenciesAuthorized) ? this.formData.frequenciesAuthorized.join('; ') : (this.formData.frequenciesAuthorized || '')}">
+          </div>
+
+          <div class="form-grid-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3) var(--space-4);">
             <div class="form-group">
               <label for="f_communicationProceduresValidUntil">Comms Procedures Validity</label>
               <input type="date" id="f_communicationProceduresValidUntil" name="communicationProceduresValidUntil" value="${this.formData.communicationProceduresValidUntil ? this.formData.communicationProceduresValidUntil.split('T')[0] : ''}">
             </div>
             <div class="form-group">
+              <label for="f_emergencyProceduresValidUntil">Emergency Procedures Validity</label>
+              <input type="date" id="f_emergencyProceduresValidUntil" name="emergencyProceduresValidUntil" value="${this.formData.emergencyProceduresValidUntil ? this.formData.emergencyProceduresValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
               <label for="f_recurrentTrainingValidUntil">Recurrent Training Validity</label>
               <input type="date" id="f_recurrentTrainingValidUntil" name="recurrentTrainingValidUntil" value="${this.formData.recurrentTrainingValidUntil ? this.formData.recurrentTrainingValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_englishProficiencyValidUntil">English Proficiency Validity</label>
+              <input type="date" id="f_englishProficiencyValidUntil" name="englishProficiencyValidUntil" value="${this.formData.englishProficiencyValidUntil ? this.formData.englishProficiencyValidUntil.split('T')[0] : ''}">
             </div>
           </div>
         `;
 
       case 'ATSEP':
         return `
-          <h4 class="form-section-title">⚡ ATSEP Tech Qualifications</h4>
+          <h4 class="form-section-title">⚡ ATSEP Qualifications & Systems</h4>
           <div class="form-group mb-4">
             <label>ATSEP Specialisations</label>
             <div class="checkbox-group">
               <label class="checkbox-item">
-                <input type="checkbox" name="atsepSpecialization" value="Navigation" ${this.formData.atsepSpecialization.includes('Navigation') ? 'checked' : ''}>
+                <input type="checkbox" name="atsepSpecialization" value="Navigation" ${(this.formData.atsepSpecialization || []).includes('Navigation') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
-                <span class="checkbox-text">Navigation</span>
+                <span class="checkbox-text">Navigation (CNS)</span>
               </label>
               <label class="checkbox-item">
-                <input type="checkbox" name="atsepSpecialization" value="Surveillance" ${this.formData.atsepSpecialization.includes('Surveillance') ? 'checked' : ''}>
+                <input type="checkbox" name="atsepSpecialization" value="Surveillance" ${(this.formData.atsepSpecialization || []).includes('Surveillance') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
-                <span class="checkbox-text">Surveillance</span>
+                <span class="checkbox-text">Surveillance (Radar/ADS-B)</span>
               </label>
               <label class="checkbox-item">
-                <input type="checkbox" name="atsepSpecialization" value="Communication" ${this.formData.atsepSpecialization.includes('Communication') ? 'checked' : ''}>
+                <input type="checkbox" name="atsepSpecialization" value="Communication" ${(this.formData.atsepSpecialization || []).includes('Communication') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
-                <span class="checkbox-text">Communication</span>
+                <span class="checkbox-text">Communication (VHF/HF)</span>
               </label>
               <label class="checkbox-item">
-                <input type="checkbox" name="atsepSpecialization" value="Data Processing" ${this.formData.atsepSpecialization.includes('Data Processing') ? 'checked' : ''}>
+                <input type="checkbox" name="atsepSpecialization" value="Data Processing" ${(this.formData.atsepSpecialization || []).includes('Data Processing') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
-                <span class="checkbox-text">Data Processing</span>
+                <span class="checkbox-text">Data Processing (ATM/FDPS)</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="atsepSpecialization" value="Meteorological" ${(this.formData.atsepSpecialization || []).includes('Meteorological') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">Meteorological Systems</span>
               </label>
             </div>
           </div>
 
           <div class="form-grid-2">
             <div class="form-group">
-              <label for="f_facilityAssignment">Assigned Facility/Equipment</label>
-              <input type="text" id="f_facilityAssignment" name="facilityAssignment" placeholder="e.g. ILS Runway 18R, Radar Room" value="${this.formData.facilityAssignment || ''}">
+              <label for="f_systemsQualified">Systems Qualified / Equipment</label>
+              <input type="text" id="f_systemsQualified" name="systemsQualified" placeholder="e.g. Normarc 7000 ILS, Thales STAR 2000, Rohde & Schwarz VHF" value="${Array.isArray(this.formData.systemsQualified) ? this.formData.systemsQualified.join('; ') : (this.formData.systemsQualified || '')}">
             </div>
             <div class="form-group">
-              <label for="f_competencyAssessmentValidUntil">Competency Validity</label>
+              <label for="f_facilityAssignment">Assigned Facility / Equipment Location</label>
+              <input type="text" id="f_facilityAssignment" name="facilityAssignment" placeholder="e.g. ILS Runway 18R, Lagos Radar Station" value="${this.formData.facilityAssignment || ''}">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="f_competencyAssessmentValidUntil">Competency Assessment Valid</label>
               <input type="date" id="f_competencyAssessmentValidUntil" name="competencyAssessmentValidUntil" value="${this.formData.competencyAssessmentValidUntil ? this.formData.competencyAssessmentValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_safetyTrainingValidUntil">Safety Training Valid Until</label>
+              <input type="date" id="f_safetyTrainingValidUntil" name="safetyTrainingValidUntil" value="${this.formData.safetyTrainingValidUntil ? this.formData.safetyTrainingValidUntil.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label for="f_recurrentTrainingValidUntil">Recurrent Training Valid</label>
+              <input type="date" id="f_recurrentTrainingValidUntil" name="recurrentTrainingValidUntil" value="${this.formData.recurrentTrainingValidUntil ? this.formData.recurrentTrainingValidUntil.split('T')[0] : ''}">
             </div>
           </div>
         `;
 
       case 'FLIGHT_ENGINEER':
         return `
-          <h4 class="form-section-title">⚙ Flight Engineer Systems Ratings</h4>
+          <h4 class="form-section-title">⚙ Flight Engineer Systems & Types</h4>
           <div class="form-grid-2">
             <div class="form-group">
               <label for="f_feLicenseType">Flight Engineer License Type</label>
-              <input type="text" id="f_feLicenseType" name="feLicenseType" value="${this.formData.feLicenseType || ''}">
+              <input type="text" id="f_feLicenseType" name="feLicenseType" placeholder="e.g. Standard Flight Engineer License" value="${this.formData.feLicenseType || ''}">
             </div>
             <div class="form-group">
-              <label for="f_totalFlightHours">Total Flight Hours</label>
-              <input type="number" id="f_totalFlightHours" name="totalFlightHours" value="${this.formData.totalFlightHours || 0}">
+              <label for="f_aircraftTypesRated">Aircraft Types Rated</label>
+              <input type="text" id="f_aircraftTypesRated" name="aircraftTypesRated" placeholder="e.g. B727-200; DC-10-30; B747 Classic" value="${Array.isArray(this.formData.aircraftTypesRated) ? this.formData.aircraftTypesRated.join('; ') : (this.formData.aircraftTypesRated || '')}">
             </div>
           </div>
-          <div class="form-group">
-            <label>Systems Specialities</label>
+
+          <div class="form-group mb-4">
+            <label>Systems Knowledge Specialisations</label>
             <div class="checkbox-group">
               <label class="checkbox-item">
-                <input type="checkbox" name="systemsKnowledge" value="Electrical" ${this.formData.systemsKnowledge && this.formData.systemsKnowledge.includes('Electrical') ? 'checked' : ''}>
+                <input type="checkbox" name="systemsKnowledge" value="Electrical" ${(this.formData.systemsKnowledge || []).includes('Electrical') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
-                <span class="checkbox-text">Electrical</span>
+                <span class="checkbox-text">Electrical Systems</span>
               </label>
               <label class="checkbox-item">
-                <input type="checkbox" name="systemsKnowledge" value="Hydraulics" ${this.formData.systemsKnowledge && this.formData.systemsKnowledge.includes('Hydraulics') ? 'checked' : ''}>
+                <input type="checkbox" name="systemsKnowledge" value="Hydraulics" ${(this.formData.systemsKnowledge || []).includes('Hydraulics') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
                 <span class="checkbox-text">Hydraulics</span>
               </label>
               <label class="checkbox-item">
-                <input type="checkbox" name="systemsKnowledge" value="Pneumatics" ${this.formData.systemsKnowledge && this.formData.systemsKnowledge.includes('Pneumatics') ? 'checked' : ''}>
+                <input type="checkbox" name="systemsKnowledge" value="Pneumatics" ${(this.formData.systemsKnowledge || []).includes('Pneumatics') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
                 <span class="checkbox-text">Pneumatics</span>
               </label>
               <label class="checkbox-item">
-                <input type="checkbox" name="systemsKnowledge" value="Engines" ${this.formData.systemsKnowledge && this.formData.systemsKnowledge.includes('Engines') ? 'checked' : ''}>
+                <input type="checkbox" name="systemsKnowledge" value="Engines" ${(this.formData.systemsKnowledge || []).includes('Engines') ? 'checked' : ''}>
                 <div class="checkbox-box"></div>
-                <span class="checkbox-text">Engines</span>
+                <span class="checkbox-text">Engines / Powerplants</span>
               </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="systemsKnowledge" value="Pressurization" ${(this.formData.systemsKnowledge || []).includes('Pressurization') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">Air Conditioning & Pressurization</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="systemsKnowledge" value="Fuel" ${(this.formData.systemsKnowledge || []).includes('Fuel') ? 'checked' : ''}>
+                <div class="checkbox-box"></div>
+                <span class="checkbox-text">Fuel Systems</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="f_totalFlightHours">Total Flight Hours</label>
+              <input type="number" step="0.1" id="f_totalFlightHours" name="totalFlightHours" value="${this.formData.totalFlightHours || 0}">
+            </div>
+            <div class="form-group">
+              <label for="f_recurrentTrainingValidUntil">Recurrent Training Valid Until</label>
+              <input type="date" id="f_recurrentTrainingValidUntil" name="recurrentTrainingValidUntil" value="${this.formData.recurrentTrainingValidUntil ? this.formData.recurrentTrainingValidUntil.split('T')[0] : ''}">
             </div>
           </div>
         `;
@@ -655,11 +950,19 @@ const FormBuilder = {
       });
     });
 
-    // Wizard Step clicks (only allowing going back or to completed steps)
+    // Wizard Step clicks (allowing jumping back, or jumping forward with sequential validation)
     root.querySelectorAll('.wizard-step').forEach(stepNode => {
       stepNode.addEventListener('click', () => {
         const step = parseInt(stepNode.getAttribute('data-step'));
-        if (step < this.currentStep || this.validateStep(this.currentStep)) {
+        if (step < this.currentStep) {
+          this.goToStep(step);
+        } else if (step > this.currentStep) {
+          for (let s = this.currentStep; s < step; s++) {
+            if (!this.validateStep(s)) {
+              this.goToStep(s);
+              return;
+            }
+          }
           this.goToStep(step);
         }
       });
@@ -714,7 +1017,16 @@ const FormBuilder = {
     if (!name) return;
 
     if (target.type === 'checkbox') {
-      if (target.name === 'categoryRating' || target.name === 'classRatings' || target.name === 'ameLicenseCategory' || target.name === 'atcRatings' || target.name === 'atsepSpecialization' || target.name === 'systemsKnowledge') {
+      const multiArrayFields = [
+        'categoryRating',
+        'classRatings',
+        'instructorRatingType',
+        'ameLicenseCategory',
+        'atcRatings',
+        'atsepSpecialization',
+        'systemsKnowledge'
+      ];
+      if (multiArrayFields.includes(name)) {
         // Multi checkbox array
         const checked = Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(c => c.value);
         this.formData[name] = checked;
@@ -722,9 +1034,16 @@ const FormBuilder = {
         // Toggle boolean
         this.formData[name] = target.checked;
       }
+    } else if (target.type === 'number') {
+      this.formData[name] = target.value !== '' ? parseFloat(target.value) : 0;
     } else {
       let val = target.value;
-      if (name === 'aircraftTypesQualified') {
+      const arrayStringFields = [
+        'aircraftTypesQualified',
+        'aircraftTypesAuthorized',
+        'frequenciesAuthorized'
+      ];
+      if (arrayStringFields.includes(name)) {
         val = val.split(';').map(t => t.trim()).filter(Boolean);
       }
       this.formData[name] = val;
@@ -929,9 +1248,24 @@ const FormBuilder = {
 
     if (step === 5) {
       // Populate review panel
-      document.getElementById('revName').innerText = `${(this.formData.surname || '').toUpperCase()}, ${this.formData.firstName || ''}`;
-      document.getElementById('revLicenseNo').innerText = this.formData.licenseNumber || 'N/A';
-      document.getElementById('revExpiry').innerText = window.DateUtils.formatDate(this.formData.licenseValidUntil);
+      const revName = document.getElementById('revName');
+      const revLicenseNo = document.getElementById('revLicenseNo');
+      const revExpiry = document.getElementById('revExpiry');
+      const revCat = document.getElementById('revCategory');
+      const revEmployer = document.getElementById('revEmployer');
+      const revStatus = document.getElementById('revStatus');
+      const revMedical = document.getElementById('revMedical');
+      const revPhoto = document.getElementById('revPhoto');
+
+      const fullName = `${(this.formData.surname || '').toUpperCase()}, ${this.formData.firstName || ''} ${this.formData.middleName || ''}`.trim();
+      if (revName) revName.innerText = fullName || 'N/A';
+      if (revLicenseNo) revLicenseNo.innerText = this.formData.licenseNumber || 'N/A';
+      if (revExpiry) revExpiry.innerText = window.DateUtils ? window.DateUtils.formatDate(this.formData.licenseValidUntil) : (this.formData.licenseValidUntil || 'N/A');
+      if (revCat) revCat.innerText = this.category;
+      if (revEmployer) revEmployer.innerText = this.formData.employerOrganisation || 'N/A';
+      if (revStatus) revStatus.innerText = this.formData.licenseStatus || 'ACTIVE';
+      if (revMedical) revMedical.innerText = this.formData.medicalClass ? `${this.formData.medicalClass} (${this.formData.medicalValidUntil || 'No expiry'})` : 'None specified';
+      if (revPhoto) revPhoto.innerText = this.formData.passportPhoto ? 'Attached ✓' : 'Not attached';
     }
   },
 

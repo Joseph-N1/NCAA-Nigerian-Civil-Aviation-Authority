@@ -15,7 +15,7 @@ const FlightDispatchersPage = {
           <h2 class="page-title">✈ Flight Dispatchers Directory</h2>
           <p class="page-subtitle">Manage dispatcher licenses, meteorology and flight planning ratings compliance</p>
         </div>
-        <div class="assistant-only no-print">
+        <div class="no-print assistant-only">
           <button id="btnAddNewDispatcher" class="btn btn-primary">＋ Add Dispatcher</button>
         </div>
       </div>

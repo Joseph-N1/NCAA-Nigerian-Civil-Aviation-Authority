@@ -15,7 +15,7 @@ const ATSEPPage = {
           <h2 class="page-title">⚡ ATSEP Electronics Directory</h2>
           <p class="page-subtitle">Manage Air Traffic Safety Electronics Personnel certificates, facility ratings, and equipment compliance checks</p>
         </div>
-        <div class="assistant-only no-print">
+        <div class="no-print assistant-only">
           <button id="btnAddNewATSEP" class="btn btn-primary">＋ Add ATSEP Engineer</button>
         </div>
       </div>

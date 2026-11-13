@@ -15,7 +15,7 @@ const FlightEngineersPage = {
           <h2 class="page-title">⚙ Flight Engineers Directory</h2>
           <p class="page-subtitle">Manage Flight Engineers licenses, flight hours, systems knowledge, and medical certifications</p>
         </div>
-        <div class="assistant-only no-print">
+        <div class="no-print assistant-only">
           <button id="btnAddNewFE" class="btn btn-primary">＋ Add Flight Engineer</button>
         </div>
       </div>

@@ -89,6 +89,78 @@ class DataTable {
     return values.filter(Boolean).join(' ').toLowerCase();
   }
 
+  getExpiryUrgency(item) {
+    const rawValue = item?.licenseValidUntil || item?.medicalValidUntil;
+    if (!rawValue) return 'none';
+
+    const expiryDate = new Date(rawValue);
+    if (Number.isNaN(expiryDate.getTime())) return 'none';
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    expiryDate.setHours(0, 0, 0, 0);
+
+    const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const ninetyDays = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
+
+    if (expiryDate < today) return 'expired';
+    if (expiryDate <= thirtyDays) return 'critical';
+    if (expiryDate <= ninetyDays) return 'warning';
+    return 'valid';
+  }
+
+  getExpiryBadge(item) {
+    const urgency = this.getExpiryUrgency(item);
+    if (urgency === 'expired') {
+      return '<span class="alert-badge expired">Expired</span>';
+    }
+    if (urgency === 'critical') {
+      return '<span class="alert-badge critical">Expiring soon</span>';
+    }
+    if (urgency === 'warning') {
+      return '<span class="alert-badge warning">Watch</span>';
+    }
+    return '<span class="alert-badge valid">On track</span>';
+  }
+
+  getFilterSummary(filteredData) {
+    const counts = { total: filteredData.length, active: 0, critical: 0, expired: 0 };
+
+    filteredData.forEach(item => {
+      const urgency = this.getExpiryUrgency(item);
+      if (urgency === 'expired') counts.expired += 1;
+      if (urgency === 'critical' || urgency === 'warning') counts.critical += 1;
+      if (item.licenseStatus === 'ACTIVE') counts.active += 1;
+    });
+
+    return counts;
+  }
+
+  getActiveQuickFilter() {
+    if (this.filters.expiry === 'expired') return 'expired';
+    if (this.filters.expiry === 'critical' || this.filters.expiry === 'warning') return 'expiring';
+    if (this.filters.status === 'ACTIVE') return 'active';
+    return 'all';
+  }
+
+  applyQuickFilter(filter) {
+    const nextFilters = { ...this.filters };
+    delete nextFilters.status;
+    delete nextFilters.expiry;
+
+    if (filter === 'active') {
+      nextFilters.status = 'ACTIVE';
+    } else if (filter === 'expiring') {
+      nextFilters.expiry = 'critical';
+    } else if (filter === 'expired') {
+      nextFilters.expiry = 'expired';
+    }
+
+    this.filters = nextFilters;
+    this.currentPage = 1;
+    this.render();
+  }
+
   getFilteredData() {
     let result = [...this.options.data];
 
@@ -165,19 +237,36 @@ class DataTable {
     const filteredData = this.getFilteredData();
     const totalRecords = filteredData.length;
     const totalPages = Math.ceil(totalRecords / this.options.pageSize) || 1;
+    const summary = this.getFilterSummary(filteredData);
 
     if (this.currentPage > totalPages) this.currentPage = totalPages;
 
     const startIdx = (this.currentPage - 1) * this.options.pageSize;
     const endIdx = Math.min(startIdx + this.options.pageSize, totalRecords);
     const paginatedData = filteredData.slice(startIdx, endIdx);
+    const activeFilter = this.getActiveQuickFilter();
 
     // Build Table HTML
     let html = `
+      <div class="table-utility-bar">
+        <div class="table-summary">
+          <span class="summary-pill">All ${summary.total}</span>
+          <span class="summary-pill success">Active ${summary.active}</span>
+          <span class="summary-pill warning">Expiring ${summary.critical}</span>
+          <span class="summary-pill danger">Expired ${summary.expired}</span>
+        </div>
+        <div class="table-filter-chips">
+          <button class="filter-pill ${activeFilter === 'all' ? 'active' : ''}" data-filter="all">All</button>
+          <button class="filter-pill ${activeFilter === 'active' ? 'active' : ''}" data-filter="active">Active</button>
+          <button class="filter-pill ${activeFilter === 'expiring' ? 'active' : ''}" data-filter="expiring">Expiring</button>
+          <button class="filter-pill ${activeFilter === 'expired' ? 'active' : ''}" data-filter="expired">Expired</button>
+        </div>
+      </div>
       <div class="table-container animate-fade-in">
-        <table>
-          <thead class="table-header">
-            <tr>
+        <div class="table-scroll-wrapper">
+          <table>
+            <thead class="table-header">
+              <tr>
     `;
 
     // Headers
@@ -192,6 +281,9 @@ class DataTable {
       html += `<th class="${thClass}" data-key="${col.key}">${col.label}</th>`;
     });
 
+    // Alert column
+    html += `<th class="no-print">Alert</th>`;
+
     // Actions Header if write operations exist
     html += `<th class="no-print" style="text-align: right;">Actions</th></tr></thead><tbody class="table-body">`;
 
@@ -199,7 +291,7 @@ class DataTable {
     if (paginatedData.length === 0) {
       html += `
         <tr>
-          <td colspan="${this.options.columns.length + 1}" style="text-align: center; padding: var(--space-8); color: var(--color-text-muted);">
+          <td colspan="${this.options.columns.length + 2}" style="text-align: center; padding: var(--space-8); color: var(--color-text-muted);">
             No records found.
           </td>
         </tr>
@@ -218,6 +310,8 @@ class DataTable {
           html += `<td>${cellVal}</td>`;
         });
 
+        html += `<td>${this.getExpiryBadge(row)}</td>`;
+
         // Action cell buttons
         const isGM = window.Auth && window.Auth.getUser() && window.Auth.getUser().role === 'GM';
         html += `
@@ -234,19 +328,17 @@ class DataTable {
       });
     }
 
-    html += `</tbody></table>`;
-
-    // Paging Footer
-    html += `
-      <div class="table-pagination no-print">
-        <div>Showing <strong>${totalRecords === 0 ? 0 : startIdx + 1}</strong> to <strong>${endIdx}</strong> of <strong>${totalRecords}</strong> records</div>
-        <div class="pagination-controls">
-          <button class="btn btn-secondary btn-sm btn-page-prev" ${this.currentPage === 1 ? 'disabled' : ''}>Previous</button>
-          <span style="margin: 0 var(--space-2);">Page ${this.currentPage} of ${totalPages}</span>
-          <button class="btn btn-secondary btn-sm btn-page-next" ${this.currentPage === totalPages ? 'disabled' : ''}>Next</button>
+    html += `</tbody></table>
         </div>
-      </div>
-    </div>`;
+        <div class="table-pagination no-print">
+          <div>Showing <strong>${totalRecords === 0 ? 0 : startIdx + 1}</strong> to <strong>${endIdx}</strong> of <strong>${totalRecords}</strong> records</div>
+          <div class="pagination-controls">
+            <button class="btn btn-secondary btn-sm btn-page-prev" ${this.currentPage === 1 ? 'disabled' : ''}>Previous</button>
+            <span style="margin: 0 var(--space-2);">Page ${this.currentPage} of ${totalPages}</span>
+            <button class="btn btn-secondary btn-sm btn-page-next" ${this.currentPage === totalPages ? 'disabled' : ''}>Next</button>
+          </div>
+        </div>
+      </div>`;
 
     this.container.innerHTML = html;
     this.bindTableEvents();
@@ -291,6 +383,13 @@ class DataTable {
       btn.addEventListener('click', () => {
         const id = parseInt(btn.getAttribute('data-id'));
         if (this.options.onDelete) this.options.onDelete(id);
+      });
+    });
+
+    // Quick filter chips
+    this.container.querySelectorAll('.filter-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.applyQuickFilter(btn.getAttribute('data-filter'));
       });
     });
 

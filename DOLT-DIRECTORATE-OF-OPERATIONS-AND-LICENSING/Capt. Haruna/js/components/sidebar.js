@@ -4,6 +4,8 @@
 // ============================================
 
 const Sidebar = {
+  STORAGE_KEY: 'dolt_sidebar_collapsed',
+
   init() {
     this.initCollapseState();
     this.bindEvents();
@@ -11,13 +13,47 @@ const Sidebar = {
   },
 
   initCollapseState() {
-    const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
-    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+    const saved = localStorage.getItem(this.STORAGE_KEY);
+    const shouldCollapse = saved !== null ? (saved === 'true') : (window.innerWidth < 1024);
+    this.setCollapsed(shouldCollapse, false);
+  },
+
+  setCollapsed(collapsed, save = true) {
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
+    const container = document.querySelector('.app-container');
+    if (container) {
+      container.classList.toggle('sidebar-collapsed', collapsed);
+    }
+    
+    // Update toggle button state
+    const toggleBtn = document.getElementById('btnSidebarToggle');
+    if (toggleBtn) {
+      toggleBtn.setAttribute('aria-expanded', (!collapsed).toString());
+      toggleBtn.setAttribute('title', collapsed ? 'Expand Sidebar (Ctrl+B)' : 'Retract Sidebar (Ctrl+B)');
+      toggleBtn.classList.toggle('is-collapsed', collapsed);
+    }
+
+    if (save) {
+      try {
+        localStorage.setItem(this.STORAGE_KEY, collapsed.toString());
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+  },
+
+  toggle() {
+    const isCurrentlyCollapsed = document.body.classList.contains('sidebar-collapsed');
+    this.setCollapsed(!isCurrentlyCollapsed, true);
   },
 
   bindEvents() {
     window.addEventListener('hashchange', () => {
       this.updateActiveLink();
+      // On small screens, auto-retract sidebar upon navigation
+      if (window.innerWidth <= 768) {
+        this.setCollapsed(true, false);
+      }
     });
     
     // Listen to user logins/role changes to dynamically update UI write-access
@@ -25,13 +61,34 @@ const Sidebar = {
       this.applyRoleRestrictions(event.detail.role);
     });
 
+    // Toggle button in header
     const toggleBtn = document.getElementById('btnSidebarToggle');
     if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => {
-        const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
-        localStorage.setItem('sidebar-collapsed', isCollapsed);
+      toggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.toggle();
       });
     }
+
+    // Close button in sidebar header
+    const closeBtn = document.getElementById('btnSidebarClose');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.setCollapsed(true, true);
+      });
+    }
+
+    // Keyboard shortcut: Ctrl+B or Cmd+B
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
+        const tag = (document.activeElement && document.activeElement.tagName) || '';
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') {
+          e.preventDefault();
+          this.toggle();
+        }
+      }
+    });
   },
 
   updateActiveLink() {

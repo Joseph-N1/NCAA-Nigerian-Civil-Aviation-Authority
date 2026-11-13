@@ -74,13 +74,13 @@ const SettingsPage = {
             <div class="assistant-only">
               <h4 style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3); color: var(--color-accent-teal);">Reset Security Access PINs</h4>
               <p style="font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-bottom: var(--space-3);">
-                Change authorization PINs for any role (GM, Assistant 1, Assistant 2, Assistant 3).
+                Change authorization PINs for specific officers and GML.
               </p>
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3);">
-                <button id="btnResetGMPin" class="btn btn-secondary btn-sm">Set GM PIN</button>
-                <button id="btnResetAsst1Pin" class="btn btn-secondary btn-sm">Set Assistant 1 PIN</button>
-                <button id="btnResetAsst2Pin" class="btn btn-secondary btn-sm">Set Assistant 2 PIN</button>
-                <button id="btnResetAsst3Pin" class="btn btn-secondary btn-sm">Set Assistant 3 PIN</button>
+                <button id="btnResetGMPin" class="btn btn-secondary btn-sm">Set GML (DOLT) PIN</button>
+                <button id="btnResetAsst1Pin" class="btn btn-secondary btn-sm">Set Rinret Friday PIN</button>
+                <button id="btnResetAsst2Pin" class="btn btn-secondary btn-sm">Set Amira Daji PIN</button>
+                <button id="btnResetAsst3Pin" class="btn btn-secondary btn-sm">Set Galadanchi A. S. PIN</button>
               </div>
             </div>
 
@@ -163,18 +163,18 @@ const SettingsPage = {
       }
     });
 
-    // 4. PIN resets (GM + 3 named assistants)
+    // 4. PIN resets (GML + 3 named assistants)
     const resetGM = document.getElementById('btnResetGMPin');
-    if (resetGM) resetGM.addEventListener('click', () => this.promptResetPin('GM'));
+    if (resetGM) resetGM.addEventListener('click', () => this.promptResetPin('GML (DOLT)'));
 
     const resetA1 = document.getElementById('btnResetAsst1Pin');
-    if (resetA1) resetA1.addEventListener('click', () => this.promptResetPin('Assistant 1'));
+    if (resetA1) resetA1.addEventListener('click', () => this.promptResetPin('Rinret Friday'));
 
     const resetA2 = document.getElementById('btnResetAsst2Pin');
-    if (resetA2) resetA2.addEventListener('click', () => this.promptResetPin('Assistant 2'));
+    if (resetA2) resetA2.addEventListener('click', () => this.promptResetPin('Amira Daji'));
 
     const resetA3 = document.getElementById('btnResetAsst3Pin');
-    if (resetA3) resetA3.addEventListener('click', () => this.promptResetPin('Assistant 3'));
+    if (resetA3) resetA3.addEventListener('click', () => this.promptResetPin('Galadanchi Abdulrahman Suleiman'));
 
     // 5. Clear Personnel Only
     const clearPersonnel = document.getElementById('btnSettingsClearPersonnel');

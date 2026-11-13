@@ -3,7 +3,7 @@
 // Service Worker — Offline-First Caching
 // ============================================
 
-const CACHE_NAME = 'ncaa-dolt-v6';
+const CACHE_NAME = 'ncaa-dolt-v14';
 
 const STATIC_ASSETS = [
   './',
@@ -65,10 +65,26 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: Cache-first strategy for static assets
+// Fetch: Cache-first strategy for static assets, network-first for documents
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
+
+  // For HTML documents — network first, cache fallback (ensures latest updates render)
+  if (event.request.mode === 'navigate' || event.request.destination === 'document' || event.request.url.endsWith('index.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request, { ignoreSearch: true }))
+    );
+    return;
+  }
 
   // For Google Fonts — network first, cache fallback
   if (event.request.url.includes('fonts.googleapis.com') || 
@@ -80,7 +96,7 @@ self.addEventListener('fetch', (event) => {
             cache.put(event.request, response.clone());
             return response;
           })
-          .catch(() => cache.match(event.request))
+          .catch(() => cache.match(event.request, { ignoreSearch: true }))
       )
     );
     return;
@@ -88,7 +104,7 @@ self.addEventListener('fetch', (event) => {
 
   // For all other requests — cache first, network fallback
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    caches.match(event.request, { ignoreSearch: true }).then((cached) => {
       if (cached) return cached;
       return fetch(event.request).then((response) => {
         // Cache successful responses for future offline use
@@ -102,7 +118,7 @@ self.addEventListener('fetch', (event) => {
       }).catch(() => {
         // If both cache and network fail, return offline page
         if (event.request.destination === 'document') {
-          return caches.match('./index.html');
+          return caches.match('./index.html', { ignoreSearch: true });
         }
       });
     })

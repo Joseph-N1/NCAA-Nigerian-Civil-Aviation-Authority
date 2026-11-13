@@ -99,11 +99,12 @@
 }
 
 .metric-value {
-  font-size: clamp(1.8rem, 3.5vw, 2.7rem);
+  font-size: clamp(1.65rem, 2.3vw, 2.2rem);
   line-height: 1.1;
   font-weight: var(--font-weight-heavy);
-  margin: var(--space-1) 0;
+  margin: 4px 0 2px 0;
   color: var(--color-text-primary);
+  letter-spacing: -0.02em;
 }
 
 .metric-card.active .metric-value { color: var(--color-success); }
