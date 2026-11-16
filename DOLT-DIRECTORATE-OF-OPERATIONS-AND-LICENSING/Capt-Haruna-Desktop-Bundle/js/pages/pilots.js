@@ -116,8 +116,9 @@ const PilotsPage = {
             const formatted = window.DateUtils.formatDate(val);
             const urgency = window.DateUtils.getExpiryUrgency(val);
             let colorClass = '';
-            if (urgency === 'expired') colorClass = 'style="color: var(--color-danger); font-weight: bold;"';
-            if (urgency === 'critical') colorClass = 'style="color: var(--color-warning); font-weight: bold;"';
+            if (urgency === 'expired') colorClass = 'style="white-space: nowrap !important; color: var(--color-danger); font-weight: bold;"';
+            else if (urgency === 'critical') colorClass = 'style="white-space: nowrap !important; color: var(--color-warning); font-weight: bold;"';
+            else colorClass = 'style="white-space: nowrap !important;"';
             return `<span ${colorClass}>${formatted}</span>`;
           }
         },
@@ -127,7 +128,7 @@ const PilotsPage = {
           sortable: true,
           render: (val) => {
             const statusClass = val.toLowerCase();
-            return `<span class="badge badge-${statusClass}">${val}</span>`;
+            return `<span class="badge badge-${statusClass}" style="white-space: nowrap !important;">${val}</span>`;
           }
         }
       ],

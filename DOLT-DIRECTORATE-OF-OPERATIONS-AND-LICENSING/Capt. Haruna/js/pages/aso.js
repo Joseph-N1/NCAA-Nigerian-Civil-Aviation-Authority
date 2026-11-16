@@ -100,10 +100,10 @@ const ASOPage = {
           render: (val) => {
             const formatted = window.DateUtils.formatDate(val);
             const urgency = window.DateUtils.getExpiryUrgency(val);
-            let style = '';
-            if (urgency === 'expired') style = 'style="color: var(--color-danger); font-weight: bold;"';
-            if (urgency === 'critical') style = 'style="color: var(--color-warning); font-weight: bold;"';
-            return `<span ${style}>${formatted}</span>`;
+            let style = 'white-space: nowrap !important;';
+            if (urgency === 'expired') style += ' color: var(--color-danger); font-weight: bold;';
+            else if (urgency === 'critical') style += ' color: var(--color-warning); font-weight: bold;';
+            return `<span style="${style}">${formatted}</span>`;
           }
         },
         {
@@ -113,10 +113,10 @@ const ASOPage = {
           render: (val) => {
             const formatted = window.DateUtils.formatDate(val);
             const urgency = window.DateUtils.getExpiryUrgency(val);
-            let style = '';
-            if (urgency === 'expired') style = 'style="color: var(--color-danger); font-weight: bold;"';
-            if (urgency === 'critical') style = 'style="color: var(--color-warning); font-weight: bold;"';
-            return `<span ${style}>${formatted}</span>`;
+            let style = 'white-space: nowrap !important;';
+            if (urgency === 'expired') style += ' color: var(--color-danger); font-weight: bold;';
+            else if (urgency === 'critical') style += ' color: var(--color-warning); font-weight: bold;';
+            return `<span style="${style}">${formatted}</span>`;
           }
         },
         {
@@ -125,7 +125,7 @@ const ASOPage = {
           sortable: true,
           render: (val) => {
             const statusClass = val.toLowerCase();
-            return `<span class="badge badge-${statusClass}">${val}</span>`;
+            return `<span class="badge badge-${statusClass}" style="white-space: nowrap !important;">${val}</span>`;
           }
         }
       ],

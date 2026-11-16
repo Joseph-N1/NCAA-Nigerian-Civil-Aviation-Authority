@@ -84,6 +84,12 @@ service-account*.json
 !.vscode/settings.json
 .idea/
 .agents/
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db
+desktop.ini
+**/desktop.ini
 *.swp
 *.swo
 *~

@@ -3,7 +3,7 @@
 // Service Worker — Offline-First Caching
 // ============================================
 
-const CACHE_NAME = 'ncaa-dolt-v14';
+const CACHE_NAME = 'ncaa-dolt-v16';
 
 const STATIC_ASSETS = [
   './',
@@ -65,62 +65,28 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: Cache-first strategy for static assets, network-first for documents
+// Fetch: Network-first for all local assets to ensure instant updates on localhost, cache fallback when offline
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
-  // For HTML documents — network first, cache fallback (ensures latest updates render)
-  if (event.request.mode === 'navigate' || event.request.destination === 'document' || event.request.url.endsWith('index.html')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => caches.match(event.request, { ignoreSearch: true }))
-    );
-    return;
-  }
-
-  // For Google Fonts — network first, cache fallback
-  if (event.request.url.includes('fonts.googleapis.com') || 
-      event.request.url.includes('fonts.gstatic.com')) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then((cache) =>
-        fetch(event.request)
-          .then((response) => {
-            cache.put(event.request, response.clone());
-            return response;
-          })
-          .catch(() => cache.match(event.request, { ignoreSearch: true }))
-      )
-    );
-    return;
-  }
-
-  // For all other requests — cache first, network fallback
   event.respondWith(
-    caches.match(event.request, { ignoreSearch: true }).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        // Cache successful responses for future offline use
-        if (response.status === 200) {
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseClone);
           });
         }
         return response;
-      }).catch(() => {
-        // If both cache and network fail, return offline page
-        if (event.request.destination === 'document') {
-          return caches.match('./index.html', { ignoreSearch: true });
-        }
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(event.request, { ignoreSearch: true }).then((cached) => {
+          if (cached) return cached;
+          if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+            return caches.match('./index.html', { ignoreSearch: true });
+          }
+        });
+      })
   );
 });

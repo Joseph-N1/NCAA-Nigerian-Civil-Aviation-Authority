@@ -106,10 +106,10 @@ const FlightDispatchersPage = {
           render: (val) => {
             const formatted = window.DateUtils.formatDate(val);
             const urgency = window.DateUtils.getExpiryUrgency(val);
-            let colorStyle = '';
-            if (urgency === 'expired') colorStyle = 'style="color: var(--color-danger); font-weight: bold;"';
-            if (urgency === 'critical') colorStyle = 'style="color: var(--color-warning); font-weight: bold;"';
-            return `<span ${colorStyle}>${formatted}</span>`;
+            let colorStyle = 'white-space: nowrap !important;';
+            if (urgency === 'expired') colorStyle += ' color: var(--color-danger); font-weight: bold;';
+            else if (urgency === 'critical') colorStyle += ' color: var(--color-warning); font-weight: bold;';
+            return `<span style="${colorStyle}">${formatted}</span>`;
           }
         },
         {
@@ -118,7 +118,7 @@ const FlightDispatchersPage = {
           sortable: true,
           render: (val) => {
             const statusClass = val.toLowerCase();
-            return `<span class="badge badge-${statusClass}">${val}</span>`;
+            return `<span class="badge badge-${statusClass}" style="white-space: nowrap !important;">${val}</span>`;
           }
         }
       ],

@@ -821,12 +821,13 @@ body.theme-light .main-header {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  padding: 2px var(--space-3);
+  padding: 3px var(--space-3);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   border-radius: var(--radius-full);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 .badge-active {
   background: rgba(0, 212, 170, 0.15);

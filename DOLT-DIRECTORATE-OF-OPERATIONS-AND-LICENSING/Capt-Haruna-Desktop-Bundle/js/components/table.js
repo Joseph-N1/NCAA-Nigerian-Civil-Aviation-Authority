@@ -307,10 +307,10 @@ class DataTable {
           } else {
             cellVal = row[col.key] || 'N/A';
           }
-          html += `<td>${cellVal}</td>`;
+          html += `<td data-col="${col.key}" class="col-${col.key}">${cellVal}</td>`;
         });
 
-        html += `<td>${this.getExpiryBadge(row)}</td>`;
+        html += `<td class="col-alert">${this.getExpiryBadge(row)}</td>`;
 
         // Action cell buttons
         const isGM = window.Auth && window.Auth.getUser() && window.Auth.getUser().role === 'GM';

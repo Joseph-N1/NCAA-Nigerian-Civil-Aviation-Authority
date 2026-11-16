@@ -182,7 +182,7 @@
 
 .table-scroll-wrapper table,
 .table-container table {
-  min-width: 980px;
+  min-width: 1180px;
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
@@ -249,7 +249,89 @@
   font-size: var(--font-size-base);
   color: var(--color-text-primary);
   white-space: normal;
-  word-break: break-word;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+/* Ensure status, alert, and key identifier columns never break mid-word */
+.table-body td .badge,
+.table-body td .alert-badge,
+.badge,
+.badge-active,
+.badge-expired,
+.badge-expiring,
+.badge-suspended,
+.badge-revoked,
+.alert-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  letter-spacing: 0.05em;
+  padding: 3px 10px !important;
+}
+
+.col-licenseStatus,
+.col-status {
+  white-space: nowrap !important;
+  min-width: 115px;
+}
+
+.col-licenseNumber {
+  white-space: nowrap !important;
+  min-width: 155px;
+  font-family: monospace;
+}
+
+.col-pilotLicenseSubType,
+.col-dispatcherLicenseType,
+.col-cabinCrewLicenseType,
+.col-asoLicenseType,
+.col-feLicenseType {
+  white-space: nowrap !important;
+  min-width: 120px;
+}
+
+/* Date columns: Strictly lock to a single line */
+.col-licenseValidUntil,
+.col-competencyAuditValidUntil,
+.col-medicalValidUntil,
+.col-instrumentValidUntil,
+.col-radiotelephonyValidUntil,
+.col-dateOfFirstIssue,
+.col-dateOfLastRenewal,
+.col-alert {
+  white-space: nowrap !important;
+  min-width: 135px;
+}
+
+/* Category Badges (AME, Ratings, Specialisations) */
+.category-tag {
+  display: inline-block;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  background: rgba(0, 212, 170, 0.1);
+  border: 1px solid rgba(0, 212, 170, 0.28);
+  color: #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin: 2px 4px 2px 0;
+  line-height: 1.35;
+}
+
+/* For multi-item category lists (AME categories, ratings), allow wrapping only between badges */
+.col-ameLicenseCategory,
+.col-categoryRating,
+.col-classRatings,
+.col-typeRatings,
+.col-atsepSpecialization {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  min-width: 220px;
 }
 
 .table-body tr:last-child td {
