@@ -3,7 +3,7 @@
 // Service Worker — Offline-First Caching
 // ============================================
 
-const CACHE_NAME = 'ncaa-dolt-v16';
+const CACHE_NAME = 'ncaa-dolt-v18';
 
 const STATIC_ASSETS = [
   './',
@@ -25,6 +25,7 @@ const STATIC_ASSETS = [
   './js/pages/aso.js?v=9',
   './js/pages/atsep.js?v=9',
   './js/pages/flight-engineers.js?v=9',
+  './js/pages/validations.js?v=9',
   './js/pages/settings.js?v=9',
   './js/components/sidebar.js?v=9',
   './js/components/search.js?v=9',

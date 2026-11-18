@@ -79,7 +79,7 @@ const SettingsPage = {
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3);">
                 <button id="btnResetGMPin" class="btn btn-secondary btn-sm">Set GML (DOLT) PIN</button>
                 <button id="btnResetAsst1Pin" class="btn btn-secondary btn-sm">Set Rinret Friday PIN</button>
-                <button id="btnResetAsst2Pin" class="btn btn-secondary btn-sm">Set Amira Daji PIN</button>
+                <button id="btnResetAsst2Pin" class="btn btn-secondary btn-sm">Set Amina Daji PIN</button>
                 <button id="btnResetAsst3Pin" class="btn btn-secondary btn-sm">Set Galadanchi A. S. PIN</button>
               </div>
             </div>
@@ -171,7 +171,7 @@ const SettingsPage = {
     if (resetA1) resetA1.addEventListener('click', () => this.promptResetPin('Rinret Friday'));
 
     const resetA2 = document.getElementById('btnResetAsst2Pin');
-    if (resetA2) resetA2.addEventListener('click', () => this.promptResetPin('Amira Daji'));
+    if (resetA2) resetA2.addEventListener('click', () => this.promptResetPin('Amina Daji'));
 
     const resetA3 = document.getElementById('btnResetAsst3Pin');
     if (resetA3) resetA3.addEventListener('click', () => this.promptResetPin('Galadanchi Abdulrahman Suleiman'));

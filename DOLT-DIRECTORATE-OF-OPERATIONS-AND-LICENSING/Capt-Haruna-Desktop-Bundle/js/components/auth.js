@@ -11,7 +11,7 @@ const Auth = {
   DEFAULT_USERS: [
     { username: 'GML (DOLT)',                    pin: '1111', role: 'GM' },
     { username: 'Rinret Friday',                  pin: '2222', role: 'Assistant' },
-    { username: 'Amira Daji',                     pin: '3333', role: 'Assistant' },
+    { username: 'Amina Daji',                     pin: '3333', role: 'Assistant' },
     { username: 'Galadanchi Abdulrahman Suleiman', pin: '4444', role: 'Assistant' }
   ],
 
@@ -20,7 +20,7 @@ const Auth = {
     'GM': 'GML (DOLT)',
     'GML': 'GML (DOLT)',
     'Assistant 1': 'Rinret Friday',
-    'Assistant 2': 'Amira Daji',
+    'Assistant 2': 'Amina Daji',
     'Assistant 3': 'Galadanchi Abdulrahman Suleiman',
     'Assistant': 'Rinret Friday'
   },

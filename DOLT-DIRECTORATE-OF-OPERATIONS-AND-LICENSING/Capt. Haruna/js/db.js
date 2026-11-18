@@ -28,6 +28,10 @@ db.version(1).stores({
   drafts: '++id, category, lastModified'
 });
 
+db.version(2).stores({
+  validations: '++id, personnelId, licenseNumber, validationDate, employer, medicalExaminer, validationType'
+});
+
 // ============================================
 // Personnel Record Factory
 // Creates a new record object with all common fields
@@ -443,6 +447,75 @@ const DB = {
     return stats;
   },
 
+  // ---- Validations ----
+  async recordValidation(personnelId, valData, username) {
+    const existing = await db.personnel.get(Number(personnelId));
+    if (!existing) throw new Error(`Personnel record #${personnelId} not found.`);
+
+    const now = new Date().toISOString();
+    const validationEntry = {
+      personnelId: Number(personnelId),
+      licenseNumber: existing.licenseNumber,
+      category: existing.category,
+      validationType: valData.validationType || 'RENEWAL',
+      validationDate: valData.validationDate || now.split('T')[0],
+      licenseValidUntil: valData.licenseValidUntil || existing.licenseValidUntil,
+      employer: valData.employer || existing.employerOrganisation || '',
+      previousEmployer: valData.previousEmployer || existing.employerOrganisation || '',
+      medicalExaminer: valData.medicalExaminer || existing.medicalExaminer || '',
+      medicalClass: valData.medicalClass || existing.medicalClass || '',
+      medicalValidUntil: valData.medicalValidUntil || existing.medicalValidUntil || '',
+      remarks: valData.remarks || '',
+      approvingOfficer: username || 'Licensing Desk',
+      createdAt: now
+    };
+
+    if (db.validations) {
+      await db.validations.add(validationEntry);
+    }
+
+    // Update personnel record
+    const updates = {
+      dateOfLastRenewal: validationEntry.validationDate,
+      licenseValidUntil: validationEntry.licenseValidUntil,
+      licenseStatus: 'ACTIVE',
+      employerOrganisation: validationEntry.employer,
+      medicalExaminer: validationEntry.medicalExaminer,
+      medicalClass: validationEntry.medicalClass,
+      medicalValidUntil: validationEntry.medicalValidUntil,
+      remarks: validationEntry.remarks || existing.remarks
+    };
+
+    await this.updatePersonnel(Number(personnelId), updates, username);
+
+    // Also record dedicated audit trail entry for validation event
+    await db.auditTrail.add({
+      personnelId: Number(personnelId),
+      licenseNumber: existing.licenseNumber,
+      fieldChanged: 'validation_recorded',
+      oldValue: JSON.stringify({ employer: existing.employerOrganisation, licenseValidUntil: existing.licenseValidUntil }),
+      newValue: JSON.stringify(validationEntry),
+      timestamp: now,
+      changedBy: username || 'system'
+    });
+
+    return validationEntry;
+  },
+
+  async getValidations(personnelId) {
+    if (db.validations) {
+      return await db.validations.where('personnelId').equals(Number(personnelId)).reverse().toArray();
+    }
+    return [];
+  },
+
+  async getAllValidations() {
+    if (db.validations) {
+      return await db.validations.toArray();
+    }
+    return [];
+  },
+
   // ---- Audit Trail ----
   async getAuditTrail(personnelId) {
     return await db.auditTrail.where('personnelId').equals(personnelId).reverse().toArray();
@@ -520,6 +593,7 @@ const DB = {
     const personnel = await db.personnel.toArray();
     const auditTrail = await db.auditTrail.toArray();
     const settings = await db.settings.toArray();
+    const validationsExport = db.validations ? await db.validations.toArray() : [];
     
     // Convert photos to base64 for JSON export
     const personnelExport = await Promise.all(personnel.map(async (p) => {
@@ -540,7 +614,8 @@ const DB = {
       appName: 'NCAA DOLT License Manager',
       personnel: personnelExport,
       auditTrail,
-      settings
+      settings,
+      validations: validationsExport
     };
   },
 
@@ -560,13 +635,17 @@ const DB = {
       return p;
     }));
 
-    await db.transaction('rw', db.personnel, db.auditTrail, async () => {
+    await db.transaction('rw', db.personnel, db.auditTrail, ...(db.validations ? [db.validations] : []), async () => {
       await db.personnel.clear();
       await db.auditTrail.clear();
       await db.personnel.bulkAdd(personnel);
       if (jsonData.auditTrail) {
         const trails = jsonData.auditTrail.map(a => { delete a.id; return a; });
         await db.auditTrail.bulkAdd(trails);
+      }
+      if (jsonData.validations && db.validations) {
+        const vals = jsonData.validations.map(v => { delete v.id; return v; });
+        await db.validations.bulkAdd(vals);
       }
     });
 
@@ -600,6 +679,7 @@ const DB = {
   settings: db.settings,
   users: db.users,
   drafts: db.drafts,
+  validations: db.validations,
 
   // Reference to Dexie instance for advanced operations
   _db: db

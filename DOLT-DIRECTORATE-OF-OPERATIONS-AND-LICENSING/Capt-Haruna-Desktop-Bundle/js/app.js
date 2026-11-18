@@ -171,7 +171,8 @@ const App = {
 
   route() {
     const hash = window.location.hash || '#dashboard';
-    const pageName = hash.replace('#', '');
+    const pageName = hash.replace('#', '').split('?')[0].split('/')[0];
+    console.log('[Router] Navigating to:', pageName);
     const container = document.getElementById('pageContainer');
     
     if (!container) return;
@@ -211,22 +212,36 @@ const App = {
       case 'flight-engineers':
         this.currentPageModule = window.FlightEngineersPage;
         break;
+      case 'validations':
+        this.currentPageModule = window.ValidationsPage;
+        break;
       case 'settings':
         this.currentPageModule = window.SettingsPage;
         break;
       default:
+        console.warn('[Router] Unknown route "' + pageName + '", redirecting to dashboard');
         this.currentPageModule = window.DashboardPage;
         window.location.hash = '#dashboard';
     }
 
     if (this.currentPageModule) {
-      this.currentPageModule.render(container);
+      try {
+        this.currentPageModule.render(container);
+      } catch (renderErr) {
+        console.error('[Router] Error rendering page "' + pageName + '":', renderErr);
+      }
       
       // Re-apply role restrictions to new HTML elements
       const user = window.Auth.getUser();
       if (user && window.Sidebar && window.Sidebar.applyRoleRestrictions) {
         window.Sidebar.applyRoleRestrictions(user.role);
       }
+    } else {
+      console.error('[Router] Module for page "' + pageName + '" is undefined! Available modules:', {
+        DashboardPage: typeof window.DashboardPage,
+        ValidationsPage: typeof window.ValidationsPage,
+        PilotsPage: typeof window.PilotsPage
+      });
     }
   },
 

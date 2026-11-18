@@ -198,3 +198,6 @@ ehthumbs.db
 # Optional: keep local backup or transfer artifacts out of Git
 **/*backup*
 **/*Backup*
+
+# Local test sample data
+**/NCAA_DOLT_*_Test_Sample.json
